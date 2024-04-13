@@ -1,17 +1,16 @@
 package hic.logging;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import com.jacob.activeX.ActiveXComponent;
+import com.jacob.com.Dispatch;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import hic.util.HICData;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 
 import java.awt.*;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 public class HICExcelLogger {
@@ -29,7 +28,7 @@ public class HICExcelLogger {
         return instance;
     }
 
-    public void logHICData(List<HICData> hicData, String filePath) {
+    public void logHICData(List<HICData> hicData, String filePath, boolean addCellTypeLabel) {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("HICData");
             int rowNum = 0;
@@ -42,8 +41,20 @@ public class HICExcelLogger {
                 cell.setCellValue(headers[i]);
             }
 
+            String currentCellType = null;
+
             // Write HICData to rows
             for (HICData data : hicData) {
+
+                if (addCellTypeLabel) {
+                    if (!data.getCellType().equals(currentCellType)) {
+                        Row cellTypeLabelRow = sheet.createRow(rowNum++);
+                        Cell cellTypeLabelCell = cellTypeLabelRow.createCell(0);
+                        cellTypeLabelCell.setCellValue(data.getCellType());
+                        currentCellType = data.getCellType();
+                    }
+                }
+
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(data.getID());
                 row.createCell(1).setCellValue(data.getOrderNumber());
@@ -63,6 +74,86 @@ public class HICExcelLogger {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void convertToWordLabels(String excelDocName, String wordDocName) {
+        try (FileInputStream excelInputStream = new FileInputStream(new File(excelDocName));
+             Workbook workbook = WorkbookFactory.create(excelInputStream);
+             FileOutputStream wordOutputStream = new FileOutputStream(new File(wordDocName))) {
+
+            // Get the first sheet of the workbook
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Create a new Word document
+            XWPFDocument document = new XWPFDocument();
+
+            // Iterate through the rows of the sheet
+            for (Row row : sheet) {
+                // Check if the row contains a cell type label
+                Cell cell = row.getCell(0);
+                if (cell != null && cell.getCellType() == CellType.STRING) {
+                    String cellTypeLabel = cell.getStringCellValue();
+                    // Insert the cell type label into the Word document
+                    XWPFParagraph paragraph = document.createParagraph();
+                    XWPFRun run = paragraph.createRun();
+                    run.setText(cellTypeLabel);
+                }
+            }
+
+            // Write the Word document to file
+            document.write(wordOutputStream);
+            System.out.println("Labels inserted into Word document successfully.");
+
+            // Perform Microsoft Word automation for mail merge
+            performWordMailMerge(wordDocName);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void performWordMailMerge(String wordDocName) {
+        // Initialize Jacob
+        ActiveXComponent word = new ActiveXComponent("Word.Application");
+
+        try {
+            // Make Word visible
+            word.setProperty("Visible", true);
+
+            // Open the Word document
+            Dispatch documents = word.getProperty("Documents").toDispatch();
+            Dispatch document = Dispatch.call(documents, "Open", wordDocName).toDispatch();
+
+            // Access the MailMerge interface
+            Dispatch mailMerge = Dispatch.get(document, "MailMerge").toDispatch();
+
+            // Navigate to the "Mailings" tab
+            Dispatch activeWindow = Dispatch.get(word, "ActiveWindow").toDispatch();
+            Dispatch tabControl = Dispatch.get(activeWindow, "TabControl").toDispatch();
+            Dispatch.call(tabControl, "Select", 5); // Index 5 corresponds to the Mailings tab
+
+            // Start mail merge for labels
+            Dispatch.call(mailMerge, "EditDataSource");
+            Dispatch.call(mailMerge, "CreateDataSource", wordDocName, "Table1");
+            Dispatch.call(mailMerge, "OpenDataSource", wordDocName, "Table1");
+
+            // Select labels option
+            Dispatch.call(mailMerge, "ViewMailMergeFieldCodes");
+            Dispatch.call(mailMerge, "SetMailMergeDocType", 3); // 3 corresponds to labels
+            Dispatch.call(mailMerge, "ViewMergedData");
+
+            // Select Avery US Letter 5167 Return Address Labels
+            Dispatch.call(mailMerge, "SetupDialog");
+
+            // Close Word document
+            Dispatch.call(document, "Close", false);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close Word application
+            Dispatch.call(word, "Quit", false);
         }
     }
 

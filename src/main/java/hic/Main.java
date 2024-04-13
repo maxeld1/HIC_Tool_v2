@@ -3,6 +3,7 @@ import hic.logging.HICExcelLogger;
 import hic.processor.Processor;
 import hic.util.HICData;
 
+import java.io.File;
 import java.sql.SQLOutput;
 import java.util.List;
 
@@ -21,11 +22,14 @@ public class Main {
 
         System.out.println();
 
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc.xlsx");
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
 
         processor.sortByCellTypeAndDateTime(hicData);
 
-        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc2.xlsx");
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HICdoc2.xlsx", true);
+
+
+        hicExcelLogger.convertToWordLabels("HICdoc2.xlsx", "labelsTest.docx");
 
 
     }
