@@ -1,9 +1,11 @@
-package processor;
+package hic.processor;
 
-import datamanagement.FileReader;
-import util.HICData;
+import hic.datamanagement.FileReader;
+import hic.util.HICData;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 public class Processor {
 

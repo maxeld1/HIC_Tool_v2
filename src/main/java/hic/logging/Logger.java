@@ -1,4 +1,4 @@
-package logging;
+package hic.logging;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -1,6 +1,6 @@
-package datamanagement;
+package hic.datamanagement;
 
-import util.HICData;
+import hic.util.HICData;
 
 import java.text.ParseException;
 import java.util.List;

@@ -1,6 +1,6 @@
-package datamanagement;
+package hic.datamanagement;
 
-import util.HICData;
+import hic.util.HICData;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
