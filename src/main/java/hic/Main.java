@@ -3,6 +3,7 @@ import hic.logging.HICExcelLogger;
 import hic.processor.Processor;
 import hic.util.HICData;
 
+import java.sql.SQLOutput;
 import java.util.List;
 
 public class Main {
@@ -18,9 +19,13 @@ public class Main {
 
         processor.printSummary(hicData);
 
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\Downloads");
+        System.out.println();
+
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc.xlsx");
 
         processor.sortByCellTypeAndDateTime(hicData);
+
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc2.xlsx");
 
 
     }

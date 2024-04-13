@@ -138,7 +138,7 @@ public class Processor {
 
         // Sort the list using the custom comparator
         hicData.sort(customComparator);
-        System.out.println(hicData);
+        //System.out.println(hicData);
     }
 
 

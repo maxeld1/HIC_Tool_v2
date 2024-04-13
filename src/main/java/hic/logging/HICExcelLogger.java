@@ -7,6 +7,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import hic.util.HICData;
 
+import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -33,7 +36,7 @@ public class HICExcelLogger {
 
             // Create headers
             Row headerRow = sheet.createRow(rowNum++);
-            String[] headers = {"Request ID", "Request Date", "Name", "Cell Type", "Max Request", "Min Request"};
+            String[] headers = {"Order #", "Request Date", "Name", "Cell Type", "Max Request", "Min Request"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -55,10 +58,19 @@ public class HICExcelLogger {
                 workbook.write(fileOut);
                 System.out.println("HICData logged to Excel file successfully.");
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("The file could not be saved to that directory: " + e.getMessage());
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void openExcelFile(byte[] excelData) {
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(excelData);
+            Desktop.getDesktop().open(new File("temp.xlsx")); // Save to a temporary file
+        } catch (IOException e) {
+            System.err.println("Failed to open Excel file: " + e.getMessage());
         }
     }
 
