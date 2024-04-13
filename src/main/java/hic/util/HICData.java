@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 
 public class HICData {
 
-    private int requestID;
+    private int ID;
+    private int orderNumber;
     private LocalDateTime requestDate;
     private String name;
     private String cellType;
@@ -16,9 +17,9 @@ public class HICData {
 
 
 
-    public HICData(int requestID, LocalDateTime requestDate, String name, String cellType, double maxRequest, double minRequest) {
-
-        this.requestID = requestID;
+    public HICData(int ID, int orderNumber, LocalDateTime requestDate, String name, String cellType, double maxRequest, double minRequest) {
+        this.ID = ID;
+        this.orderNumber = orderNumber;
         this.requestDate = requestDate;
         this.name = name;
         this.cellType = cellType;
@@ -29,8 +30,13 @@ public class HICData {
     }
 
     // Getters
-    public int getRequestID() {
-        return requestID;
+
+    public int getID() {
+        return ID;
+    }
+
+    public int getOrderNumber() {
+        return orderNumber;
     }
 
     public LocalDateTime getRequestDate() {
@@ -67,7 +73,7 @@ public class HICData {
 
     @Override
     public String toString() {
-        return "[Request ID: " + requestID + ", Request Date: " + requestDate + ", Name: "
+        return "[ID: " + ID + ", Request ID: " + orderNumber + ", Request Date: " + requestDate + ", Name: "
                 + name + ", Cell Type: " + cellType + ", Max Request: " + maxRequest +
                 ", Min Request: " + minRequest  + "]";
     }

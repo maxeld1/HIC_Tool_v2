@@ -36,7 +36,7 @@ public class HICExcelLogger {
 
             // Create headers
             Row headerRow = sheet.createRow(rowNum++);
-            String[] headers = {"Order #", "Request Date", "Name", "Cell Type", "Max Request", "Min Request"};
+            String[] headers = {"ID" ,"Order #", "Request Date", "Name", "Cell Type", "Max Request", "Min Request"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -45,12 +45,13 @@ public class HICExcelLogger {
             // Write HICData to rows
             for (HICData data : hicData) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(data.getRequestID());
-                row.createCell(1).setCellValue(data.getRequestDate().toString());
-                row.createCell(2).setCellValue(data.getName());
-                row.createCell(3).setCellValue(data.getCellType());
-                row.createCell(4).setCellValue(data.getMaxRequest());
-                row.createCell(5).setCellValue(data.getMinRequest());
+                row.createCell(0).setCellValue(data.getID());
+                row.createCell(1).setCellValue(data.getOrderNumber());
+                row.createCell(2).setCellValue(data.getRequestDate().toString());
+                row.createCell(3).setCellValue(data.getName());
+                row.createCell(4).setCellValue(data.getCellType());
+                row.createCell(5).setCellValue(data.getMaxRequest());
+                row.createCell(6).setCellValue(data.getMinRequest());
             }
 
             // Write workbook to file

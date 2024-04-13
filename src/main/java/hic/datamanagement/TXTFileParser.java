@@ -35,6 +35,8 @@ public class TXTFileParser implements FileParser {
 
         StringBuilder currentRecord = new StringBuilder(); //create currentRecord stringbuilder
 
+        int IDCounter = 0;
+
         // Iterate over the lines of the file
         for (String line : lines) {
 
@@ -53,6 +55,7 @@ public class TXTFileParser implements FileParser {
 
                         // Get the request ID
                         int requestID = Integer.parseInt(tokens[0].trim());
+                        IDCounter++;
 
                         // Get the date and time
                         LocalDateTime requestDate = LocalDateTime.parse(tokens[1] + " " + tokens[2], dateTimeFormatter);
@@ -136,7 +139,7 @@ public class TXTFileParser implements FileParser {
 //                            System.out.println(recentlyCancelledDates);
 
 
-                            HICData hicDataItem = new HICData(requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
+                            HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
                             //System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {

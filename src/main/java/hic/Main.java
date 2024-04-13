@@ -25,7 +25,7 @@ public class Main {
 
         processor.sortByCellTypeAndDateTime(hicData);
 
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc2.xlsx");
+        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\OneDrive\\Documents\\HICdoc2.xlsx");
 
 
     }
