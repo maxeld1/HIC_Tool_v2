@@ -1,4 +1,4 @@
-//package ui;
+package hic.ui;//package ui;
 //
 //import edu.upenn.cit594.datamanagement.FileReader;
 //import edu.upenn.cit594.processor.AverageMarketValueProcessor;
