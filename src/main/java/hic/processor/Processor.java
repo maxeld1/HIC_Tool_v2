@@ -3,6 +3,7 @@ package hic.processor;
 import hic.datamanagement.FileReader;
 import hic.util.HICData;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -19,8 +20,11 @@ public class Processor {
      * Method to calculate total cell counts and print summary of orders
      * @param hicData to investigate
      */
-    public void printSummary(List<HICData> hicData) {
+    public List<Double> printHICSummary(List<HICData> hicData) {
 
+        List<Double> maxAndMinOrders = new ArrayList<>();
+
+        // Initialize variables to store order #, max requests, min requests
         int totalOrders = 0;
 
         int cd4Orders = 0;
@@ -46,6 +50,7 @@ public class Processor {
         double bMax = 0;
         double bMin = 0;
 
+        // Iterate over the hic data to extract the max and min requests
         for (HICData data : hicData) {
 
             if (Objects.equals(data.getCellType(), "CD4+")) {
@@ -79,24 +84,94 @@ public class Processor {
             }
         }
 
+        // Add total orders for each cell type to totalOrders variable
         totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders + bOrders;
 
+        // Print out the summary
         System.out.println("Summary: ");
         System.out.println();
         System.out.println("               Total Requests" + "          Max   " + "     Min   ");
+        System.out.println("B Cells" + "              " + bOrders + "                 " + bMax + "        " + bMin);
         System.out.println("NK Cells" + "             " +    nkOrders  +  "                 "  + nkMax + "        " + nkMin);
         System.out.println("CD8+ T" + "               " + cd8Orders  + "                " + cd8Max + "      " + cd8Min);
         System.out.println("CD4+ T" + "               " + cd4Orders + "                " + cd4Max + "      " + cd4Min);
         System.out.println("Monocytes" + "            " + monocyteOrders + "                " + monocytesMax + "      " + monocytesMin);
         System.out.println("PBMC" + "                 " + pbmcOrders + "                 " + pbmcMax + "      " + pbmcMin);
         System.out.println("Total T" + "              " + totalTOrders + "                 " + totalTMax + "      " + totalTMin);
-        System.out.println("B Cells" + "              " + bOrders + "                 " + bMax + "        " + bMin);
         System.out.println();
         System.out.println("Total Orders: " + totalOrders);
 
+        // Add max and min cell orders to maxAndMinOrders arraylist
+        maxAndMinOrders.add(nkMax);
+        maxAndMinOrders.add(nkMin);
+        maxAndMinOrders.add(cd8Max);
+        maxAndMinOrders.add(cd8Min);
+        maxAndMinOrders.add(cd4Max);
+        maxAndMinOrders.add(cd4Min);
+        maxAndMinOrders.add(monocytesMax);
+        maxAndMinOrders.add(monocytesMin);
+        maxAndMinOrders.add(pbmcMax);
+        maxAndMinOrders.add(pbmcMin);
+        maxAndMinOrders.add(totalTMax);
+        maxAndMinOrders.add(totalTMin);
+        maxAndMinOrders.add(bMax);
+        maxAndMinOrders.add(bMin);
+
+        //System.out.println(maxAndMinOrders);
+        return maxAndMinOrders;
     }
 
-    public void calculateApheresisNeeded(List<HICData> hicData) {
+    public void calculateApheresisNeeded(List<Double> maxAndMinRequests) {
+
+        double nkMaxNeeded;
+        double nkMinNeeded;
+        double cd8MaxNeeded;
+        double cd8MinNeeded;
+        double cd4MaxNeeded;
+        double cd4MinNeeded;
+        double monocytesMaxNeeded;
+        double monocytesMinNeeded;
+        double totalTMaxNeeded;
+        double totalTMinNeeded;
+        double bMaxNeeded;
+        double bMinNeeded;
+
+        double totalMaxNeeded = 0;
+        double totalMinNeeded = 0;
+
+        // Calculate apheresis needed for each cell type/request type
+        nkMaxNeeded = (maxAndMinRequests.get(0) * 20) / 40;
+        nkMinNeeded = (maxAndMinRequests.get(1) * 20) / 40;
+
+        cd8MaxNeeded = (maxAndMinRequests.get(2) * 17) / 40;
+        cd8MinNeeded = (maxAndMinRequests.get(3) * 17) / 40;
+
+        cd4MaxNeeded = (maxAndMinRequests.get(4) * 5) / 40;
+        cd4MinNeeded = (maxAndMinRequests.get(5) * 5) / 40;
+
+        monocytesMaxNeeded = (maxAndMinRequests.get(6) * 7) / 40;
+        monocytesMinNeeded = (maxAndMinRequests.get(7) * 7) / 40;
+
+        totalTMaxNeeded = (maxAndMinRequests.get(10) * 4) / 40;
+        totalTMinNeeded = (maxAndMinRequests.get(11) * 4) / 40;
+
+        bMaxNeeded = (maxAndMinRequests.get(12) * 20) / 40;
+        bMinNeeded = (maxAndMinRequests.get(13) * 20) / 40;
+
+        totalMaxNeeded += nkMaxNeeded + cd8MaxNeeded + cd4MaxNeeded + monocytesMaxNeeded + totalTMaxNeeded + bMaxNeeded;
+        totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
+
+        // Print out the summary
+        System.out.println("Summary of Apheresis Required: ");
+        System.out.println();
+        System.out.println("                    Max   " + "     Min   ");
+        System.out.println("B Cells" + "             "  + bMaxNeeded + "        " + bMinNeeded);
+        System.out.println("NK Cells" + "            "   + nkMaxNeeded + "        " + nkMinNeeded);
+        System.out.println("CD8+ T" + "              "   + cd8MaxNeeded + "    " + cd8MinNeeded);
+        System.out.println("CD4+ T" + "              " +  cd4MaxNeeded + "       " + cd4MinNeeded);
+        System.out.println("Monocytes" + "           "  + monocytesMaxNeeded + "     " + monocytesMinNeeded);
+        System.out.println("Total T" + "             " + totalTMaxNeeded + "       " + totalTMinNeeded);
+        System.out.println("Total Volume:       " + totalMaxNeeded + "     " + totalMinNeeded);
 
     }
 

@@ -3,33 +3,38 @@ import hic.logging.HICExcelLogger;
 import hic.processor.Processor;
 import hic.util.HICData;
 
-import java.io.File;
-import java.sql.SQLOutput;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
 
-        HICExcelLogger hicExcelLogger = HICExcelLogger.getInstance();
-        FileReader fileReader = FileReader.getInstance();
-        Processor processor = new Processor(fileReader);
+        HICExcelLogger hicExcelLogger = HICExcelLogger.getInstance(); //get instance of HICExcelLogger
+        FileReader fileReader = FileReader.getInstance(); //get instance of FileReader
+        Processor processor = new Processor(fileReader); //initialize the processor
 
-        List<HICData> hicData =  fileReader.parseFile("sample_hic_file.txt");
+        List<HICData> hicData =  fileReader.parseFile("sample_hic_file.txt"); //parse the HIC file
 
-        //System.out.println(hicData);
+        //System.out.println(hicData); //print out HIC data records
 
-        processor.printSummary(hicData);
+        List<Double> maxAndMinRequests = processor.printHICSummary(hicData); //get the max and min requests
 
         System.out.println();
 
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
+        processor.calculateApheresisNeeded(maxAndMinRequests); //calculate the amount of apheresis needed
 
+        System.out.println();
+
+        // Export HIC data to excel sheet (unsorted)
+        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
+
+        // Sort the hicData by cell type and date/time
         processor.sortByCellTypeAndDateTime(hicData);
 
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HICdoc2.xlsx", true);
+        // Export the sorted HIC data to excel sheet
+        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
 
-
-        //hicExcelLogger.convertToWordLabels("HICdoc2.xlsx", "labelsTest.docx");
+        // Export HIC data to labels word doc
+        hicExcelLogger.exportToWord(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Labels_TEST.docx");
 
 
     }
