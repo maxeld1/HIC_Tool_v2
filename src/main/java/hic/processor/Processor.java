@@ -96,6 +96,10 @@ public class Processor {
 
     }
 
+    public void calculateApheresisNeeded(List<HICData> hicData) {
+
+    }
+
 
     public void sortByCellTypeAndDateTime(List<HICData> hicData) {
         // Define a custom comparator

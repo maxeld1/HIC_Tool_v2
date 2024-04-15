@@ -29,7 +29,7 @@ public class Main {
         hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HICdoc2.xlsx", true);
 
 
-        hicExcelLogger.convertToWordLabels("HICdoc2.xlsx", "labelsTest.docx");
+        //hicExcelLogger.convertToWordLabels("HICdoc2.xlsx", "labelsTest.docx");
 
 
     }
