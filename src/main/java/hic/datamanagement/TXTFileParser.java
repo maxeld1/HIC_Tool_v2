@@ -113,35 +113,10 @@ public class TXTFileParser implements FileParser {
                             }
                         }
 
-//                            // Get the request type
-//                            String requestType = null;
-//                            if (!tokens[7].trim().isEmpty()) {
-//                                requestType = tokens[7].replaceAll("\"", "").trim();
-//                            }
-//
-//                            System.out.println(requestType);
-//
-//
-//                            // Get the comment
-//                            String comment = null;
-//                            if (!tokens[8].trim().isEmpty() || !(tokens[8].equals("-"))) {
-//                                comment = tokens[8].replaceAll("\"", "").trim();
-//                            }
-//
-//                            System.out.println(comment);
-//
-//                            // Get the recently cancelled dates
-//                            String recentlyCancelledDates = null;
-//                            if (!tokens[9].trim().isEmpty()) {
-//                                recentlyCancelledDates = tokens[9].replaceAll("\"", "").trim();
-//                            }
-//
-//                            System.out.println(recentlyCancelledDates);
-
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
-                            //System.out.println(hicDataItem);
+                            System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());
                     }

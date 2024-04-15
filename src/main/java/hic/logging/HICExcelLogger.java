@@ -28,6 +28,12 @@ public class HICExcelLogger {
         return instance;
     }
 
+    /**
+     * Method to export HIC data to an excel sheet specified
+     * @param hicData as input
+     * @param filePath to export to
+     * @param addCellTypeLabel to specify whether the sheet should have cell type labels
+     */
     public void logHICData(List<HICData> hicData, String filePath, boolean addCellTypeLabel) {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("HICData");
@@ -77,7 +83,85 @@ public class HICExcelLogger {
         }
     }
 
+    /**
+     * Method to export hic data into labels
+     * @param hicData as input
+     * @param wordTemplatePath to duplicate and write to
+     * @param wordFilePath to export to
+     */
+    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath) {
+        try {
+            // Open the Word document template
+            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+                int dataIndex = 0;
 
+                // Iterate over each paragraph (row) in the document
+                for (XWPFTable table : doc.getTables()) {
+                    for (XWPFTableRow row : table.getRows()) {
+                        // Iterate over each cell (label) in the row
+                        for (XWPFTableCell cell : row.getTableCells()) {
+                            // Replace merge fields in each cell with data from hicData
+                            replaceMergeFields(cell, hicData.get(dataIndex));
+
+                            // Move to the next record in hicData
+                            dataIndex++;
+
+                            // Break if we reached the end of hicData
+                            if (dataIndex >= hicData.size()) {
+                                break;
+                            }
+                        }
+                        // Break if we reached the end of hicData
+                        if (dataIndex >= hicData.size()) {
+                            break;
+                        }
+                    }
+                    // Break if we reached the end of hicData
+                    if (dataIndex >= hicData.size()) {
+                        break;
+                    }
+                }
+
+                // Save the populated document
+                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+                    doc.write(out);
+                    System.out.println("HICData logged to Word file successfully.");
+                } catch (IOException e) {
+                    System.err.println("Error saving the Word file: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void replaceMergeFields(XWPFTableCell cell, HICData data) {
+        // Replace merge fields with data
+        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+            for (XWPFRun run : paragraph.getRuns()) {
+                String text = run.getText(0);
+                if (text != null && !text.isEmpty()) {
+                    text = text.replace("<<ID>>", String.valueOf(data.getID()));
+                    text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
+                    text = text.replace("<<Name>>", String.valueOf(data.getName()));
+                    text = text.replace("<<Max>>", String.valueOf((int)data.getMaxRequest()));
+                    text = text.replace("<<Min>>", String.valueOf((int)data.getMinRequest()));
+
+                    run.setText(text, 0);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+}
+
+// FIRST ITERATION
 //    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath) {
 //        try {
 //            // Duplicate the template document
@@ -102,75 +186,76 @@ public class HICExcelLogger {
 //        }
 //    }
 
-    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath) {
-        try {
-            // Open the Word document template
-            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
-                int labelIndex = 0;
+//SECOND ITERATION
+//    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath) {
+//        try {
+//            // Open the Word document template
+//            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+//                int labelIndex = 0;
+//
+//                // Iterate over each paragraph (label) in the document
+//                for (XWPFParagraph paragraph : doc.getParagraphs()) {
+//                    // Replace merge fields in each paragraph with data from hicData
+//                    replaceMergeFields(paragraph, hicData.get(labelIndex));
+//
+//                    // Move to the next record in hicData
+//                    labelIndex++;
+//
+//                    // Break if we reached the end of hicData
+//                    if (labelIndex >= hicData.size()) {
+//                        break;
+//                    }
+//                }
+//
+//                // Save the populated document
+//                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+//                    doc.write(out);
+//                    System.out.println("HICData logged to Word file successfully.");
+//                } catch (IOException e) {
+//                    System.err.println("Error saving the Word file: " + e.getMessage());
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-                // Iterate over each paragraph (label) in the document
-                for (XWPFParagraph paragraph : doc.getParagraphs()) {
-                    // Replace merge fields in each paragraph with data from hicData
-                    replaceMergeFields(paragraph, hicData.get(labelIndex));
-
-                    // Move to the next record in hicData
-                    labelIndex++;
-
-                    // Break if we reached the end of hicData
-                    if (labelIndex >= hicData.size()) {
-                        break;
-                    }
-                }
-
-                // Save the populated document
-                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
-                    doc.write(out);
-                    System.out.println("HICData logged to Word file successfully.");
-                } catch (IOException e) {
-                    System.err.println("Error saving the Word file: " + e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void replaceMergeFields(XWPFParagraph paragraph, HICData data) {
-        // Replace merge fields with data
-        for (XWPFRun run : paragraph.getRuns()) {
-            String text = run.getText(0);
-            if (text != null && !text.isEmpty()) {
-                text = text.replace("<<ID>>", String.valueOf(data.getID()));
-                text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
-                // Replace other merge fields similarly
-
-                run.setText(text, 0);
-            }
-        }
-    }
-
-    private void replaceMergeFields(XWPFDocument doc, HICData data) {
-        for (XWPFParagraph paragraph : doc.getParagraphs()) {
-            for (XWPFRun run : paragraph.getRuns()) {
-                try {
-                    String text = run.getText(0);
-                    if (text != null && !text.isEmpty()) {
-                        System.out.println("Original text: " + text); // Print out the original text for debugging
-
-                        // Replace merge fields with data
-                        text = text.replace("<<ID>>", String.valueOf(data.getID()));
-                        text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
-                        // Replace other merge fields similarly
-
-                        run.setText(text, 0);
-                    }
-                } catch (Exception e) {
-                    // Handle any exceptions gracefully
-                    System.err.println("Error replacing merge fields in run: " + e.getMessage());
-                }
-            }
-        }
-    }
+//    private void replaceMergeFields(XWPFParagraph paragraph, HICData data) {
+//        // Replace merge fields with data
+//        for (XWPFRun run : paragraph.getRuns()) {
+//            String text = run.getText(0);
+//            if (text != null && !text.isEmpty()) {
+//                text = text.replace("<<ID>>", String.valueOf(data.getID()));
+//                text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
+//                // Replace other merge fields similarly
+//
+//                run.setText(text, 0);
+//            }
+//        }
+//    }
+//
+//    private void replaceMergeFields(XWPFDocument doc, HICData data) {
+//        for (XWPFParagraph paragraph : doc.getParagraphs()) {
+//            for (XWPFRun run : paragraph.getRuns()) {
+//                try {
+//                    String text = run.getText(0);
+//                    if (text != null && !text.isEmpty()) {
+//                        System.out.println("Original text: " + text); // Print out the original text for debugging
+//
+//                        // Replace merge fields with data
+//                        text = text.replace("<<ID>>", String.valueOf(data.getID()));
+//                        text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
+//                        // Replace other merge fields similarly
+//
+//                        run.setText(text, 0);
+//                    }
+//                } catch (Exception e) {
+//                    // Handle any exceptions gracefully
+//                    System.err.println("Error replacing merge fields in run: " + e.getMessage());
+//                }
+//            }
+//        }
+//    }
 
 //    private byte[] getDataSource(List<HICData> hicData) throws IOException {
 //        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -316,4 +401,4 @@ public class HICExcelLogger {
 //        }
 //    }
 
-}
+
