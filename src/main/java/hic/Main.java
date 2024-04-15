@@ -25,16 +25,16 @@ public class Main {
         System.out.println();
 
         // Export HIC data to excel sheet (unsorted)
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
+        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
 
         // Sort the hicData by cell type and date/time
-        processor.sortByCellTypeAndDateTime(hicData);
+        //processor.sortByCellTypeAndDateTime(hicData);
 
         // Export the sorted HIC data to excel sheet
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
+        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
 
         // Export HIC data to labels word doc
-        hicExcelLogger.exportToWord(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Labels_TEST.docx");
+        //hicExcelLogger.exportToWord(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Labels_TEST.docx");
 
 
     }

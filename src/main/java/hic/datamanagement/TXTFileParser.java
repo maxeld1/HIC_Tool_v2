@@ -88,7 +88,7 @@ public class TXTFileParser implements FileParser {
                                 }
                             }
                         }
-//                            System.out.println(cellType);
+                        //System.out.println(cellType);
 
 
                         // Get the max request
