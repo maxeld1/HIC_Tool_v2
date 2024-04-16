@@ -4,9 +4,16 @@ import hic.processor.Processor;
 import hic.util.HICData;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+
+        Scanner scanner = new Scanner(System.in);
+
+        // Ask the user for the donor number
+        System.out.println("Please enter the donor number for today's isolation: ");
+        String donor = scanner.nextLine();
 
         HICExcelLogger hicExcelLogger = HICExcelLogger.getInstance(); //get instance of HICExcelLogger
         FileReader fileReader = FileReader.getInstance(); //get instance of FileReader
@@ -28,13 +35,13 @@ public class Main {
         //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
 
         // Sort the hicData by cell type and date/time
-        //processor.sortByCellTypeAndDateTime(hicData);
+        processor.sortByCellTypeAndDateTime(hicData);
 
         // Export the sorted HIC data to excel sheet
         //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
 
         // Export HIC data to labels word doc
-        //hicExcelLogger.exportToWord(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Labels_TEST.docx");
+        hicExcelLogger.exportToWord(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Labels_TEST.docx", donor);
 
 
     }

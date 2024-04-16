@@ -11,6 +11,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.List;
 
 public class HICExcelLogger {
@@ -89,7 +90,7 @@ public class HICExcelLogger {
      * @param wordTemplatePath to duplicate and write to
      * @param wordFilePath to export to
      */
-    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath) {
+    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
         try {
             // Open the Word document template
             try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
@@ -101,7 +102,7 @@ public class HICExcelLogger {
                         // Iterate over each cell (label) in the row
                         for (XWPFTableCell cell : row.getTableCells()) {
                             // Replace merge fields in each cell with data from hicData
-                            replaceMergeFields(cell, hicData.get(dataIndex));
+                            replaceMergeFields(cell, hicData.get(dataIndex), donor);
 
                             // Move to the next record in hicData
                             dataIndex++;
@@ -135,7 +136,15 @@ public class HICExcelLogger {
         }
     }
 
-    private void replaceMergeFields(XWPFTableCell cell, HICData data) {
+    /**
+     * Method to replace merge fields with HIC data
+     * @param cell for each record
+     * @param data to input
+     */
+    private void replaceMergeFields(XWPFTableCell cell, HICData data, String donor) {
+
+        LocalDate currentDate = LocalDate.now();
+
         // Replace merge fields with data
         for (XWPFParagraph paragraph : cell.getParagraphs()) {
             for (XWPFRun run : paragraph.getRuns()) {
@@ -146,6 +155,8 @@ public class HICExcelLogger {
                     text = text.replace("<<Name>>", String.valueOf(data.getName()));
                     text = text.replace("<<Max>>", String.valueOf((int)data.getMaxRequest()));
                     text = text.replace("<<Min>>", String.valueOf((int)data.getMinRequest()));
+                    text = text.replace("<<Donor>>", donor);
+                    text = text.replace("<<Date>>", String.valueOf(currentDate));
 
                     run.setText(text, 0);
                 }

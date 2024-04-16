@@ -217,44 +217,47 @@ public class Processor {
 
         // Sort the list using the custom comparator
         hicData.sort(customComparator);
-        //System.out.println(hicData);
+
+        for (HICData data : hicData) {
+            System.out.println(data);
+        }
     }
 
 
-    public void sortByCellType(List<HICData> hicData) {
-
-        // Create a custom comparator
-        Comparator<HICData> customComparator = new Comparator<HICData>() {
-
-            // Define order of cell types
-            String[] cellTypeOrder = {"NK", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T", "B"};
-
-            @Override
-            public int compare(HICData data1, HICData data2) {
-
-                // Get the index of each cell type
-                int index1 = getIndex(data1.getCellType());
-                int index2 = getIndex(data2.getCellType());
-
-                // Compare the indices to determine order
-                return Integer.compare(index1, index2);
-            }
-
-            private int getIndex(String cellType) {
-
-                for (int i = 0; i < cellTypeOrder.length; i++) {
-                    if (cellTypeOrder[i].equalsIgnoreCase(cellType)) {
-                        return i;
-                    }
-                }
-                // If the cell type is not found in the order, consider it as last
-                return cellTypeOrder.length;
-            }
-        };
-
-        hicData.sort(customComparator);
-        System.out.println(hicData);
-    }
+//    public void sortByCellType(List<HICData> hicData) {
+//
+//        // Create a custom comparator
+//        Comparator<HICData> customComparator = new Comparator<HICData>() {
+//
+//            // Define order of cell types
+//            String[] cellTypeOrder = {"NK", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T", "B"};
+//
+//            @Override
+//            public int compare(HICData data1, HICData data2) {
+//
+//                // Get the index of each cell type
+//                int index1 = getIndex(data1.getCellType());
+//                int index2 = getIndex(data2.getCellType());
+//
+//                // Compare the indices to determine order
+//                return Integer.compare(index1, index2);
+//            }
+//
+//            private int getIndex(String cellType) {
+//
+//                for (int i = 0; i < cellTypeOrder.length; i++) {
+//                    if (cellTypeOrder[i].equalsIgnoreCase(cellType)) {
+//                        return i;
+//                    }
+//                }
+//                // If the cell type is not found in the order, consider it as last
+//                return cellTypeOrder.length;
+//            }
+//        };
+//
+//        hicData.sort(customComparator);
+//        System.out.println(hicData);
+//    }
 
 
 
