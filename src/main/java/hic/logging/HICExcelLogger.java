@@ -12,6 +12,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HICExcelLogger {
@@ -98,28 +99,34 @@ public class HICExcelLogger {
 
                 // Iterate over each paragraph (row) in the document
                 for (XWPFTable table : doc.getTables()) {
-                    for (XWPFTableRow row : table.getRows()) {
-                        // Iterate over each cell (label) in the row
-                        for (XWPFTableCell cell : row.getTableCells()) {
-                            // Replace merge fields in each cell with data from hicData
-                            replaceMergeFields(cell, hicData.get(dataIndex), donor);
+                    List<XWPFTableRow> rows = table.getRows();
 
-                            // Move to the next record in hicData
-                            dataIndex++;
+                    // Iterate over each row
+                    for (XWPFTableRow row : rows) {
+                        List<XWPFTableCell> cells = row.getTableCells();
+                        List<XWPFTableCell> nonEmptyCells = new ArrayList<>();
 
-                            // Break if we reached the end of hicData
-                            if (dataIndex >= hicData.size()) {
+                        // Filter out empty cells
+                        for (XWPFTableCell cell : cells) {
+                            if (!cell.getText().trim().isEmpty()) {
+                                nonEmptyCells.add(cell);
+                            }
+                        }
+
+                        // Iterate over non-empty cells
+                        for (XWPFTableCell cell : nonEmptyCells) {
+                            // Check if data index is within bounds
+                            if (dataIndex < hicData.size()) {
+                                // Replace merge fields in each cell with data from hicData
+                                replaceMergeFields(cell, hicData.get(dataIndex), donor);
+
+                                // Increment the data index
+                                dataIndex++;
+                            } else {
+                                // If all data has been processed, exit the loop
                                 break;
                             }
                         }
-                        // Break if we reached the end of hicData
-                        if (dataIndex >= hicData.size()) {
-                            break;
-                        }
-                    }
-                    // Break if we reached the end of hicData
-                    if (dataIndex >= hicData.size()) {
-                        break;
                     }
                 }
 
@@ -136,6 +143,61 @@ public class HICExcelLogger {
         }
     }
 
+//    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
+//        try {
+//            // Open the Word document template
+//            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+//                int dataIndex = 0;
+//
+//                // Iterate over each paragraph (row) in the document
+//                for (XWPFTable table : doc.getTables()) {
+//                    List<XWPFTableRow> rows = table.getRows();
+//
+//                    // Iterate over each row
+//                    for (XWPFTableRow row : rows) {
+//                        List<XWPFTableCell> cells = row.getTableCells();
+//                        List<XWPFTableCell> nonEmptyCells = new ArrayList<>();
+//
+//                        // Filter out empty cells
+//                        for (XWPFTableCell cell : cells) {
+//                            if (!cell.getText().trim().isEmpty()) {
+//                                nonEmptyCells.add(cell);
+//                            }
+//                        }
+//
+//                        // Iterate over non-empty cells
+//                        for (XWPFTableCell cell : nonEmptyCells) {
+//                            // Check if data index is within bounds
+//                            if (dataIndex < hicData.size()) {
+//
+//                                String currentCellType = hicData.get(dataIndex).getCellType();
+//
+//                                // Replace merge fields in each cell with data from hicData
+//                                replaceMergeFields(cell, hicData.get(dataIndex), donor, currentCellType);
+//
+//                                // Increment the data index
+//                                dataIndex++;
+//                            } else {
+//                                // If all data has been processed, exit the loop
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // Save the populated document
+//                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+//                    doc.write(out);
+//                    System.out.println("HICData logged to Word file successfully.");
+//                } catch (IOException e) {
+//                    System.err.println("Error saving the Word file: " + e.getMessage());
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     /**
      * Method to replace merge fields with HIC data
      * @param cell for each record
@@ -143,7 +205,7 @@ public class HICExcelLogger {
      */
     private void replaceMergeFields(XWPFTableCell cell, HICData data, String donor) {
 
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now(); //get the local date
 
         // Replace merge fields with data
         for (XWPFParagraph paragraph : cell.getParagraphs()) {
@@ -155,7 +217,7 @@ public class HICExcelLogger {
                     text = text.replace("<<Name>>", String.valueOf(data.getName()));
                     text = text.replace("<<Max>>", String.valueOf((int)data.getMaxRequest()));
                     text = text.replace("<<Min>>", String.valueOf((int)data.getMinRequest()));
-                    text = text.replace("<<Donor>>", donor);
+                    text = text.replace("<<Donor>>", donor.toUpperCase());
                     text = text.replace("<<Date>>", String.valueOf(currentDate));
 
                     run.setText(text, 0);
@@ -163,6 +225,37 @@ public class HICExcelLogger {
             }
         }
     }
+
+//    private void replaceMergeFields(XWPFTableCell cell, HICData data, String donor, String currentCellType) {
+//        LocalDate currentDate = LocalDate.now(); // Get the local date
+//
+//        // Check if the cell already contains data
+//        if (cell.getParagraphs().isEmpty()) {
+//            // Create a new paragraph and run
+//            XWPFParagraph paragraph = cell.addParagraph();
+//            XWPFRun run = paragraph.createRun();
+//
+//            // If the cell type changes, insert the new cell type label
+//            if (!data.getCellType().equals(currentCellType)) {
+//                run.setText(data.getCellType()); // Set the cell type label
+//                currentCellType = data.getCellType(); // Update the current cell type
+//            }
+//
+//            // Replace merge fields with data
+//            String text = run.getText(0);
+//            if (text != null && !text.isEmpty()) {
+//                text = text.replace("<<ID>>", String.valueOf(data.getID()));
+//                text = text.replace("<<Order>>", String.valueOf(data.getOrderNumber()));
+//                text = text.replace("<<Name>>", String.valueOf(data.getName()));
+//                text = text.replace("<<Max>>", String.valueOf((int)data.getMaxRequest()));
+//                text = text.replace("<<Min>>", String.valueOf((int)data.getMinRequest()));
+//                text = text.replace("<<Donor>>", donor.toUpperCase());
+//                text = text.replace("<<Date>>", String.valueOf(currentDate));
+//
+//                run.setText(text, 0);
+//            }
+//        }
+//    }
 
 
 

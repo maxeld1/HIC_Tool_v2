@@ -223,6 +223,35 @@ public class Processor {
         }
     }
 
+    public List<HICData> getCD4CD8CellRecords(List<HICData> hicData) {
+
+        List<HICData> cd4Cd8Records = new ArrayList<>();
+
+        for (HICData data : hicData) {
+
+            if (Objects.equals(data.getCellType(), "CD4+") || Objects.equals(data.getCellType(), "CD8+")) {
+                cd4Cd8Records.add(data);
+            }
+        }
+
+        return cd4Cd8Records;
+    }
+
+    public List<HICData> getOtherCellTypeRecords(List<HICData> hicData) {
+
+        List<HICData> otherCellTypeRecords = new ArrayList<>();
+
+        for (HICData data : hicData) {
+
+            if (!Objects.equals(data.getCellType(), "CD4+") && !Objects.equals(data.getCellType(), "CD8+")) {
+                otherCellTypeRecords.add(data);
+            }
+        }
+
+        return otherCellTypeRecords;
+
+    }
+
 
 //    public void sortByCellType(List<HICData> hicData) {
 //
