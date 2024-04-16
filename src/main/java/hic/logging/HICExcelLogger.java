@@ -9,6 +9,7 @@ import org.apache.poi.xwpf.usermodel.*;
 
 import java.awt.*;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
@@ -151,68 +152,6 @@ public class HICExcelLogger {
 //    }
 
     //KIND OF WORKING
-    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
-        try {
-            // Open the Word document template
-            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
-                int dataIndex = 0;
-                String currentCellType = null;
-
-                // Iterate over each paragraph (row) in the document
-                for (XWPFTable table : doc.getTables()) {
-                    List<XWPFTableRow> rows = table.getRows();
-
-                    // Iterate over each row
-                    for (XWPFTableRow row : rows) {
-                        List<XWPFTableCell> cells = row.getTableCells();
-                        List<XWPFTableCell> nonEmptyCells = new ArrayList<>();
-
-                        // Filter out empty cells
-                        for (XWPFTableCell cell : cells) {
-                            if (!cell.getText().trim().isEmpty()) {
-                                nonEmptyCells.add(cell);
-                            }
-                        }
-
-                        // Check if data index is within bounds
-                        if (dataIndex < hicData.size()) {
-                            // Check if the cell type has changed
-                            if (!Objects.equals(hicData.get(dataIndex).getCellType(), currentCellType)) {
-                                // Print the cell type label in the first cell
-                                XWPFTableCell firstCell = nonEmptyCells.get(0);
-                                replaceMergeFieldsWithLabel(firstCell, hicData.get(dataIndex));
-                                currentCellType = hicData.get(dataIndex).getCellType();
-
-                                // Skip processing the first cell for data replacement
-                                nonEmptyCells = nonEmptyCells.subList(1, nonEmptyCells.size());
-                            }
-
-                            // Iterate over non-empty cells for data replacement
-                            for (XWPFTableCell cell : nonEmptyCells) {
-                                replaceMergeFields(cell, hicData.get(dataIndex), donor);
-                                dataIndex++;
-                            }
-                        } else {
-                            // If all data has been processed, exit the loop
-                            break;
-                        }
-                    }
-                }
-
-                // Save the populated document
-                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
-                    doc.write(out);
-                    System.out.println("HICData logged to Word file successfully.");
-                } catch (IOException e) {
-                    System.err.println("Error saving the Word file: " + e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
 //    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
 //        try {
 //            // Open the Word document template
@@ -237,18 +176,162 @@ public class HICExcelLogger {
 //                        }
 //
 //                        // Check if data index is within bounds
-//                        if (dataIndex < hicData.size() + 1) {
+//                        if (dataIndex < hicData.size()) {
+//                            // Check if the cell type has changed
+//                            if (!Objects.equals(hicData.get(dataIndex).getCellType(), currentCellType)) {
+//                                // Print the cell type label in the first cell
+//                                XWPFTableCell firstCell = nonEmptyCells.get(0);
+//                                replaceMergeFieldsWithLabel(firstCell, hicData.get(dataIndex));
+//                                currentCellType = hicData.get(dataIndex).getCellType();
+//
+//                                // Skip processing the first cell for data replacement
+//                                nonEmptyCells = nonEmptyCells.subList(1, nonEmptyCells.size());
+//                            }
 //
 //                            // Iterate over non-empty cells for data replacement
 //                            for (XWPFTableCell cell : nonEmptyCells) {
+//                                replaceMergeFields(cell, hicData.get(dataIndex), donor);
+//                                dataIndex++;
+//                            }
+//                        } else {
+//                            // If all data has been processed, exit the loop
+//                            break;
+//                        }
+//                    }
+//                }
 //
-//                                // Check if the cell type has changed
-//                                if (!nonEmptyCells.isEmpty()) {
+//                // Save the populated document
+//                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+//                    doc.write(out);
+//                    System.out.println("HICData logged to Word file successfully.");
+//                } catch (IOException e) {
+//                    System.err.println("Error saving the Word file: " + e.getMessage());
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+
+    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
+        try {
+            // Open the Word document template
+            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+                int dataIndex = 0;
+                XWPFTableCell cellTypeLabel = null;
+                String currentCellType = null;
+
+                // Iterate over each paragraph (row) in the document
+                for (XWPFTable table : doc.getTables()) {
+                    List<XWPFTableRow> rows = table.getRows();
+
+                    // Iterate over each row
+                    for (XWPFTableRow row : rows) {
+                        List<XWPFTableCell> cells = row.getTableCells();
+                        List<XWPFTableCell> nonEmptyCells = new ArrayList<>();
+
+                        // Filter out empty cells
+                        for (XWPFTableCell cell : cells) {
+                            if (!cell.getText().trim().isEmpty()) {
+                                nonEmptyCells.add(cell);
+                            }
+                        }
+
+                        // Check if data index is within bounds
+                        if (dataIndex < hicData.size()) {
+                            // Check if the cell type has changed
+                            if (!Objects.equals(hicData.get(dataIndex).getCellType(), currentCellType)) {
+                                // Print the cell type label in the first cell
+                                XWPFTableCell firstCell = nonEmptyCells.get(0);
+
+                                if (cellTypeLabel == null) {
+
+                                }
+                                replaceMergeFieldsWithLabel(cellTypeLabel, hicData.get(dataIndex));
+                                currentCellType = hicData.get(dataIndex).getCellType();
+
+                                // Skip processing the first cell for data replacement
+                                nonEmptyCells = nonEmptyCells.subList(1, nonEmptyCells.size());
+                            }
+
+                            // Iterate over non-empty cells for data replacement
+                            for (XWPFTableCell cell : nonEmptyCells) {
+                                replaceMergeFields(cell, hicData.get(dataIndex), donor);
+                                dataIndex++;
+                                cellTypeLabel = cell;
+                            }
+                        } else {
+                            // If all data has been processed, exit the loop
+                            break;
+                        }
+                    }
+                }
+
+                // Save the populated document
+                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+                    doc.write(out);
+                    System.out.println("HICData logged to Word file successfully.");
+                } catch (IOException e) {
+                    System.err.println("Error saving the Word file: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 //
-//                                    System.out.println("dataIndex: " + dataIndex);
-//                                    System.out.println("nonEmptyCells size: " + nonEmptyCells.size());
+//    // Method to insert cell type label before a batch of records
+//    private void insertCellTypeLabelBeforeBatch(XWPFTable table, int insertRowIndex, String cellType) {
+//        XWPFTableRow newRow = table.insertNewTableRow(insertRowIndex);
+//        XWPFTableCell newCell = newRow.createCell();
+//        newCell.setText(cellType);
+//        // Set span for the cell to cover all columns
+//        newRow.getCtRow().addNewTrPr().addNewTrHeight().setVal(BigInteger.valueOf(200));
+//        for (int i = 1; i < table.getRow(0).getTableCells().size(); i++) {
+//            XWPFTableCell cell = newRow.createCell();
+//            cell.setText("");
+//        }
+//    }
+
+
+//        public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
+//        try {
+//            // Open the Word document template
+//            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+//                int dataIndex = 0;
+//                XWPFTableCell lastCellTypeCell = null;
+//                String currentCellType = null;
 //
+//                // Iterate over each paragraph (row) in the document
+//                for (XWPFTable table : doc.getTables()) {
+//                    List<XWPFTableRow> rows = table.getRows();
 //
+//                    // Iterate over each row
+//                    for (XWPFTableRow row : rows) {
+//                        List<XWPFTableCell> cells = row.getTableCells();
+//                        List<XWPFTableCell> nonEmptyCells = new ArrayList<>();
+//
+//                        // Filter out empty cells
+//                        for (XWPFTableCell cell : cells) {
+//                            if (!cell.getText().trim().isEmpty()) {
+//                                nonEmptyCells.add(cell);
+//                            }
+//                        }
+//
+//                        // Check if data index is within bounds
+//                        if (dataIndex < hicData.size()) {
+//                            // Check if the cell type has changed
+//                            if (!Objects.equals(hicData.get(dataIndex).getCellType(), currentCellType)) {
+//                                // Print the cell type label in the first cell
+//                                //XWPFTableCell firstCell = nonEmptyCells.get(0);
+//                                if (lastCellTypeCell != null) {
+//                                    replaceMergeFieldsWithLabel(lastCellTypeCell, hicData.get(dataIndex));
+//                                    currentCellType = hicData.get(dataIndex).getCellType();
+//
+//                                    // Skip processing the first cell for data replacement
+//                                    nonEmptyCells = nonEmptyCells.subList(1, nonEmptyCells.size());
+//                                } else {
 //                                    XWPFTableCell firstCell = nonEmptyCells.get(0);
 //                                    replaceMergeFieldsWithLabel(firstCell, hicData.get(dataIndex));
 //                                    currentCellType = hicData.get(dataIndex).getCellType();
@@ -257,9 +340,16 @@ public class HICExcelLogger {
 //                                    nonEmptyCells = nonEmptyCells.subList(1, nonEmptyCells.size());
 //                                }
 //
+//                            }
+//
+//                            // Iterate over non-empty cells for data replacement
+//                            for (int i = 0; i < nonEmptyCells.size(); i++) {
+//                                XWPFTableCell cell = nonEmptyCells.get(i);
 //                                replaceMergeFields(cell, hicData.get(dataIndex), donor);
 //                                dataIndex++;
-//
+//                                if (i < nonEmptyCells.size() - 1) {
+//                                    lastCellTypeCell = nonEmptyCells.get(i + 1); // Get the next cell after cell
+//                                }
 //                            }
 //                        } else {
 //                            // If all data has been processed, exit the loop
