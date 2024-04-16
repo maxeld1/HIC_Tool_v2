@@ -19,7 +19,7 @@ public class Main {
         FileReader fileReader = FileReader.getInstance(); //get instance of FileReader
         Processor processor = new Processor(fileReader); //initialize the processor
 
-        List<HICData> hicData =  fileReader.parseFile("sample_hic_file.txt"); //parse the HIC file
+        List<HICData> hicData =  fileReader.parseFile("HIC_FILE.txt"); //parse the HIC file
 
         //System.out.println(hicData); //print out HIC data records
 
