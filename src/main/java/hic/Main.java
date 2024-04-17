@@ -37,9 +37,12 @@ public class Main {
         // Sort the hicData by cell type and date/time
         processor.sortByCellTypeAndDateTime(hicData);
 
+        // Get the CD4 and CD8 cell types in a separate list
         List<HICData> cd4Cd8List = processor.getCD4CD8CellRecords(hicData);
 
+        // Get the other cell types in a separate list
         List<HICData> otherCellTypesList = processor.getOtherCellTypeRecords(hicData);
+
 
         // Export the sorted HIC data to excel sheet
         //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
@@ -48,6 +51,6 @@ public class Main {
         hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\CD4CD8_Labels.docx", donor);
 
         // Export HIC data to labels word doc
-        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
+        //hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
     }
 }

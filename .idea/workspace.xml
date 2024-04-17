@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="labels almost working. cellTypeLabel only printing on first column- needs to print directly before each batch of celltypes">
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="working on labels">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -96,7 +97,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713286614035</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="working on labels">
+      <option name="closed" value="true" />
+      <created>1713300070156</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1713300070156</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -118,6 +127,7 @@
     <MESSAGE value="now successfully making labels (still needs work), but realizing some names are cut off" />
     <MESSAGE value="now making separate labels for CD4/CD8 and other cell types" />
     <MESSAGE value="labels almost working. cellTypeLabel only printing on first column- needs to print directly before each batch of celltypes" />
-    <option name="LAST_COMMIT_MESSAGE" value="labels almost working. cellTypeLabel only printing on first column- needs to print directly before each batch of celltypes" />
+    <MESSAGE value="working on labels" />
+    <option name="LAST_COMMIT_MESSAGE" value="working on labels" />
   </component>
 </project>
