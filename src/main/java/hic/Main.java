@@ -48,9 +48,9 @@ public class Main {
         //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
 
         // Export HIC data to labels word doc
-        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\CD4CD8_Labels.docx", donor);
+        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\CD4CD8_Labels.docx", donor);
 
         // Export HIC data to labels word doc
-        //hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
+        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
     }
 }
