@@ -196,6 +196,8 @@ public class HICExcelLogger {
         for (XWPFParagraph paragraph : cell.getParagraphs()) {
             for (XWPFRun run : paragraph.getRuns()) {
                 String text = run.getText(0);
+
+                // If the text is not null/not empty
                 if (text != null && !text.isEmpty()) {
                     text = text.replace("<<ID>>", data.getCellType());
                     text = text.replace("<<Order>>", "");
@@ -205,10 +207,36 @@ public class HICExcelLogger {
                     text = text.replace("<<Donor>>", "");
                     text = text.replace("<<Date>>", "");
 
-                    run.setText(text, 0);
+                    run.setText(text, 0); //set the position to 0
+                    run.setBold(true); //set the text to bold
+                    run.setFontSize(15); //set the font size
+
                 }
             }
         }
+    }
+
+
+    /**
+     * Calculate the font size to fit the text within the available width
+     * @param run    XWPFRun object representing the text run
+     * @param width  Available width to fit the text
+     * @return       Font size that fits the text within the available width
+     */
+    private int calculateFontSizeToFitText(XWPFRun run, int width) {
+        int fontSize = 16;
+        String text = run.getText(0);
+
+        // Measure the width of the text at the current font size
+        int textWidth = (int) (text.length() * fontSize * 0.5); // Approximation
+
+        // If the text width exceeds the available width, reduce the font size
+        while (textWidth > width) {
+            fontSize--; // Decrease font size
+            textWidth = (int) (text.length() * fontSize * 0.5); // Measure again
+        }
+
+        return fontSize;
     }
 
 

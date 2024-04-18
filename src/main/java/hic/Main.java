@@ -53,5 +53,9 @@ public class Main {
 
         // Export HIC data to labels word doc
         hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
+
+
+
+
     }
 }
