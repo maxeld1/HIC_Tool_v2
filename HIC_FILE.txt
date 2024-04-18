@@ -35,7 +35,7 @@
 36091	2024-03-25 17:05:52	Peter Deak	Monocytes	20.00	20.00	E_A	-
 #36087: 2024-04-04
 
-36112	2024-03-26 15:02:44	Oula Dagher	Total T Cells	300.00	230.00	I	Extremely urgent order for ongoing in vivo mouse model, PLEASE DON'T CANCEL. If cells available are below minimum, please contact me before cancellation. Thanks, Oula
+36112	2024-03-26 15:02:44	Oula Dagher	Total T Cells	100.00	80.00	I	Extremely urgent order for ongoing in vivo mouse model, PLEASE DON'T CANCEL. If cells available are below minimum, please contact me before cancellation. Thanks, Oula
 #36505: 2024-04-11
 
 36152	2024-03-28 11:02:35	Maureen F. Victoria	Monocytes	5.00	5.00	I	-	N/A

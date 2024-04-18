@@ -95,17 +95,19 @@ public class Processor {
         totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders + bOrders + apheresisOrders;
 
         // Print out the summary
-        System.out.println("Summary: ");
+        System.out.println("\nSummary: ");
         System.out.println();
-        System.out.println("                         Total Requests" + "          Max   " + "     Min   ");
-        System.out.println("B Cells" + "                        " + bOrders + "                 " + bMax + "        " + bMin);
-        System.out.println("NK Cells" + "                       " +    nkOrders  +  "                 "  + nkMax + "        " + nkMin);
-        System.out.println("CD8+ T" + "                         " + cd8Orders  + "                " + cd8Max + "      " + cd8Min);
-        System.out.println("CD4+ T" + "                         " + cd4Orders + "                " + cd4Max + "      " + cd4Min);
-        System.out.println("Monocytes" + "                      " + monocyteOrders + "                " + monocytesMax + "      " + monocytesMin);
-        System.out.println("PBMC" + "                           " + pbmcOrders + "                 " + pbmcMax + "      " + pbmcMin);
-        System.out.println("Total T" + "                        " + totalTOrders + "                " + totalTMax + "      " + totalTMin);
-        System.out.println("Unpurified Apheresis" + "           " + apheresisOrders + "                 " + apheresisMax + "        " + apheresisMin);
+        System.out.print("\033[1m"); // Start bold formatting
+        System.out.printf("%-30s%-20s%-10s%-10s%n", "Cell Type", "Total Requests", "Max", "Min");
+        System.out.print("\033[0m"); // Start bold formatting
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "B Cells", bOrders, bMax, bMin);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "NK Cells", nkOrders, nkMax, nkMin);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "CD8+ T", cd8Orders, cd8Max, cd8Min);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "CD4+ T", cd4Orders, cd4Max, cd4Min);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Monocytes", monocyteOrders, monocytesMax, monocytesMin);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "PBMC", pbmcOrders, pbmcMax, pbmcMin);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Total T", totalTOrders, totalTMax, totalTMin);
+        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
         System.out.println();
         System.out.println("Total Orders: " + totalOrders);
 
@@ -168,16 +170,18 @@ public class Processor {
         totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
 
         // Print out the summary
-        System.out.println("Summary of Apheresis Required: ");
+        System.out.println("\nSummary of Apheresis Required: ");
         System.out.println();
-        System.out.println("                    Max   " + "     Min   ");
-        System.out.println("B Cells" + "             "  + bMaxNeeded + "        " + bMinNeeded);
-        System.out.println("NK Cells" + "            "   + nkMaxNeeded + "        " + nkMinNeeded);
-        System.out.println("CD8+ T" + "              "   + cd8MaxNeeded + "    " + cd8MinNeeded);
-        System.out.println("CD4+ T" + "              " +  cd4MaxNeeded + "       " + cd4MinNeeded);
-        System.out.println("Monocytes" + "           "  + monocytesMaxNeeded + "     " + monocytesMinNeeded);
-        System.out.println("Total T" + "             " + totalTMaxNeeded + "       " + totalTMinNeeded);
-        System.out.println("Total Volume:       " + totalMaxNeeded + "     " + totalMinNeeded);
+        System.out.print("\033[1m"); // Start bold formatting
+        System.out.printf("%-20s%-10s%-10s%n", "Cell Type", "Max", "Min");
+        System.out.print("\033[0m"); // Reset formatting
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "B Cells", bMaxNeeded, bMinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "CD8+ T", cd8MaxNeeded, cd8MinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "CD4+ T", cd4MaxNeeded, cd4MinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded);
+        System.out.printf("%-20s%-10.2f%-10.2f%n", "Total Volume:", totalMaxNeeded, totalMinNeeded);
 
     }
 
@@ -256,8 +260,6 @@ public class Processor {
     public List<HICData> getOtherCellTypeRecords(List<HICData> hicData) {
 
         List<HICData> otherCellTypeRecords = new ArrayList<>();
-
-        //System.out.println("Other cell Types:");
 
         for (HICData data : hicData) {
 

@@ -49,11 +49,6 @@ public class FileReader {
             fileParser = new TXTFileParser();
         } else if (fileName.endsWith(".TXT")) {
             fileParser = new TXTFileParser();
-            // If the filename ends with .csv, proceed by creating new CSVFileParser
-//        } else if (fileName.endsWith(".csv")) {
-//            fileParser = new CSVFileParser();
-//        } else if (fileName.endsWith(".CSV")) {
-//            fileParser = new CSVFileParser();
         } else {
             System.out.println("Unknown file extension detected.");
             return null;
@@ -71,19 +66,6 @@ public class FileReader {
                     return (List<E>) ((TXTFileParser) fileParser).getHICData();
                 }
 
-
-//                // If the fileparser is an instance of any parser, return a generic list of data based on file extension
-//                if (fileParser instanceof CSVFileParser && Objects.equals(data, "covidData")) {
-//                    return (List<E>) ((CSVFileParser) fileParser).getCovidData();
-//                } else if (fileParser instanceof  CSVFileParser && Objects.equals(data, "propertyData")) {
-//                    return (List<E>) ((CSVFileParser) fileParser).getPropertyData();
-//                } else if (fileParser instanceof  CSVFileParser && Objects.equals(data, "populationData")) {
-//                    return (List<E>) ((CSVFileParser) fileParser).getPopData();
-//                } else if (fileParser instanceof TXTFileParser) {
-//                    return (List<E>) ((TXTFileParser) fileParser).getHICData();
-//                } else {
-//                    return null;
-//                }
             }
         } catch (IOException e) {
             System.err.println("An error has occurred when reading file: " + e.getMessage());

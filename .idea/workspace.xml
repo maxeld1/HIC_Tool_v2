@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="LABELS FULLY WORKING">
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="working on labels">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HIC_FILE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HIC_FILE.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample_hic_file2.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/datamanagement/FileReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/FileReader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
@@ -30,22 +30,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Main.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/maxeld/IdeaProjects/HIC_Tool_v2",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/maxeld/IdeaProjects/HIC_Tool_v2&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2" />
@@ -109,15 +109,7 @@
       <option name="project" value="LOCAL" />
       <updated>1713300070156</updated>
     </task>
-    <task id="LOCAL-00006" summary="LABELS FULLY WORKING">
-      <option name="closed" value="true" />
-      <created>1713411453812</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1713411453812</updated>
-    </task>
-    <option name="localTasksCounter" value="7" />
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -140,27 +132,6 @@
     <MESSAGE value="now making separate labels for CD4/CD8 and other cell types" />
     <MESSAGE value="labels almost working. cellTypeLabel only printing on first column- needs to print directly before each batch of celltypes" />
     <MESSAGE value="working on labels" />
-    <MESSAGE value="LABELS FULLY WORKING" />
-    <option name="LAST_COMMIT_MESSAGE" value="LABELS FULLY WORKING" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java</url>
-          <line>98</line>
-          <properties class="hic.logging.HICExcelLogger" method="exportToWord">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java</url>
-          <line>158</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <option name="LAST_COMMIT_MESSAGE" value="working on labels" />
   </component>
 </project>

@@ -66,7 +66,7 @@ public class TXTFileParser implements FileParser {
 
                             if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
                                     || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].contains("Unpurified")) {
+                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].equalsIgnoreCase("Unpurified")) {
                                 break;
                             }
                             nameBuilder.append(" ").append(tokens[i]);
@@ -80,7 +80,7 @@ public class TXTFileParser implements FileParser {
                         for (int i = 4; i < tokens.length; i++) {
                             if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
                                     || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].contains("Unpurified")) {
+                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].equalsIgnoreCase("Unpurified")) {
                                 cellType = tokens[i].replaceAll("\"", "").trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
@@ -106,16 +106,11 @@ public class TXTFileParser implements FileParser {
                         // Iterate over the tokens
                         for (int i = 4; i < tokens.length - 1; i++) {
 
-                            // If the token is numeric, make that token the max request
-                            if (isNumeric(tokens[i])) {
+                            // If the token is numeric and the next token is strictly numeric, make the current token the max request and the next token the min request
+                            if (isNumeric(tokens[i]) && i + 1 < tokens.length && isNumeric(tokens[i + 1])) {
                                 maxRequest = Double.parseDouble(tokens[i].replaceAll("\"", "").trim());
-                                i++; //increment i
-                            }
-
-                            // If the next token is numeric, make that the minimum request
-                            if (isNumeric(tokens[i])) {
-                                minRequest = Double.parseDouble(tokens[i].replaceAll("\"", "").trim());
-
+                                minRequest = Double.parseDouble(tokens[i + 1].replaceAll("\"", "").trim());
+                                break; // Exit the loop since we found both max and min request
                             }
                         }
 
