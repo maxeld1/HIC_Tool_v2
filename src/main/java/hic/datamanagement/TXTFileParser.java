@@ -66,7 +66,7 @@ public class TXTFileParser implements FileParser {
 
                             if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
                                     || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B")) {
+                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].contains("Unpurified")) {
                                 break;
                             }
                             nameBuilder.append(" ").append(tokens[i]);
@@ -80,11 +80,17 @@ public class TXTFileParser implements FileParser {
                         for (int i = 4; i < tokens.length; i++) {
                             if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
                                     || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B")) {
+                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].contains("Unpurified")) {
                                 cellType = tokens[i].replaceAll("\"", "").trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
                                     cellType = "Total T";
+                                } else if (cellType.equalsIgnoreCase("B")) {
+                                    cellType = "B Cells";
+                                } else if (cellType.equalsIgnoreCase("NK")) {
+                                    cellType = "NK Cells";
+                                } else if (cellType.equalsIgnoreCase("Unpurified")) {
+                                    cellType = "Unpurified Apheresis";
                                 }
                             }
                         }

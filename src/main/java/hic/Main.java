@@ -25,6 +25,8 @@ public class Main {
 
         List<Double> maxAndMinRequests = processor.printHICSummary(hicData); //get the max and min requests
 
+        System.out.println(maxAndMinRequests);
+
         System.out.println();
 
         processor.calculateApheresisNeeded(maxAndMinRequests); //calculate the amount of apheresis needed
@@ -32,7 +34,7 @@ public class Main {
         System.out.println();
 
         // Export HIC data to excel sheet (unsorted)
-        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICdoc.xlsx", false);
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\Unsorted_HICdoc.xlsx", false);
 
         // Sort the hicData by cell type and date/time
         processor.sortByCellTypeAndDateTime(hicData);
@@ -45,7 +47,7 @@ public class Main {
 
 
         // Export the sorted HIC data to excel sheet
-        //hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HICDoc2.xlsx", true);
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\Sorted_Labeled_HICDoc.xlsx", true);
 
         // Export HIC data to labels word doc
         hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\CD4CD8_Labels.docx", donor);
