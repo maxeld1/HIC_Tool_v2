@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="now labels will have the current date and user-input donor number">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
-    </list>
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="currently printing the labels correctly. still need to add labels before each cell type and fix name parsing" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,7 +52,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713238708321</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="currently printing the labels correctly. still need to add labels before each cell type and fix name parsing">
+      <option name="closed" value="true" />
+      <created>1713241969323</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1713241969323</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -65,7 +68,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="now labels will have the current date and user-input donor number" />
-    <option name="LAST_COMMIT_MESSAGE" value="now labels will have the current date and user-input donor number" />
+    <MESSAGE value="currently printing the labels correctly. still need to add labels before each cell type and fix name parsing" />
+    <option name="LAST_COMMIT_MESSAGE" value="currently printing the labels correctly. still need to add labels before each cell type and fix name parsing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
