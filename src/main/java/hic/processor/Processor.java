@@ -310,7 +310,6 @@ public class Processor {
 
             if (!Objects.equals(data.getCellType(), "CD4+") && !Objects.equals(data.getCellType(), "CD8+" ) && !Objects.equals(data.getCellType(), "Total T" ) && !Objects.equals(data.getCellType(), "NK Cells" ) && !Objects.equals(data.getCellType(), "B Cells" )) {
                 deliFridgeCells.add(data);
-                System.out.println(data);
             }
         }
 

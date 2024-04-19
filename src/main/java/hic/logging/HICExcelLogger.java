@@ -5,6 +5,7 @@ import com.jacob.com.Dispatch;
 import hic.datamanagement.FileReader;
 import hic.processor.Processor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import hic.util.HICData;
 import org.apache.poi.xwpf.usermodel.*;
@@ -345,10 +346,10 @@ public class HICExcelLogger {
                 Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
 
                 //Create Date cell
-                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+                dateDonorRow.createCell(0).setCellValue("DATE: " + currentDate.toString());
 
                 // Create donor number cell
-                dateDonorRow.createCell(4).setCellValue(donor);
+                dateDonorRow.createCell(4).setCellValue("Donor #: " + donor);
 
                 Row row = incubatorSheet.createRow(startingRowIncubator++);
                 row.createCell(0).setCellValue(data.getID()); //set ID number
@@ -366,10 +367,10 @@ public class HICExcelLogger {
                 Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
 
                 //Create Date cell
-                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+                dateDonorRow.createCell(0).setCellValue("DATE: " + currentDate.toString());
 
                 // Create donor number cell
-                dateDonorRow.createCell(4).setCellValue(donor);
+                dateDonorRow.createCell(4).setCellValue("Donor #: " + donor);
 
                 Row row = deliFridgeSheet.createRow(startingRowDeli++);
                 row.createCell(0).setCellValue(data.getID()); //set ID number
@@ -395,7 +396,7 @@ public class HICExcelLogger {
 
     private void addBordersAndAdjustRowHeight(Sheet sheet) {
         // Set borders for columns A to E
-        for (int i = 0; i < 80; i++) {
+        for (int i = 4; i < 80; i++) {
             Row row = sheet.getRow(i);
             if (row == null) {
                 row = sheet.createRow(i);
@@ -413,18 +414,28 @@ public class HICExcelLogger {
             sheet.setColumnWidth(3, 8000); // Set width for column D
             sheet.setColumnWidth(4, 8000); // Set width for column E
         }
-        // Set default row height
-        sheet.setDefaultRowHeightInPoints(25); // Set default row height to 25
 
-        // Center rows 1 to 4
-        CellStyle centeredStyle = createCenteredStyle(sheet.getWorkbook());
-        for (int i = 0; i < 4; i++) {
+        Font boldFont = sheet.getWorkbook().createFont();
+        boldFont.setBold(true);
+        boldFont.setFontHeightInPoints((short) 24);
+
+        Font font24 = sheet.getWorkbook().createFont();
+        font24.setFontHeight((short) 24);
+
+        CellStyle bold24Font = sheet.getWorkbook().createCellStyle();
+        bold24Font.setFont(boldFont);
+
+        Row row2 = sheet.getRow(2);
+        row2.setRowStyle(bold24Font);
+
+
+        // Set row height to 25
+        for (int i = 4; i < 80; i++) {
             Row row = sheet.getRow(i);
             if (row == null) {
                 row = sheet.createRow(i); // Create row if it doesn't exist
             }
             row.setHeightInPoints(25); // Set row height to 25 points
-            row.setRowStyle(centeredStyle);
         }
     }
 

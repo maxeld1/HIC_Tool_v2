@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="successfully making labels now!!!">
-      <change afterPath="$PROJECT_DIR$/HIC Sign-out Sheet Template.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/HICDataComparator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="working on sign out sheet. almost done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
@@ -125,7 +122,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713463302484</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="working on sign out sheet. almost done">
+      <option name="closed" value="true" />
+      <created>1713542469914</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1713542469914</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,6 +154,7 @@
     <MESSAGE value="labels almost working. cellTypeLabel only printing on first column- needs to print directly before each batch of celltypes" />
     <MESSAGE value="working on labels" />
     <MESSAGE value="successfully making labels now!!!" />
-    <option name="LAST_COMMIT_MESSAGE" value="successfully making labels now!!!" />
+    <MESSAGE value="working on sign out sheet. almost done" />
+    <option name="LAST_COMMIT_MESSAGE" value="working on sign out sheet. almost done" />
   </component>
 </project>

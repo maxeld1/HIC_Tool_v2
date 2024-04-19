@@ -48,6 +48,8 @@ public class UserInterface {
                     makeLabels(hicData, donor);
                     break;
                 case 5:
+                    exportToSignOutSheet(hicData, donor);
+                case 6:
                     performAllActions(hicData, donor);
                     break;
                 default:
@@ -69,7 +71,8 @@ public class UserInterface {
         System.out.println("2. Export unsorted HIC data to Excel file");
         System.out.println("3. Export sorted HIC data to Excel file");
         System.out.println("4. MAKE LABELS");
-        System.out.println("5. ALL OF THE ABOVE (Will run everything)");
+        System.out.println("5. Export to Sign Out Sheet");
+        System.out.println("6. ALL OF THE ABOVE (Will run everything)");
     }
 
 
@@ -129,6 +132,11 @@ public class UserInterface {
 
     }
 
+    private void exportToSignOutSheet(List<HICData> hicData, String donor) {
+
+        hicExcelLogger.exportToSignOutSheet(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Sign-out Sheet Template.xlsx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\HIC Sign-out Sheet.xlsx", donor);
+    }
+
     private void performAllActions(List<HICData> hicData, String donor) {
 
         //System.out.println(hicData); //print out HIC data records
@@ -163,6 +171,7 @@ public class UserInterface {
         // Export HIC data to labels word doc
         hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\OTHERCellTypes_Labels.docx", donor);
 
+        hicExcelLogger.exportToSignOutSheet(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Sign-out Sheet Template.xlsx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\HIC Sign-out Sheet.xlsx", donor);
     }
 
 

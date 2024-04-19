@@ -30,11 +30,7 @@ public class Main {
 
         List<HICData> hicData =  fileReader.parseFile("HIC_FILE.txt"); //parse the HIC file
 
-        hicExcelLogger.exportToSignOutSheet(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Sign-out Sheet Template.xlsx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\HIC Sign-out Sheet.xlsx", donor);
-
-        //userInterface.mainMenu(hicData, donor); //start the main menu
-
-
+        userInterface.mainMenu(hicData, donor); //start the main menu
 
 
 
