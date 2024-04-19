@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TXTFileParser implements FileParser {
@@ -72,7 +73,15 @@ public class TXTFileParser implements FileParser {
                             nameBuilder.append(" ").append(tokens[i]);
                         }
 
-                        String name = nameBuilder.toString();
+                        String name = nameBuilder.toString(); //put nameBuilder into string
+
+                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
+
+                        // If the full name is more than 2 names, only get first and middle/last
+                        if (firstMiddleLastName.length > 2) {
+                            //System.out.println(Arrays.toString(firstMiddleLastName));
+                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
+                        }
 
                         // Get the cell type
                         String cellType = null;
