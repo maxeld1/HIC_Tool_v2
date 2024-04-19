@@ -2,6 +2,8 @@ package hic.logging;
 
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
+import hic.datamanagement.FileReader;
+import hic.processor.Processor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import hic.util.HICData;
@@ -238,6 +240,214 @@ public class HICExcelLogger {
 
         return fontSize;
     }
+
+
+    /**
+     * Exports incubator and deli fridge orders to sign out sheet
+     * @param hicData as input
+     * @param templatePath template path for sign out sheet
+     * @param outputPath path for sign out sheet export
+     * @param donor number
+     */
+//    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
+//
+//        FileReader fileReader = FileReader.getInstance();
+//        Processor processor = new Processor(fileReader);
+//
+//        processor.sortByCellTypeAndDateTime(hicData);
+//        List<HICData> incubatorList = processor.getIncubatorCells(hicData);
+//        List<HICData> deliFridgeList = processor.getDeliFridgeCells(hicData);
+//
+//        LocalDate currentDate = LocalDate.now(); //get the local date
+//        donor = donor.toUpperCase(); //set donor number to upper case
+//
+//
+//        try (FileInputStream templateStream = new FileInputStream(templatePath);
+//
+//             Workbook workbook = new XSSFWorkbook(templateStream)) { //create excel workbook
+//
+//            // Populate the first sheet
+//            Sheet incubatorSheet = workbook.getSheetAt(0); // Assuming the first sheet
+//            int startingRowIncubator = 4; // Start from the 5th row
+//
+//            // Iterate through the incubator list
+//            for (HICData data : incubatorList) {
+//
+//                Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
+//
+//                //Create Date cell
+//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+//
+//                // Create donor number cell
+//                dateDonorRow.createCell(4).setCellValue(donor);
+//
+//                Row row = incubatorSheet.createRow(startingRowIncubator++);
+//                row.createCell(0).setCellValue(data.getID()); //set ID number
+//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+//                row.createCell(2).setCellValue(data.getName()); //set the name
+//            }
+//
+//            // Populate the second sheet
+//            Sheet deliFridgeSheet = workbook.getSheetAt(1); // Create a new sheet
+//            int startingRowDeli = 4; // Start from the 5th row
+//
+//            // Iterate through the deliFridgeList
+//            for (HICData data : deliFridgeList) {
+//
+//                Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
+//
+//                //Create Date cell
+//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+//
+//                // Create donor number cell
+//                dateDonorRow.createCell(4).setCellValue(donor);
+//
+//                Row row = deliFridgeSheet.createRow(startingRowDeli++);
+//                row.createCell(0).setCellValue(data.getID()); //set ID number
+//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+//                row.createCell(2).setCellValue(data.getName()); //set the name
+//            }
+//
+//            // Write workbook to file
+//            try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+//                workbook.write(fileOut);
+//                System.out.println("\nHICData exported to SignOutSheet successfully.");
+//            } catch (IOException e) {
+//                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
+
+        FileReader fileReader = FileReader.getInstance();
+        Processor processor = new Processor(fileReader);
+
+        processor.sortByCellTypeAndDateTime(hicData);
+        List<HICData> incubatorList = processor.getIncubatorCells(hicData);
+        List<HICData> deliFridgeList = processor.getDeliFridgeCells(hicData);
+
+        LocalDate currentDate = LocalDate.now(); //get the local date
+        donor = donor.toUpperCase(); //set donor number to upper case
+
+        try (FileInputStream templateStream = new FileInputStream(templatePath);
+             Workbook workbook = new XSSFWorkbook(templateStream)) { //create excel workbook
+
+            // Populate the first sheet
+            Sheet incubatorSheet = workbook.getSheetAt(0); // Assuming the first sheet
+            int startingRowIncubator = 4; // Start from the 5th row
+
+            // Iterate through the incubator list
+            for (HICData data : incubatorList) {
+
+                Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
+
+                //Create Date cell
+                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+
+                // Create donor number cell
+                dateDonorRow.createCell(4).setCellValue(donor);
+
+                Row row = incubatorSheet.createRow(startingRowIncubator++);
+                row.createCell(0).setCellValue(data.getID()); //set ID number
+                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+                row.createCell(2).setCellValue(data.getName()); //set the name
+            }
+
+            // Populate the second sheet
+            Sheet deliFridgeSheet = workbook.getSheetAt(1); // Create a new sheet
+            int startingRowDeli = 4; // Start from the 5th row
+
+            // Iterate through the deliFridgeList
+            for (HICData data : deliFridgeList) {
+
+                Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
+
+                //Create Date cell
+                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+
+                // Create donor number cell
+                dateDonorRow.createCell(4).setCellValue(donor);
+
+                Row row = deliFridgeSheet.createRow(startingRowDeli++);
+                row.createCell(0).setCellValue(data.getID()); //set ID number
+                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+                row.createCell(2).setCellValue(data.getName()); //set the name
+            }
+
+            // Add borders and adjust row height for both sheets
+            addBordersAndAdjustRowHeight(incubatorSheet);
+            addBordersAndAdjustRowHeight(deliFridgeSheet);
+
+            // Write workbook to file
+            try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+                workbook.write(fileOut);
+                System.out.println("\nHICData exported to SignOutSheet successfully.");
+            } catch (IOException e) {
+                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addBordersAndAdjustRowHeight(Sheet sheet) {
+        // Set borders for columns A to E
+        for (int i = 0; i < 80; i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) {
+                row = sheet.createRow(i);
+            }
+            for (int j = 0; j < 5; j++) {
+                Cell cell = row.getCell(j);
+                if (cell == null) {
+                    cell = row.createCell(j);
+                }
+                setBorder(cell);
+            }
+            sheet.setColumnWidth(0, 4000); // Set width for column A
+            sheet.autoSizeColumn(1); // Auto-size column B
+            sheet.autoSizeColumn(2); // Auto-size column C
+            sheet.setColumnWidth(3, 8000); // Set width for column D
+            sheet.setColumnWidth(4, 8000); // Set width for column E
+        }
+        // Set default row height
+        sheet.setDefaultRowHeightInPoints(25); // Set default row height to 25
+
+        // Center rows 1 to 4
+        CellStyle centeredStyle = createCenteredStyle(sheet.getWorkbook());
+        for (int i = 0; i < 4; i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) {
+                row = sheet.createRow(i); // Create row if it doesn't exist
+            }
+            row.setHeightInPoints(25); // Set row height to 25 points
+            row.setRowStyle(centeredStyle);
+        }
+    }
+
+    // Method to create centered cell style
+    private CellStyle createCenteredStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
+
+    // Method to set border for a cell
+    private void setBorder(Cell cell) {
+        Workbook workbook = cell.getSheet().getWorkbook();
+        CellStyle style = workbook.createCellStyle();
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        cell.setCellStyle(style);
+    }
+
+
 
 
 

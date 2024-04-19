@@ -48,7 +48,7 @@ public class UserInterface {
                     makeLabels(hicData, donor);
                     break;
                 case 5:
-                    performAllActions();
+                    performAllActions(hicData, donor);
                     break;
                 default:
                     System.out.println("Invalid selection. Please try again.\n");
@@ -91,7 +91,7 @@ public class UserInterface {
     private void exportToExcelUnsorted(List<HICData> hicData) {
 
         // Export HIC data to excel sheet (unsorted)
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\Unsorted_HICdoc.xlsx", false);
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\Unsorted_HICdoc.xlsx", false);
 
     }
 
@@ -103,12 +103,14 @@ public class UserInterface {
         processor.sortByCellTypeAndDateTime(hicData);
 
         // Export the sorted HIC data to excel sheet
-        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\Sorted_Labeled_HICDoc.xlsx", true);
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\Sorted_Labeled_HICDoc.xlsx", true);
 
     }
 
 
     private void makeLabels(List<HICData> hicData, String donor) {
+
+        processor.sortByCellTypeAndDateTime(hicData); //sort the hicData
 
         // Get the CD4 and CD8 cell types in a separate list
         List<HICData> cd4Cd8List = processor.getCD4CD8CellRecords(hicData);
@@ -117,17 +119,49 @@ public class UserInterface {
         List<HICData> otherCellTypesList = processor.getOtherCellTypeRecords(hicData);
 
         // Export HIC data to labels word doc
-        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\CD4CD8_Labels.docx", donor);
+        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\CD4CD8_Labels.docx", donor);
 
 
         // Export HIC data to labels word doc
-        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxel\\IdeaProjects\\HIC_Tool_v2\\OTHERCellTypes_Labels.docx", donor);
+        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\OTHERCellTypes_Labels.docx", donor);
 
 
 
     }
 
-    private void performAllActions() {
+    private void performAllActions(List<HICData> hicData, String donor) {
+
+        //System.out.println(hicData); //print out HIC data records
+
+        List<Double> maxAndMinRequests = processor.printHICSummary(hicData); //get the max and min requests
+
+        System.out.println();
+
+        processor.calculateApheresisNeeded(maxAndMinRequests); //calculate the amount of apheresis needed
+
+        System.out.println();
+
+        // Export HIC data to excel sheet (unsorted)
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\Unsorted_HICdoc.xlsx", false);
+
+        // Sort the hicData by cell type and date/time
+        processor.sortByCellTypeAndDateTime(hicData);
+
+        // Get the CD4 and CD8 cell types in a separate list
+        List<HICData> cd4Cd8List = processor.getCD4CD8CellRecords(hicData);
+
+        // Get the other cell types in a separate list
+        List<HICData> otherCellTypesList = processor.getOtherCellTypeRecords(hicData);
+
+        // Export the sorted HIC data to excel sheet
+        hicExcelLogger.logHICData(hicData, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\Sorted_Labeled_HICDoc.xlsx", true);
+
+        // Export HIC data to labels word doc
+        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\CD4CD8_Labels.docx", donor);
+
+
+        // Export HIC data to labels word doc
+        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC_Program_Label_Template2.docx", "C:\\Users\\maxeld\\IdeaProjects\\HIC_Tool_v2\\HIC Exports\\OTHERCellTypes_Labels.docx", donor);
 
     }
 

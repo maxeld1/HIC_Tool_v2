@@ -1,6 +1,7 @@
 package hic.processor;
 
 import hic.datamanagement.FileReader;
+import hic.datamanagement.HICDataComparator;
 import hic.util.HICData;
 
 import java.util.ArrayList;
@@ -273,41 +274,50 @@ public class Processor {
 
     }
 
+    /**
+     * Method to extract incubator cell types
+     * @param hicData list
+     * @return incubator cells list
+     */
+    public List<HICData> getIncubatorCells(List<HICData> hicData) {
 
-//    public void sortByCellType(List<HICData> hicData) {
-//
-//        // Create a custom comparator
-//        Comparator<HICData> customComparator = new Comparator<HICData>() {
-//
-//            // Define order of cell types
-//            String[] cellTypeOrder = {"NK", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T", "B"};
-//
-//            @Override
-//            public int compare(HICData data1, HICData data2) {
-//
-//                // Get the index of each cell type
-//                int index1 = getIndex(data1.getCellType());
-//                int index2 = getIndex(data2.getCellType());
-//
-//                // Compare the indices to determine order
-//                return Integer.compare(index1, index2);
-//            }
-//
-//            private int getIndex(String cellType) {
-//
-//                for (int i = 0; i < cellTypeOrder.length; i++) {
-//                    if (cellTypeOrder[i].equalsIgnoreCase(cellType)) {
-//                        return i;
-//                    }
-//                }
-//                // If the cell type is not found in the order, consider it as last
-//                return cellTypeOrder.length;
-//            }
-//        };
-//
-//        hicData.sort(customComparator);
-//        System.out.println(hicData);
-//    }
+        List<HICData> incubatorCells = new ArrayList<>();
+
+        for (HICData data : hicData) {
+
+            if (Objects.equals(data.getCellType(), "CD4+") || Objects.equals(data.getCellType(), "CD8+" ) || Objects.equals(data.getCellType(), "Total T" ) || Objects.equals(data.getCellType(), "NK Cells" ) || Objects.equals(data.getCellType(), "B Cells" )) {
+                incubatorCells.add(data);
+            }
+        }
+
+        incubatorCells.sort(new HICDataComparator()); //sort list by name
+
+        return incubatorCells;
+    }
+
+    /**
+     * Method to extract deli fridge cell types
+     * @param hicData list
+     * @return deli fridge list
+     */
+    public List<HICData> getDeliFridgeCells(List<HICData> hicData) {
+
+        List<HICData> deliFridgeCells = new ArrayList<>();
+
+        System.out.println();
+
+        for (HICData data : hicData) {
+
+            if (!Objects.equals(data.getCellType(), "CD4+") && !Objects.equals(data.getCellType(), "CD8+" ) && !Objects.equals(data.getCellType(), "Total T" ) && !Objects.equals(data.getCellType(), "NK Cells" ) && !Objects.equals(data.getCellType(), "B Cells" )) {
+                deliFridgeCells.add(data);
+                System.out.println(data);
+            }
+        }
+
+        deliFridgeCells.sort(new HICDataComparator()); //sort list by name
+
+        return deliFridgeCells;
+    }
 
 
 
