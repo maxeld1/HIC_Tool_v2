@@ -6,6 +6,10 @@ import hic.processor.Processor;
 import hic.ui.UserInterface;
 import hic.util.HICData;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -28,7 +32,16 @@ public class Main {
         FileReader fileReader = FileReader.getInstance(); //get instance of FileReader
         Processor processor = new Processor(fileReader); //initialize the processor
 
-        List<HICData> hicData =  fileReader.parseFile("HIC_FILE.txt"); //parse the HIC file
+        // Get the directory where the JAR file is located
+        String jarDir = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+
+        // Construct the path to the .txt file based on the JAR directory
+        String hicTxtFilePath = jarDir + File.separator + "HIC_FILE.txt";
+
+        // Decode the file path
+        hicTxtFilePath = URLDecoder.decode(hicTxtFilePath, StandardCharsets.UTF_8);
+
+        List<HICData> hicData =  fileReader.parseFile(hicTxtFilePath); //parse the HIC file
 
         userInterface.mainMenu(hicData, donor); //start the main menu
 
