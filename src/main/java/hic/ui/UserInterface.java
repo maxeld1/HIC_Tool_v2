@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -33,33 +34,39 @@ public class UserInterface {
 
         while (!quit) {
             printMainMenu();
-            int choice = scanner.nextInt();
+            try {
+                int choice = scanner.nextInt();
 
-            switch (choice) {
-                case 0:
-                    exitProgram();
-                    quit = true;
-                    break;
-                case 1:
-                    getHICSummary(hicData);
-                    break;
-                case 2:
-                    exportToExcelUnsorted(hicData);
-                    break;
-                case 3:
-                    exportToExcelSorted(hicData);
-                    break;
-                case 4:
-                    makeLabels(hicData, donor);
-                    break;
-                case 5:
-                    exportToSignOutSheet(hicData, donor);
-                    break;
-                case 6:
-                    performAllActions(hicData, donor);
-                    break;
-                default:
-                    System.out.println("Invalid selection. Please try again.\n");
+                switch (choice) {
+                    case 0:
+                        exitProgram();
+                        quit = true;
+                        break;
+                    case 1:
+                        getHICSummary(hicData);
+                        break;
+                    case 2:
+                        exportToExcelUnsorted(hicData);
+                        break;
+                    case 3:
+                        exportToExcelSorted(hicData);
+                        break;
+                    case 4:
+                        makeLabels(hicData, donor);
+                        break;
+                    case 5:
+                        exportToSignOutSheet(hicData, donor);
+                        break;
+                    case 6:
+                        performAllActions(hicData, donor);
+                        break;
+                    default:
+                        System.out.println("Invalid selection. Please try again.\n");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a number.\n");
+                // Clear scanner buffer
+                scanner.nextLine();
             }
         }
 
