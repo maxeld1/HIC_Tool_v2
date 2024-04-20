@@ -9,11 +9,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="working on HIC menu">
-      <change afterPath="$PROJECT_DIR$/.idea/artifacts/HIC_Tool_v1_jar.xml" afterDir="false" />
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="now executing from jar executable file">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,7 +139,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713542469914</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="now executing from jar executable file">
+      <option name="closed" value="true" />
+      <created>1713625005073</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1713625005073</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -166,6 +172,7 @@
     <MESSAGE value="working on labels" />
     <MESSAGE value="successfully making labels now!!!" />
     <MESSAGE value="working on sign out sheet. almost done" />
-    <option name="LAST_COMMIT_MESSAGE" value="working on sign out sheet. almost done" />
+    <MESSAGE value="now executing from jar executable file" />
+    <option name="LAST_COMMIT_MESSAGE" value="now executing from jar executable file" />
   </component>
 </project>

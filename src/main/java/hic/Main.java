@@ -24,9 +24,27 @@ public class Main {
         UserInterface userInterface = new UserInterface();
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Please enter the donor number for today: ");
+        String donor = null;
+        boolean donorNumberEntered = false;
 
-        String donor = scanner.nextLine(); //get user input for donor
+        while (!donorNumberEntered) {
+
+            System.out.println("Welcome to the HIC Tool, meeting all of your HIC prep needs.");
+            System.out.println();
+            System.out.println("Please enter the donor number for today: ");
+
+            donor = scanner.nextLine(); //get user input for donor
+
+            // Make sure donor number is specified
+            if (donor == null || donor.isEmpty()) {
+                System.out.println("Please try again.\n");
+                System.out.println("------------------------------");
+            } else {
+                donorNumberEntered = true;
+            }
+
+        }
+
 
         HICExcelLogger hicExcelLogger = HICExcelLogger.getInstance(); //get instance of HICExcelLogger
         FileReader fileReader = FileReader.getInstance(); //get instance of FileReader
