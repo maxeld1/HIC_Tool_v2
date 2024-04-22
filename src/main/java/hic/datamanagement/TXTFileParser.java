@@ -55,15 +55,30 @@ public class TXTFileParser implements FileParser {
                     continue;
                 }
 
+//                // If the iteration hits an I or E_A, stop processing past this char/string
+//                for (String part : token) {
+//
+//                    if (Objects.equals(part, "I") || Objects.equals(part, "E_A")) {
+//                        break;
+//                    }
+//                    tokens.add(part); //add everything up to I or E_A into tokens list
+//                }
+
                 // If the iteration hits an I or E_A, stop processing past this char/string
-                for (String part : token) {
-                    if (Objects.equals(part, "I") || Objects.equals(part, "E_A")) {
-                        break;
+                for (int i = 0; i < token.length; i++) {
+                    if (i < 5) {
+                        tokens.add(token[i]); // add everything from the beginning up to index 6 into tokens list
+                    } else {
+                        String part = token[i];
+                        if (Objects.equals(part, "I") || Objects.equals(part, "E_A")) {
+                            break;
+                        }
+                        tokens.add(part); // add everything starting from index 7 up to I or E_A into tokens list
                     }
-                    tokens.add(part); //add everything up to I or E_A into tokens list
                 }
 
-                //System.out.println(tokens);
+
+                System.out.println(tokens);
 
                 // If the number of tokens is 6 or more
                 if (tokens.size() >= 6) {
@@ -144,7 +159,7 @@ public class TXTFileParser implements FileParser {
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
-                            //System.out.println(hicDataItem);
+                            System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());
                     }

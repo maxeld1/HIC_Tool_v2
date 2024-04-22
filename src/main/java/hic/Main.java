@@ -57,6 +57,7 @@ public class Main {
 
         // Construct the path to the .txt file based on the JAR directory
         String hicTxtFilePath = jarDir + File.separator + "HIC_FILE.txt";
+        //System.out.println(hicTxtFilePath);
 
 
 
