@@ -126,37 +126,51 @@ public class TXTFileParser implements FileParser {
 //                            name = adjustedName.toString().trim();
 //                        }
 
+                        String tokensAfterDate = tokens.get(23);
+                        String[] splitTokensAfterDate = tokensAfterDate.split("(?<=\\S)\\s+(?=\\S)");
+                        System.out.println(Arrays.toString(splitTokensAfterDate));
+                        StringBuilder nameBuilder = new StringBuilder();
 
-
-                        // Get the name
-                        StringBuilder nameBuilder = new StringBuilder(tokens.get(3).trim());
-                        for (int i = 4; i < tokens.size(); i++) {
-                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
-                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
-                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
+                        for (String parts : splitTokensAfterDate) {
+                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
+                                    || parts.equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
+                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
                                 break;
                             }
-                            nameBuilder.append(" ").append(tokens.get(i));
+                            nameBuilder.append(" ").append(parts);
                         }
+                        String name = nameBuilder.toString();
 
-                        String name = nameBuilder.toString(); //put nameBuilder into string
-
-                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
-
-                        // If the full name is more than 2 names, only get first and middle/last
-                        if (firstMiddleLastName.length > 2) {
-                            //System.out.println(Arrays.toString(firstMiddleLastName));
-                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
-                        }
+//                        // Get the name
+//                        StringBuilder nameBuilder = new StringBuilder(tokens.get(23).trim());
+//                        for (int i = 23; i < tokens.size(); i++) {
+//                            if (tokens.get(i).equalsIgnoreCase("CD4") || tokens.get(i).equalsIgnoreCase("CD8") || tokens.get(i).equalsIgnoreCase("Total")
+//                                    || tokens.get(i).equalsIgnoreCase("Monocytes") || tokens.get(i).equalsIgnoreCase("PBMC")
+//                                    || tokens.get(i).equalsIgnoreCase("NK") || tokens.get(i).equalsIgnoreCase("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
+//                                break;
+//                            }
+//                            nameBuilder.append(tokens.get(i)).append(" ");
+//                        }
+//
+//                        String name = nameBuilder.toString().trim(); //put nameBuilder into string
+//
+//                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
+//
+//                        // If the full name is more than 2 names, only get first and middle/last
+//                        if (firstMiddleLastName.length > 2) {
+//                            //System.out.println(Arrays.toString(firstMiddleLastName));
+//                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
+//                        }
 
                         // Get the cell type
                         String cellType = null;
 
-                        for (int i = 4; i < tokens.size(); i++) {
-                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
-                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
-                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
-                                cellType = tokens.get(i).replaceAll("\"", "").trim();
+                        for (String parts : splitTokensAfterDate) {
+                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
+                                    || parts.equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
+                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
+
+                                cellType = parts.replaceAll("\"", "").trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
                                     cellType = "Total T";
@@ -169,6 +183,24 @@ public class TXTFileParser implements FileParser {
                                 }
                             }
                         }
+
+//                        for (int i = 23; i < tokensAfterDate.length(); i++) {
+//                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
+//                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
+//                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
+//                                cellType = tokens.get(i).replaceAll("\"", "").trim();
+//
+//                                if (cellType.equalsIgnoreCase("Total")) {
+//                                    cellType = "Total T";
+//                                } else if (cellType.equalsIgnoreCase("B")) {
+//                                    cellType = "B Cells";
+//                                } else if (cellType.equalsIgnoreCase("NK")) {
+//                                    cellType = "NK Cells";
+//                                } else if (cellType.equalsIgnoreCase("Unpurified")) {
+//                                    cellType = "Unpurified Apheresis";
+//                                }
+//                            }
+//                        }
                         //System.out.println(cellType);
 
 

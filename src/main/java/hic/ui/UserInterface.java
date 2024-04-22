@@ -86,6 +86,8 @@ public class UserInterface {
         System.out.println("4. MAKE LABELS");
         System.out.println("5. Export to Sign Out Sheet");
         System.out.println("6. ALL OF THE ABOVE (Will run everything)");
+        System.out.print("> ");
+        System.out.flush();
     }
 
 

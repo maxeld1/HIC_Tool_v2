@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ArtifactsWorkspaceSettings">
-    <artifacts-to-build>
-      <artifact name="HIC_Tool_v1:jar" />
-    </artifacts-to-build>
-  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="fixed user selection not choosing an integer">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="working on sign out sheet. almost done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HIC_FILE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HIC_FILE.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,28 +38,21 @@
     "Application.Main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/maxel/IdeaProjects/HIC_Tool_v2/target",
+    "last_opened_file_path": "C:/Users/maxeld/IdeaProjects/HIC_Tool_v2/target",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Artifacts",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\maxel\IdeaProjects\HIC_Tool_v2\target" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\target" />
       <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\maxel\IdeaProjects\HIC_Tool_v2\out\artifacts\HIC_Tool_v1_jar" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -144,31 +129,7 @@
       <option name="project" value="LOCAL" />
       <updated>1713542469914</updated>
     </task>
-    <task id="LOCAL-00008" summary="now executing from jar executable file">
-      <option name="closed" value="true" />
-      <created>1713625005073</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1713625005073</updated>
-    </task>
-    <task id="LOCAL-00009" summary="will now work on its own in HIC Program folder">
-      <option name="closed" value="true" />
-      <created>1713641861981</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1713641861981</updated>
-    </task>
-    <task id="LOCAL-00010" summary="fixed user selection not choosing an integer">
-      <option name="closed" value="true" />
-      <created>1713642123318</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1713642123318</updated>
-    </task>
-    <option name="localTasksCounter" value="11" />
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -193,9 +154,6 @@
     <MESSAGE value="working on labels" />
     <MESSAGE value="successfully making labels now!!!" />
     <MESSAGE value="working on sign out sheet. almost done" />
-    <MESSAGE value="now executing from jar executable file" />
-    <MESSAGE value="will now work on its own in HIC Program folder" />
-    <MESSAGE value="fixed user selection not choosing an integer" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed user selection not choosing an integer" />
+    <option name="LAST_COMMIT_MESSAGE" value="working on sign out sheet. almost done" />
   </component>
 </project>
