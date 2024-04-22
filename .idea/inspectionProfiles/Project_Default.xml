@@ -6,6 +6,9 @@
         <language minSize="76" name="Java" />
       </Languages>
     </inspection_tool>
+    <inspection_tool class="JavadocDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ADDITIONAL_TAGS" value="Author,Author:" />
+    </inspection_tool>
     <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="isIgnoringEnabled" value="true" />
       <option name="ignoredModules">

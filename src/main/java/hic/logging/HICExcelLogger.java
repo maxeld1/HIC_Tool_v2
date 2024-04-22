@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Class to log data to excel files
+ * @Author maxeldabbas
+ */
 public class HICExcelLogger {
 
     private static HICExcelLogger instance;

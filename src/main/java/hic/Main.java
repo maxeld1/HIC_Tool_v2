@@ -56,6 +56,8 @@ public class Main {
         // Construct the path to the .txt file based on the JAR directory
         String hicTxtFilePath = jarDir + File.separator + "HIC_FILE.txt";
 
+
+
         // Decode the file path
         hicTxtFilePath = URLDecoder.decode(hicTxtFilePath, StandardCharsets.UTF_8);
 

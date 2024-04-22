@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Class for parsing a .txt file
+ * @Author maxeldabbas
+ */
 public class TXTFileParser implements FileParser {
 
     private List<HICData> hicData;
@@ -41,36 +45,98 @@ public class TXTFileParser implements FileParser {
         // Iterate over the lines of the file
         for (String line : lines) {
 
+            int indexI = line.indexOf("I");
+            int indexEA = line.indexOf("E_A");
+
+            if (indexI >= 0 || indexEA >= 0) {
+                int endIndex = Math.min(indexI >= 0 ? indexI : Integer.MAX_VALUE, indexEA >= 0 ? indexEA : Integer.MAX_VALUE) + 1;
+                line = line.substring(0, endIndex);
+            }
+
             // If the line starts with a hashtag, append that line to the current record
             if (line.startsWith("#")) {
                 currentRecord.append(" ").append(line);
             } else {
 
-                String[] tokens = line.split("[\t ]+"); //split the line by tab or space
+                // Define a regular expression pattern to match fields separated by whitespace
+                String regexPattern = "(?<=\\S)\\s+(?=\\S)";
+
+                // Tokenize the line using the regular expression pattern
+                //String[] tokens = line.split(regexPattern);
+                List<String> tokens = tokenizeLine(line);
+
+                //String[] tokens = line.split("\\s+"); //split the line by tab or space
+                System.out.println(tokens);
 
                 // If the number of tokens is 9 or more
-                if (tokens.length >= 9) {
+                if (tokens.size() >= 2) {
 
                     // Get the information by specified index to get HIC data
                     try {
 
                         // Get the request ID
-                        int requestID = Integer.parseInt(tokens[0].trim());
+                        String orderNum = tokens.get(0) + tokens.get(1) + tokens.get(2) + tokens.get(3) + tokens.get(4);
+                        int requestID = Integer.parseInt(orderNum);
                         IDCounter++;
 
                         // Get the date and time
-                        LocalDateTime requestDate = LocalDateTime.parse(tokens[1] + " " + tokens[2], dateTimeFormatter);
+                        StringBuilder dateTimeBuilder = new StringBuilder();
+
+                        for (int i = 5; i < 15; i++) {
+                            dateTimeBuilder.append(tokens.get(i));
+                        }
+                        dateTimeBuilder.append(" ");
+
+                        for (int i = 15; i < 23; i++) {
+                            dateTimeBuilder.append(tokens.get(i));
+                        }
+
+                        String dateTime = dateTimeBuilder.toString();
+
+                        LocalDateTime requestDate = LocalDateTime.parse(dateTime, dateTimeFormatter);
+
+
+//                        // Get the name
+//                        String name = tokens[3].trim();
+//                        boolean foundSpecialKeyword = false;
+//
+//                        // Check for special keywords and build the name
+//                        for (int i = 4; i < tokens.length; i++) {
+//                            // Check for special keywords
+//                            if (tokens[i].matches(".*CD[48]\\+?.*|.*Total.*|.*Monocytes.*|.*PBMC.*|.*NK.*|.*B.*|Unpurified.*")) {
+//                                foundSpecialKeyword = true;
+//                                break;
+//                            }
+//                            // Append token to the name
+//                            name += " " + tokens[i];
+//                        }
+//
+//                        // If a special keyword is found, adjust the name accordingly
+//                        if (foundSpecialKeyword) {
+//                            String[] nameParts = name.split("\\s+");
+//                            StringBuilder adjustedName = new StringBuilder();
+//                            for (String part : nameParts) {
+//                                // If a part contains capital letters, consider it as part of the name
+//                                if (containsCapitalLetters(part)) {
+//                                    adjustedName.append(part).append(" ");
+//                                } else {
+//                                    break;
+//                                }
+//                            }
+//                            name = adjustedName.toString().trim();
+//                        }
+
+
 
                         // Get the name
-                        StringBuilder nameBuilder = new StringBuilder(tokens[3].trim());
-                        for (int i = 4; i < tokens.length; i++) {
-
-                            if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
-                                    || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].equalsIgnoreCase("Unpurified")) {
+                        StringBuilder nameBuilder = new StringBuilder(tokens.get(3).trim());
+                        for (int i = 4; i < tokens.size(); i++) {
+                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
+                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
+                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
                                 break;
                             }
-                            nameBuilder.append(" ").append(tokens[i]);
+                            nameBuilder.append(" ").append(tokens.get(i));
                         }
 
                         String name = nameBuilder.toString(); //put nameBuilder into string
@@ -86,11 +152,11 @@ public class TXTFileParser implements FileParser {
                         // Get the cell type
                         String cellType = null;
 
-                        for (int i = 4; i < tokens.length; i++) {
-                            if (tokens[i].contains("CD4") || tokens[i].contains("CD8") || tokens[i].contains("Total")
-                                    || tokens[i].contains("Monocytes") || tokens[i].contains("PBMC")
-                                    || tokens[i].contains("NK") || tokens[i].contains("B") || tokens[i].equalsIgnoreCase("Unpurified")) {
-                                cellType = tokens[i].replaceAll("\"", "").trim();
+                        for (int i = 4; i < tokens.size(); i++) {
+                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
+                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
+                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
+                                cellType = tokens.get(i).replaceAll("\"", "").trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
                                     cellType = "Total T";
@@ -113,12 +179,12 @@ public class TXTFileParser implements FileParser {
                         double minRequest = 0.0;
 
                         // Iterate over the tokens
-                        for (int i = 4; i < tokens.length - 1; i++) {
+                        for (int i = 4; i < tokens.size() - 1; i++) {
 
                             // If the token is numeric and the next token is strictly numeric, make the current token the max request and the next token the min request
-                            if (isNumeric(tokens[i]) && i + 1 < tokens.length && isNumeric(tokens[i + 1])) {
-                                maxRequest = Double.parseDouble(tokens[i].replaceAll("\"", "").trim());
-                                minRequest = Double.parseDouble(tokens[i + 1].replaceAll("\"", "").trim());
+                            if (isNumeric(tokens.get(i)) && i + 1 < tokens.size() && isNumeric(tokens.get(i + 1))) {
+                                maxRequest = Double.parseDouble(tokens.get(i).replaceAll("\"", "").trim());
+                                minRequest = Double.parseDouble(tokens.get(i + 1).replaceAll("\"", "").trim());
                                 break; // Exit the loop since we found both max and min request
                             }
                         }
@@ -126,13 +192,18 @@ public class TXTFileParser implements FileParser {
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
-                            //System.out.println(hicDataItem);
+                            System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());
                     }
                 }
             }
         }
+    }
+
+    // Function to check if a string contains capital letters
+    private boolean containsCapitalLetters(String str) {
+        return !str.equals(str.toLowerCase());
     }
 
 
@@ -145,11 +216,49 @@ public class TXTFileParser implements FileParser {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
-    /**
-     * Method to tokenize a line
-     * @param line to tokenize
-     * @return list of tokens
-     */
+//    /**
+//     * Method to tokenize a line
+//     * @param line to tokenize
+//     * @return list of tokens
+//     */
+//    private List<String> tokenizeLine(String line) {
+//        List<String> tokens = new ArrayList<>();
+//        StringBuilder currentToken = new StringBuilder();
+//
+//        boolean withinNameField = false;
+//
+//        for (char c : line.toCharArray()) {
+//            if (Character.isWhitespace(c)) {
+//                if (withinNameField) {
+//                    // If whitespace occurs within a name field, treat it as part of the name
+//                    currentToken.append(c);
+//                } else {
+//                    // If whitespace occurs between fields, add the current token to the list
+//                    if (currentToken.length() > 0) {
+//                        tokens.add(currentToken.toString());
+//                        currentToken.setLength(0); // Reset the current token
+//                    }
+//                }
+//            } else {
+//                // If a non-whitespace character is encountered, add it to the current token
+//                currentToken.append(c);
+//
+//                // Check if the current token is within a name field
+//                if (!withinNameField && Character.isLetter(c)) {
+//                    withinNameField = true;
+//                }
+//            }
+//        }
+//
+//        // Add the last token to the list
+//        if (currentToken.length() > 0) {
+//            tokens.add(currentToken.toString());
+//        }
+//
+//        return tokens;
+//    }
+
+
     private List<String> tokenizeLine(String line) {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
@@ -184,7 +293,19 @@ public class TXTFileParser implements FileParser {
             tokens.add(currentToken.toString());
         }
 
-        return tokens;
+        // Handle all capital letter tokens as separate tokens
+        List<String> finalTokens = new ArrayList<>();
+        for (String token : tokens) {
+            if (token.equals(token.toUpperCase())) {
+                for (char c : token.toCharArray()) {
+                    finalTokens.add(String.valueOf(c));
+                }
+            } else {
+                finalTokens.add(token);
+            }
+        }
+
+        return finalTokens;
     }
 
 
