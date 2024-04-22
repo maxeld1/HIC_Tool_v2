@@ -254,77 +254,6 @@ public class HICExcelLogger {
      * @param outputPath path for sign out sheet export
      * @param donor number
      */
-//    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
-//
-//        FileReader fileReader = FileReader.getInstance();
-//        Processor processor = new Processor(fileReader);
-//
-//        processor.sortByCellTypeAndDateTime(hicData);
-//        List<HICData> incubatorList = processor.getIncubatorCells(hicData);
-//        List<HICData> deliFridgeList = processor.getDeliFridgeCells(hicData);
-//
-//        LocalDate currentDate = LocalDate.now(); //get the local date
-//        donor = donor.toUpperCase(); //set donor number to upper case
-//
-//
-//        try (FileInputStream templateStream = new FileInputStream(templatePath);
-//
-//             Workbook workbook = new XSSFWorkbook(templateStream)) { //create excel workbook
-//
-//            // Populate the first sheet
-//            Sheet incubatorSheet = workbook.getSheetAt(0); // Assuming the first sheet
-//            int startingRowIncubator = 4; // Start from the 5th row
-//
-//            // Iterate through the incubator list
-//            for (HICData data : incubatorList) {
-//
-//                Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
-//
-//                //Create Date cell
-//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
-//
-//                // Create donor number cell
-//                dateDonorRow.createCell(4).setCellValue(donor);
-//
-//                Row row = incubatorSheet.createRow(startingRowIncubator++);
-//                row.createCell(0).setCellValue(data.getID()); //set ID number
-//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
-//                row.createCell(2).setCellValue(data.getName()); //set the name
-//            }
-//
-//            // Populate the second sheet
-//            Sheet deliFridgeSheet = workbook.getSheetAt(1); // Create a new sheet
-//            int startingRowDeli = 4; // Start from the 5th row
-//
-//            // Iterate through the deliFridgeList
-//            for (HICData data : deliFridgeList) {
-//
-//                Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
-//
-//                //Create Date cell
-//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
-//
-//                // Create donor number cell
-//                dateDonorRow.createCell(4).setCellValue(donor);
-//
-//                Row row = deliFridgeSheet.createRow(startingRowDeli++);
-//                row.createCell(0).setCellValue(data.getID()); //set ID number
-//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
-//                row.createCell(2).setCellValue(data.getName()); //set the name
-//            }
-//
-//            // Write workbook to file
-//            try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
-//                workbook.write(fileOut);
-//                System.out.println("\nHICData exported to SignOutSheet successfully.");
-//            } catch (IOException e) {
-//                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
 
         FileReader fileReader = FileReader.getInstance();
@@ -463,12 +392,77 @@ public class HICExcelLogger {
     }
 
 
-
-
-
-
-
-
 }
 
 
+
+//    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
+//
+//        FileReader fileReader = FileReader.getInstance();
+//        Processor processor = new Processor(fileReader);
+//
+//        processor.sortByCellTypeAndDateTime(hicData);
+//        List<HICData> incubatorList = processor.getIncubatorCells(hicData);
+//        List<HICData> deliFridgeList = processor.getDeliFridgeCells(hicData);
+//
+//        LocalDate currentDate = LocalDate.now(); //get the local date
+//        donor = donor.toUpperCase(); //set donor number to upper case
+//
+//
+//        try (FileInputStream templateStream = new FileInputStream(templatePath);
+//
+//             Workbook workbook = new XSSFWorkbook(templateStream)) { //create excel workbook
+//
+//            // Populate the first sheet
+//            Sheet incubatorSheet = workbook.getSheetAt(0); // Assuming the first sheet
+//            int startingRowIncubator = 4; // Start from the 5th row
+//
+//            // Iterate through the incubator list
+//            for (HICData data : incubatorList) {
+//
+//                Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
+//
+//                //Create Date cell
+//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+//
+//                // Create donor number cell
+//                dateDonorRow.createCell(4).setCellValue(donor);
+//
+//                Row row = incubatorSheet.createRow(startingRowIncubator++);
+//                row.createCell(0).setCellValue(data.getID()); //set ID number
+//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+//                row.createCell(2).setCellValue(data.getName()); //set the name
+//            }
+//
+//            // Populate the second sheet
+//            Sheet deliFridgeSheet = workbook.getSheetAt(1); // Create a new sheet
+//            int startingRowDeli = 4; // Start from the 5th row
+//
+//            // Iterate through the deliFridgeList
+//            for (HICData data : deliFridgeList) {
+//
+//                Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
+//
+//                //Create Date cell
+//                dateDonorRow.createCell(0).setCellValue(currentDate.toString());
+//
+//                // Create donor number cell
+//                dateDonorRow.createCell(4).setCellValue(donor);
+//
+//                Row row = deliFridgeSheet.createRow(startingRowDeli++);
+//                row.createCell(0).setCellValue(data.getID()); //set ID number
+//                row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
+//                row.createCell(2).setCellValue(data.getName()); //set the name
+//            }
+//
+//            // Write workbook to file
+//            try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+//                workbook.write(fileOut);
+//                System.out.println("\nHICData exported to SignOutSheet successfully.");
+//            } catch (IOException e) {
+//                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }

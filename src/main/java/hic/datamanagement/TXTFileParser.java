@@ -8,11 +8,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-/**
- * Class for parsing a .txt file
- * @Author maxeldabbas
- */
 public class TXTFileParser implements FileParser {
 
     private List<HICData> hicData;
@@ -45,132 +42,73 @@ public class TXTFileParser implements FileParser {
         // Iterate over the lines of the file
         for (String line : lines) {
 
-            int indexI = line.indexOf("I");
-            int indexEA = line.indexOf("E_A");
-
-            if (indexI >= 0 || indexEA >= 0) {
-                int endIndex = Math.min(indexI >= 0 ? indexI : Integer.MAX_VALUE, indexEA >= 0 ? indexEA : Integer.MAX_VALUE) + 1;
-                line = line.substring(0, endIndex);
-            }
-
             // If the line starts with a hashtag, append that line to the current record
             if (line.startsWith("#")) {
                 currentRecord.append(" ").append(line);
             } else {
 
-                // Define a regular expression pattern to match fields separated by whitespace
-                String regexPattern = "(?<=\\S)\\s+(?=\\S)";
+                String[] token = line.split("[\t ]+"); //split the line by tab or space
+                List<String> tokens = new ArrayList<>();
 
-                // Tokenize the line using the regular expression pattern
-                //String[] tokens = line.split(regexPattern);
-                List<String> tokens = tokenizeLine(line);
+                // Skip the token if its length is 0
+                if (token.length == 0) {
+                    continue;
+                }
 
-                //String[] tokens = line.split("\\s+"); //split the line by tab or space
-                System.out.println(tokens);
+                // If the iteration hits an I or E_A, stop processing past this char/string
+                for (String part : token) {
+                    if (Objects.equals(part, "I") || Objects.equals(part, "E_A")) {
+                        break;
+                    }
+                    tokens.add(part); //add everything up to I or E_A into tokens list
+                }
 
-                // If the number of tokens is 9 or more
-                if (tokens.size() >= 2) {
+                //System.out.println(tokens);
+
+                // If the number of tokens is 6 or more
+                if (tokens.size() >= 6) {
 
                     // Get the information by specified index to get HIC data
                     try {
-
                         // Get the request ID
-                        String orderNum = tokens.get(0) + tokens.get(1) + tokens.get(2) + tokens.get(3) + tokens.get(4);
-                        int requestID = Integer.parseInt(orderNum);
+                        int requestID = Integer.parseInt(tokens.get(0).trim());
                         IDCounter++;
 
                         // Get the date and time
-                        StringBuilder dateTimeBuilder = new StringBuilder();
+                        LocalDateTime requestDate = LocalDateTime.parse(tokens.get(1) + " " + tokens.get(2), dateTimeFormatter);
 
-                        for (int i = 5; i < 15; i++) {
-                            dateTimeBuilder.append(tokens.get(i));
-                        }
-                        dateTimeBuilder.append(" ");
+                        // Get the name
+                        StringBuilder nameBuilder = new StringBuilder(tokens.get(3).trim());
+                        for (int i = 4; i < tokens.size(); i++) {
 
-                        for (int i = 15; i < 23; i++) {
-                            dateTimeBuilder.append(tokens.get(i));
-                        }
-
-                        String dateTime = dateTimeBuilder.toString();
-
-                        LocalDateTime requestDate = LocalDateTime.parse(dateTime, dateTimeFormatter);
-
-
-//                        // Get the name
-//                        String name = tokens[3].trim();
-//                        boolean foundSpecialKeyword = false;
-//
-//                        // Check for special keywords and build the name
-//                        for (int i = 4; i < tokens.length; i++) {
-//                            // Check for special keywords
-//                            if (tokens[i].matches(".*CD[48]\\+?.*|.*Total.*|.*Monocytes.*|.*PBMC.*|.*NK.*|.*B.*|Unpurified.*")) {
-//                                foundSpecialKeyword = true;
-//                                break;
-//                            }
-//                            // Append token to the name
-//                            name += " " + tokens[i];
-//                        }
-//
-//                        // If a special keyword is found, adjust the name accordingly
-//                        if (foundSpecialKeyword) {
-//                            String[] nameParts = name.split("\\s+");
-//                            StringBuilder adjustedName = new StringBuilder();
-//                            for (String part : nameParts) {
-//                                // If a part contains capital letters, consider it as part of the name
-//                                if (containsCapitalLetters(part)) {
-//                                    adjustedName.append(part).append(" ");
-//                                } else {
-//                                    break;
-//                                }
-//                            }
-//                            name = adjustedName.toString().trim();
-//                        }
-
-                        String tokensAfterDate = tokens.get(23);
-                        String[] splitTokensAfterDate = tokensAfterDate.split("(?<=\\S)\\s+(?=\\S)");
-                        System.out.println(Arrays.toString(splitTokensAfterDate));
-                        StringBuilder nameBuilder = new StringBuilder();
-
-                        for (String parts : splitTokensAfterDate) {
-                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
-                                    || parts.equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
-                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
+                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
+                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).equalsIgnoreCase("PBMC")
+                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
                                 break;
                             }
-                            nameBuilder.append(" ").append(parts);
+                            nameBuilder.append(" ").append(tokens.get(i));
                         }
-                        String name = nameBuilder.toString();
 
-//                        // Get the name
-//                        StringBuilder nameBuilder = new StringBuilder(tokens.get(23).trim());
-//                        for (int i = 23; i < tokens.size(); i++) {
-//                            if (tokens.get(i).equalsIgnoreCase("CD4") || tokens.get(i).equalsIgnoreCase("CD8") || tokens.get(i).equalsIgnoreCase("Total")
-//                                    || tokens.get(i).equalsIgnoreCase("Monocytes") || tokens.get(i).equalsIgnoreCase("PBMC")
-//                                    || tokens.get(i).equalsIgnoreCase("NK") || tokens.get(i).equalsIgnoreCase("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
-//                                break;
-//                            }
-//                            nameBuilder.append(tokens.get(i)).append(" ");
-//                        }
-//
-//                        String name = nameBuilder.toString().trim(); //put nameBuilder into string
-//
-//                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
-//
-//                        // If the full name is more than 2 names, only get first and middle/last
-//                        if (firstMiddleLastName.length > 2) {
-//                            //System.out.println(Arrays.toString(firstMiddleLastName));
-//                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
-//                        }
+                        String name = nameBuilder.toString(); //put nameBuilder into string
+
+                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
+
+                        // If the full name is more than 2 names, only get first and middle/last
+                        if (firstMiddleLastName.length > 2) {
+                            //System.out.println(Arrays.toString(firstMiddleLastName));
+                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
+                        }
 
                         // Get the cell type
                         String cellType = null;
 
-                        for (String parts : splitTokensAfterDate) {
-                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
-                                    || parts.equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
-                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
+                        //System.out.println(tokens);
 
-                                cellType = parts.replaceAll("\"", "").trim();
+                        for (String parts : tokens) {
+                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
+                                    || parts.trim().equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
+                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
+                                cellType = parts.trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
                                     cellType = "Total T";
@@ -183,24 +121,6 @@ public class TXTFileParser implements FileParser {
                                 }
                             }
                         }
-
-//                        for (int i = 23; i < tokensAfterDate.length(); i++) {
-//                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
-//                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).contains("PBMC")
-//                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
-//                                cellType = tokens.get(i).replaceAll("\"", "").trim();
-//
-//                                if (cellType.equalsIgnoreCase("Total")) {
-//                                    cellType = "Total T";
-//                                } else if (cellType.equalsIgnoreCase("B")) {
-//                                    cellType = "B Cells";
-//                                } else if (cellType.equalsIgnoreCase("NK")) {
-//                                    cellType = "NK Cells";
-//                                } else if (cellType.equalsIgnoreCase("Unpurified")) {
-//                                    cellType = "Unpurified Apheresis";
-//                                }
-//                            }
-//                        }
                         //System.out.println(cellType);
 
 
@@ -224,18 +144,13 @@ public class TXTFileParser implements FileParser {
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
-                            System.out.println(hicDataItem);
+                            //System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());
                     }
                 }
             }
         }
-    }
-
-    // Function to check if a string contains capital letters
-    private boolean containsCapitalLetters(String str) {
-        return !str.equals(str.toLowerCase());
     }
 
 
@@ -248,49 +163,11 @@ public class TXTFileParser implements FileParser {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
-//    /**
-//     * Method to tokenize a line
-//     * @param line to tokenize
-//     * @return list of tokens
-//     */
-//    private List<String> tokenizeLine(String line) {
-//        List<String> tokens = new ArrayList<>();
-//        StringBuilder currentToken = new StringBuilder();
-//
-//        boolean withinNameField = false;
-//
-//        for (char c : line.toCharArray()) {
-//            if (Character.isWhitespace(c)) {
-//                if (withinNameField) {
-//                    // If whitespace occurs within a name field, treat it as part of the name
-//                    currentToken.append(c);
-//                } else {
-//                    // If whitespace occurs between fields, add the current token to the list
-//                    if (currentToken.length() > 0) {
-//                        tokens.add(currentToken.toString());
-//                        currentToken.setLength(0); // Reset the current token
-//                    }
-//                }
-//            } else {
-//                // If a non-whitespace character is encountered, add it to the current token
-//                currentToken.append(c);
-//
-//                // Check if the current token is within a name field
-//                if (!withinNameField && Character.isLetter(c)) {
-//                    withinNameField = true;
-//                }
-//            }
-//        }
-//
-//        // Add the last token to the list
-//        if (currentToken.length() > 0) {
-//            tokens.add(currentToken.toString());
-//        }
-//
-//        return tokens;
-//    }
-
-
+    /**
+     * Method to tokenize a line
+     * @param line to tokenize
+     * @return list of tokens
+     */
     private List<String> tokenizeLine(String line) {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
@@ -325,19 +202,7 @@ public class TXTFileParser implements FileParser {
             tokens.add(currentToken.toString());
         }
 
-        // Handle all capital letter tokens as separate tokens
-        List<String> finalTokens = new ArrayList<>();
-        for (String token : tokens) {
-            if (token.equals(token.toUpperCase())) {
-                for (char c : token.toCharArray()) {
-                    finalTokens.add(String.valueOf(c));
-                }
-            } else {
-                finalTokens.add(token);
-            }
-        }
-
-        return finalTokens;
+        return tokens;
     }
 
 

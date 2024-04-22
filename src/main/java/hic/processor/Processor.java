@@ -12,6 +12,12 @@ import java.util.Objects;
 public class Processor {
 
     private FileReader fileReader;
+    final String HEADER_FORMAT = "%-30s%-20s%-10s%-10s%n";
+    final String HEADER_FORMAT_APHERESIS = "%-20s%-10s%-10s%n";
+    final String ROW_FORMAT = "%-30s%-20d%-10.2f%-10.2f%n";
+    final String ROW_FORMAT_APHERESIS = "%-20s%-10.2f%-10.2f%n";
+    final String BOLD_START = "\033[1m";
+    final String BOLD_END = "\033[0m";
 
     public Processor(FileReader fileReader) {
         this.fileReader = fileReader;
@@ -96,21 +102,26 @@ public class Processor {
         totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders + bOrders + apheresisOrders;
 
         // Print out the summary
-        System.out.println("\nSummary: ");
-        System.out.println();
-        System.out.print("\033[1m"); // Start bold formatting
-        System.out.printf("%-30s%-20s%-10s%-10s%n", "Cell Type", "Total Requests", "Max", "Min");
-        System.out.print("\033[0m"); // Start bold formatting
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "B Cells", bOrders, bMax, bMin);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "NK Cells", nkOrders, nkMax, nkMin);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "CD8+ T", cd8Orders, cd8Max, cd8Min);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "CD4+ T", cd4Orders, cd4Max, cd4Min);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Monocytes", monocyteOrders, monocytesMax, monocytesMin);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "PBMC", pbmcOrders, pbmcMax, pbmcMin);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Total T", totalTOrders, totalTMax, totalTMin);
-        System.out.printf("%-30s%-20d%-10.2f%-10.2f%n", "Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
+        System.out.println("\n----------------------------------------------------------------------");
+        System.out.println("Summary:\n");
+        System.out.print(BOLD_START); // Start bold formatting
+        System.out.printf(HEADER_FORMAT, "Cell Type", "Total Requests", "Max", "Min");
+        System.out.print(BOLD_END); // End bold formatting
+
+        // Print individual rows of cells/apheresis
+        printRow("B Cells", bOrders, bMax, bMin);
+        printRow("NK Cells", nkOrders, nkMax, nkMin);
+        printRow("CD8+ T", cd8Orders, cd8Max, cd8Min);
+        printRow("CD4+ T", cd4Orders, cd4Max, cd4Min);
+        printRow("Monocytes", monocyteOrders, monocytesMax, monocytesMin);
+        printRow("PBMC", pbmcOrders, pbmcMax, pbmcMin);
+        printRow("Total T", totalTOrders, totalTMax, totalTMin);
+        printRow("Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
+
+        // Print total orders
         System.out.println();
         System.out.println("Total Orders: " + totalOrders);
+        System.out.println("----------------------------------------------------------------------");
 
         // Add max and min cell orders to maxAndMinOrders arraylist
         maxAndMinOrders.add(nkMax);
@@ -129,6 +140,19 @@ public class Processor {
         //System.out.println(maxAndMinOrders);
         return maxAndMinOrders;
     }
+
+    /**
+     * Method to print a single row for cell orders summary
+     * @param cellType to print
+     * @param totalRequests to print
+     * @param max requests to print
+     * @param min requests to print
+     */
+    private void printRow(String cellType, int totalRequests, double max, double min) {
+        System.out.printf(ROW_FORMAT, cellType, totalRequests, max, min);
+    }
+
+
 
     public void calculateApheresisNeeded(List<Double> maxAndMinRequests) {
 
@@ -171,19 +195,32 @@ public class Processor {
         totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
 
         // Print out the summary
-        System.out.println("\nSummary of Apheresis Required: ");
+        System.out.println("Summary of Apheresis Required: ");
         System.out.println();
-        System.out.print("\033[1m"); // Start bold formatting
-        System.out.printf("%-20s%-10s%-10s%n", "Cell Type", "Max", "Min");
-        System.out.print("\033[0m"); // Reset formatting
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "B Cells", bMaxNeeded, bMinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "CD8+ T", cd8MaxNeeded, cd8MinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "CD4+ T", cd4MaxNeeded, cd4MinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded);
-        System.out.printf("%-20s%-10.2f%-10.2f%n", "Total Volume:", totalMaxNeeded, totalMinNeeded);
+        System.out.print(BOLD_START); // Start bold formatting
+        System.out.printf(HEADER_FORMAT_APHERESIS, "Cell Type", "Max", "Min");
+        System.out.print(BOLD_END); // End bold formatting
 
+// Print individual rows
+        printRowApheresis("B Cells", bMaxNeeded, bMinNeeded);
+        printRowApheresis("NK Cells", nkMaxNeeded, nkMinNeeded);
+        printRowApheresis("CD8+ T", cd8MaxNeeded, cd8MinNeeded);
+        printRowApheresis("CD4+ T", cd4MaxNeeded, cd4MinNeeded);
+        printRowApheresis("Monocytes", monocytesMaxNeeded, monocytesMinNeeded);
+        printRowApheresis("Total T", totalTMaxNeeded, totalTMinNeeded);
+        printRowApheresis("Total Volume:", totalMaxNeeded, totalMinNeeded);
+        System.out.println("----------------------------------------------------------------------");
+
+    }
+
+    /**
+     * Method to print a single row for apheresis summary
+     * @param cellType to print
+     * @param max request apheresis
+     * @param min request apheresis
+     */
+    private void printRowApheresis(String cellType, double max, double min) {
+        System.out.printf(ROW_FORMAT_APHERESIS, cellType, max, min);
     }
 
 

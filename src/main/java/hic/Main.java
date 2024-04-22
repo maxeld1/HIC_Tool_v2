@@ -29,9 +29,11 @@ public class Main {
 
         while (!donorNumberEntered) {
 
-            System.out.println("Welcome to the HIC Tool, meeting all of your HIC prep needs.");
+            System.out.println("Welcome to the HIC Tool, meeting all of your HIC prep needs!");
             System.out.println();
             System.out.println("Please enter the donor number for today: ");
+            System.out.print("> ");
+            System.out.flush();
 
             donor = scanner.nextLine(); //get user input for donor
 
