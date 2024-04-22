@@ -104,9 +104,10 @@ public class Processor {
         // Print out the summary
         System.out.println("\n----------------------------------------------------------------------");
         System.out.println("Summary:\n");
-        System.out.print(BOLD_START); // Start bold formatting
+        //System.out.print(BOLD_START); // Start bold formatting
         System.out.printf(HEADER_FORMAT, "Cell Type", "Total Requests", "Max", "Min");
-        System.out.print(BOLD_END); // End bold formatting
+        //System.out.print(BOLD_END); // End bold formatting
+        System.out.println();
 
         // Print individual rows of cells/apheresis
         printRow("B Cells", bOrders, bMax, bMin);
@@ -197,11 +198,12 @@ public class Processor {
         // Print out the summary
         System.out.println("Summary of Apheresis Required: ");
         System.out.println();
-        System.out.print(BOLD_START); // Start bold formatting
+        //System.out.print(BOLD_START); // Start bold formatting
         System.out.printf(HEADER_FORMAT_APHERESIS, "Cell Type", "Max", "Min");
-        System.out.print(BOLD_END); // End bold formatting
+        //System.out.print(BOLD_END); // End bold formatting
+        System.out.println();
 
-// Print individual rows
+        // Print individual rows
         printRowApheresis("B Cells", bMaxNeeded, bMinNeeded);
         printRowApheresis("NK Cells", nkMaxNeeded, nkMinNeeded);
         printRowApheresis("CD8+ T", cd8MaxNeeded, cd8MinNeeded);

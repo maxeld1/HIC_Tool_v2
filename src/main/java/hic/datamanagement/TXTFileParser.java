@@ -78,7 +78,7 @@ public class TXTFileParser implements FileParser {
                 }
 
 
-                System.out.println(tokens);
+                //System.out.println(tokens);
 
                 // If the number of tokens is 6 or more
                 if (tokens.size() >= 6) {
@@ -159,7 +159,7 @@ public class TXTFileParser implements FileParser {
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
-                            System.out.println(hicDataItem);
+                            //System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());
                     }
