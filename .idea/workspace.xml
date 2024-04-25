@@ -9,10 +9,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="fixed when I is part of the name">
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="UI stuff">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HIC Sign-out Sheet Template.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/HIC_Signout_Template.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HIC_FILE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HIC__INPUT_FILE.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HIC_Program_Label_Template.docx" beforeDir="false" afterPath="$PROJECT_DIR$/HIC_Program_Label_Template.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HIC_Program_Label_Template2.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -174,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713816496889</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="UI stuff">
+      <option name="closed" value="true" />
+      <created>1713817142355</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1713817142355</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -203,6 +216,7 @@
     <MESSAGE value="will now work on its own in HIC Program folder" />
     <MESSAGE value="is now parsing correctly (including all capital letters)" />
     <MESSAGE value="fixed when I is part of the name" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed when I is part of the name" />
+    <MESSAGE value="UI stuff" />
+    <option name="LAST_COMMIT_MESSAGE" value="UI stuff" />
   </component>
 </project>

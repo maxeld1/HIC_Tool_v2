@@ -85,7 +85,7 @@ public class UserInterface {
         System.out.println("3. Export sorted HIC data to Excel file");
         System.out.println("4. MAKE LABELS");
         System.out.println("5. Export to Sign Out Sheet");
-        System.out.println("6. ALL OF THE ABOVE (Will run everything)");
+        System.out.println("6. Get HIC Summary, Calculate Apheresis, and Export ALL");
         System.out.print("> ");
         System.out.flush();
     }
@@ -150,7 +150,7 @@ public class UserInterface {
         String jarDir = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
 
         // Construct the path to the hic label template file based on the JAR directory
-        String hicLabelTemplate = jarDir + File.separator + "Templates\\HIC_Program_Label_Template2.docx";
+        String hicLabelTemplate = jarDir + File.separator + "Templates\\HIC_Program_Label_Template.docx";
 
         String hicLabelCD4CD8 = jarDir + File.separator + "Output Files\\CD4CD8_Labels.docx";
 
@@ -177,8 +177,6 @@ public class UserInterface {
         // Export HIC data to labels word doc
         hicExcelLogger.exportToWord(otherCellTypesList, hicLabelTemplate, hicLabelOthers, donor);
 
-
-
     }
 
     private void exportToSignOutSheet(List<HICData> hicData, String donor) {
@@ -187,7 +185,7 @@ public class UserInterface {
         String jarDir = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
 
         // Construct the path to the hic label template file based on the JAR directory
-        String hicSignOutTemplate = jarDir + File.separator + "Templates\\HIC Sign-out Sheet Template.xlsx";
+        String hicSignOutTemplate = jarDir + File.separator + "Templates\\HIC_Signout_Template.xlsx";
 
         String hicSignOut = jarDir + File.separator + "Output Files\\HIC Sign-out Sheet.xlsx";
 
@@ -236,23 +234,14 @@ public class UserInterface {
 //        hicExcelLogger.logHICData(hicData, "C:\\HIC Program\\Output Files\\SortedHICList.xlsx", true);
 //
 //        // Export HIC data to labels word doc
-//        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\HIC Program\\Templates\\HIC_Program_Label_Template2.docx", "C:\\HIC Program\\Output Files\\CD4CD8_Labels.docx", donor);
+//        hicExcelLogger.exportToWord(cd4Cd8List, "C:\\HIC Program\\Templates\\HIC_Program_Label_Template.docx", "C:\\HIC Program\\Output Files\\CD4CD8_Labels.docx", donor);
 //
 //
 //        // Export HIC data to labels word doc
-//        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\HIC Program\\Templates\\HIC_Program_Label_Template2.docx", "C:\\HIC Program\\Output Files\\OTHERCellTypes_Labels.docx", donor);
+//        hicExcelLogger.exportToWord(otherCellTypesList, "C:\\HIC Program\\Templates\\HIC_Program_Label_Template.docx", "C:\\HIC Program\\Output Files\\OTHERCellTypes_Labels.docx", donor);
 //
-//        hicExcelLogger.exportToSignOutSheet(hicData, "C:\\HIC Program\\Templates\\HIC Sign-out Sheet Template.xlsx", "C:\\HIC Program\\Output Files\\HIC Sign-out Sheet.xlsx", donor);
+//        hicExcelLogger.exportToSignOutSheet(hicData, "C:\\HIC Program\\Templates\\HIC_Signout_Template.xlsx", "C:\\HIC Program\\Output Files\\HIC Sign-out Sheet.xlsx", donor);
     }
-
-
-
-
-
-
-
-
-
 
 
 

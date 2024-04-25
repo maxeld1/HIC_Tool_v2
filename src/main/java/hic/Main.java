@@ -56,7 +56,7 @@ public class Main {
         String jarDir = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
 
         // Construct the path to the .txt file based on the JAR directory
-        String hicTxtFilePath = jarDir + File.separator + "HIC_FILE.txt";
+        String hicTxtFilePath = jarDir + File.separator + "HIC_INPUT_FILE.txt";
         //System.out.println(hicTxtFilePath);
 
 

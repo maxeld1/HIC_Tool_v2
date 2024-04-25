@@ -70,7 +70,7 @@ public class TXTFileParser implements FileParser {
                         tokens.add(token[i]); // add everything from the beginning up to index 6 into tokens list
                     } else {
                         String part = token[i];
-                        if (Objects.equals(part, "I") || Objects.equals(part, "E_A")) {
+                        if (Objects.equals(part, "I") || Objects.equals(part, "E_A") || Objects.equals(part, "E_C")) {
                             break;
                         }
                         tokens.add(part); // add everything starting from index 7 up to I or E_A into tokens list
