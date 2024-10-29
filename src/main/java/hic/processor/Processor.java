@@ -42,6 +42,8 @@ public class Processor {
         int nkOrders = 0;
         int bOrders = 0;
         int apheresisOrders = 0;
+        int topLayerFicollOrders = 0;
+        int bottomLayerFicollOrders = 0;
 
         double cd4Max = 0;
         double cd4Min = 0;
@@ -59,6 +61,10 @@ public class Processor {
         double bMin = 0;
         double apheresisMax = 0;
         double apheresisMin = 0;
+        double topLayerFicollMax = 0;
+        double bottomLayerFicollMax = 0;
+        double topLayerFicollMin = 0;
+        double bottomLayerFicollMin = 0;
 
         // Iterate over the hic data to extract the max and min requests
         for (HICData data : hicData) {
@@ -95,11 +101,20 @@ public class Processor {
                 apheresisOrders++;
                 apheresisMax += data.getMaxRequest();
                 apheresisMin += data.getMinRequest();
+            } else if (Objects.equals(data.getCellType(), "Top Layer Ficoll")) {
+                topLayerFicollOrders++;
+                topLayerFicollMax += data.getMaxRequest();
+                topLayerFicollMin += data.getMinRequest();
+            } else if (Objects.equals(data.getCellType(), "Bottom Layer Ficoll")) {
+                bottomLayerFicollOrders++;
+                bottomLayerFicollMax += data.getMaxRequest();
+                bottomLayerFicollMin += data.getMinRequest();
             }
         }
 
         // Add total orders for each cell type to totalOrders variable
-        totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders + bOrders + apheresisOrders;
+        totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders +
+                bOrders + apheresisOrders + topLayerFicollOrders + bottomLayerFicollOrders;
 
         // Print out the summary
         System.out.println("\n----------------------------------------------------------------------");
@@ -118,6 +133,8 @@ public class Processor {
         printRow("PBMC", pbmcOrders, pbmcMax, pbmcMin);
         printRow("Total T", totalTOrders, totalTMax, totalTMin);
         printRow("Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
+        printRow("Top Layer Ficoll", topLayerFicollOrders, topLayerFicollMax, topLayerFicollMin);
+        printRow("Bottom Layer Ficoll", bottomLayerFicollOrders, bottomLayerFicollMax, bottomLayerFicollMin);
 
         // Print total orders
         System.out.println();
@@ -137,6 +154,10 @@ public class Processor {
         maxAndMinOrders.add(totalTMin);
         maxAndMinOrders.add(bMax);
         maxAndMinOrders.add(bMin);
+        maxAndMinOrders.add(topLayerFicollMax);
+        maxAndMinOrders.add(topLayerFicollMin);
+        maxAndMinOrders.add(bottomLayerFicollMax);
+        maxAndMinOrders.add(bottomLayerFicollMin);
 
         //System.out.println(maxAndMinOrders);
         return maxAndMinOrders;
@@ -231,7 +252,7 @@ public class Processor {
         Comparator<HICData> customComparator = new Comparator<HICData>() {
 
             // Define order of cell types
-            String[] cellTypeOrder = {"B Cells", "NK Cells", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T", "Unpurified Apheresis"};
+            String[] cellTypeOrder = {"B Cells", "NK Cells", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T", "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"};
 
             @Override
             public int compare(HICData data1, HICData data2) {

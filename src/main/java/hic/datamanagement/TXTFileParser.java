@@ -98,7 +98,8 @@ public class TXTFileParser implements FileParser {
 
                             if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
                                     || tokens.get(i).contains("Monocytes") || tokens.get(i).equalsIgnoreCase("PBMC")
-                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")) {
+                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")
+                                    || tokens.get(i).equalsIgnoreCase("Top") || tokens.get(i).equalsIgnoreCase("Bottom")) {
                                 break;
                             }
                             nameBuilder.append(" ").append(tokens.get(i));
@@ -122,7 +123,8 @@ public class TXTFileParser implements FileParser {
                         for (String parts : tokens) {
                             if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
                                     || parts.trim().equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
-                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")) {
+                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")
+                                    || parts.equalsIgnoreCase("Top") || parts.equalsIgnoreCase("Bottom")) {
                                 cellType = parts.trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
@@ -133,6 +135,10 @@ public class TXTFileParser implements FileParser {
                                     cellType = "NK Cells";
                                 } else if (cellType.equalsIgnoreCase("Unpurified")) {
                                     cellType = "Unpurified Apheresis";
+                                } else if (cellType.equalsIgnoreCase("Top")) {
+                                    cellType = "Top Layer Ficoll";
+                                } else if (cellType.equalsIgnoreCase("Bottom")) {
+                                    cellType = "Bottom Layer Ficoll";
                                 }
                             }
                         }

@@ -1,121 +1,314 @@
-36212	2024-03-31 21:15:50	Kisha Kamini Patel	CD4+ T	30.00	30.00	I	-
-#36210: 2024-04-18
+39534	2024-09-24 09:33:45	Siddhant Kadu	PBMC	200.00	200.00	I	-
+#39536: 2024-10-24
 
-36212	2024-03-31 21:15:50	Kisha Kamini Patel	CD8+ T	30.00	30.00	I	-
-#36210: 2024-04-18
+39560	2024-09-24 14:21:49	Anabel Zabala	Monocytes	40.00	20.00	I	-
+#39558: 2024-10-15
 
-36226	2024-04-01 12:27:33	Abigail cleveland	CD4+ T	30.00	25.00	I	-	N/A
-36226	2024-04-01 12:27:33	Abigail cleveland	Monocytes	10.00	10.00	I	-	N/A
-36226	2024-04-01 12:27:33	Abigail cleveland	PBMC	30.00	25.00	I	-	N/A
-36237	2024-04-01 12:32:41	Erica Brown	CD4+ T	5.00	5.00	I	-
-#36231: 2024-04-09
+39571	2024-09-24 14:25:58	Caitlin Sarah Frazee	Total T Cells	15.00	15.00	I	-
+#39566: 2024-10-15
 
-#36235: 2024-04-18
+#39570: 2024-10-24
 
-36237	2024-04-01 12:32:41	Erica Brown	CD8+ T	5.00	5.00	I	-
-#36231: 2024-04-09
+39594	2024-09-24 16:08:56	Zachary L Lamplugh	Monocytes	30.00	30.00	I	-
+#39589: 2024-10-15
 
-#36235: 2024-04-18
+#39593: 2024-10-24
 
-36253	2024-04-01 13:26:27	Bryan Ciccarelli	Monocytes	30.00	20.00	I	-	N/A
-36344	2024-04-04 11:36:58	Prithvi Sinha	Monocytes	30.00	30.00	I	-	N/A
-36344	2024-04-04 11:36:58	Prithvi Sinha	PBMC	20.00	20.00	I	-	N/A
-36353	2024-04-04 13:13:57	Zachary L Lamplugh	Monocytes	10.00	10.00	I	-	N/A
-36365	2024-04-04 16:11:50	Kara Spiller	Monocytes	30.00	20.00	E_A	could you send the emails to bh663@drexel.edu
-#36363: 2024-04-10
+39594	2024-09-24 16:08:56	Zachary L Lamplugh	PBMC	60.00	60.00	I	-
+#39593: 2024-10-24
 
-36396	2024-04-06 17:14:36	Junyoung Shin	Monocytes	30.00	30.00	I	-
-#36393: 2024-04-16
+39632	2024-09-25 11:12:32	Maureen F. Victoria	Monocytes	5.00	5.00	I	-
+#39626: 2024-10-15
 
-36400	2024-04-07 12:59:45	Hunter Michael Courtney	CD4+ T	30.00	20.00	I	-
-#36399: 2024-04-16
+#39628: 2024-10-22
 
-36400	2024-04-07 12:59:45	Hunter Michael Courtney	PBMC	100.00	100.00	I	-
-#36399: 2024-04-16
+#39631: 2024-10-24
 
-36462	2024-04-09 14:32:14	Zainul Hasanali	PBMC	10.00	10.00	I	-	N/A
-36473	2024-04-09 15:48:08	Leo Torres	CD4+ T	100.00	60.00	I	-
-#36157: 2024-04-09
+39650	2024-09-25 16:07:33	Xu Wang	Monocytes	15.00	15.00	E_A	-
+#39644: 2024-10-09
 
-#36159: 2024-04-11
+#39649: 2024-10-22
 
-#36471: 2024-04-18
+#39881: 2024-10-08
 
-36473	2024-04-09 15:48:08	Leo Torres	CD8+ T	100.00	60.00	I	-
-#36157: 2024-04-09
+39696	2024-09-26 18:42:47	Kayla Rose Snare	Monocytes	25.00	20.00	I	-
+#39692: 2024-10-15
 
-#36159: 2024-04-11
+#39695: 2024-10-24
 
-#36471: 2024-04-18
+39717	2024-09-27 10:21:50	Yansen Xiao	NK Cells	10.00	5.00	I	-
+#39718: 2024-10-15
 
-36493	2024-04-10 16:23:26	MARSHALL PADILLA	CD4+ T	10.00	5.00	I	-
-#36490: 2024-04-16
+39717	2024-09-27 10:21:50	Yansen Xiao	PBMC	1000.00	500.00	I	-	N/A
+39788	2024-09-30 12:59:05	Shira Gavrielle Rosenberg	PBMC	100.00	50.00	I	-	N/A
+39845	2024-10-01 10:48:32	Abdulla Berjis	NK Cells	5.00	5.00	I	-
+#39839: 2024-10-10
 
-36493	2024-04-10 16:23:26	MARSHALL PADILLA	CD8+ T	10.00	5.00	I	-
-#36490: 2024-04-16
+#39840: 2024-10-15
 
-36493	2024-04-10 16:23:26	MARSHALL PADILLA	Monocytes	20.00	10.00	I	-
-#36490: 2024-04-16
+#39844: 2024-10-24
 
-36497	2024-04-10 16:30:18	Alberto Carturan	CD4+ T	15.00	10.00	I	-
-#36376: 2024-04-09
+39845	2024-10-01 10:48:32	Abdulla Berjis	PBMC	150.00	100.00	I	-	N/A
+39845	2024-10-01 10:48:32	Abdulla Berjis	Total T Cells	5.00	5.00	I	-	N/A
+39873	2024-10-02 09:13:41	Anja Janice Melendez	CD4+ T	60.00	50.00	I	-
+#39918: 2024-10-10
 
-#36378: 2024-04-11
+39876	2024-10-02 09:56:05	Ezra A Beaubien	Total T Cells	150.00	100.00	I	Prior T-cell expansion experiments have been done with this donor, for larger-scale versions the donor should ideally be kept the same. Thank you!	N/A
+39954	2024-10-07 12:00:35	Reva Sameer Rasane	NK Cells	5.00	5.00	I	-
+#39946: 2024-10-08
 
-36497	2024-04-10 16:30:18	Alberto Carturan	CD8+ T	15.00	10.00	I	-
-#36376: 2024-04-09
+#39948: 2024-10-10
 
-#36378: 2024-04-11
+#39949: 2024-10-15
 
-36503	2024-04-10 18:36:17	Houping Ni	Monocytes	35.00	25.00	I	-	N/A
-36515	2024-04-12 11:23:09	Qin Li	Monocytes	35.00	25.00	I	-	N/A
-36519	2024-04-12 11:31:26	Yi Qi	CD4+ T	30.00	20.00	I	-
-#36516: 2024-04-16
+#39951: 2024-10-22
 
-36522	2024-04-12 12:42:12	JIBIN ZHOU	Monocytes	35.00	25.00	I	-	N/A
-36539	2024-04-15 09:59:28	Brendan Mcintyre	CD4+ T	20.00	15.00	I	Need PBMCs to be donor matched to T cells. Do no want if not enough product for both.	N/A
-36539	2024-04-15 09:59:28	Brendan Mcintyre	CD8+ T	20.00	15.00	I	Need PBMCs to be donor matched to T cells. Do no want if not enough product for both.	N/A
-36539	2024-04-15 09:59:28	Brendan Mcintyre	PBMC	500.00	500.00	I	Need PBMCs to be donor matched to T cells. Do no want if not enough product for both.	N/A
-36577	2024-04-16 15:21:33	Mito Tariveranmoshabad	CD4+ T	10.00	10.00	I	-
-#36431: 2024-04-09
+#39953: 2024-10-24
 
-#36433: 2024-04-11
+40013	2024-10-10 10:54:34	Jacob Hamilton	NK Cells	15.00	5.00	I	-
+#40008: 2024-10-15
 
-36577	2024-04-16 15:21:33	Mito Tariveranmoshabad	CD8+ T	10.00	10.00	I	-
-#36431: 2024-04-09
+#40010: 2024-10-22
 
-#36433: 2024-04-11
+#40012: 2024-10-24
 
-36583	2024-04-16 18:08:36	Nils Engel	CD4+ T	30.00	30.00	I	-
-#36401: 2024-04-16
+40042	2024-10-11 12:27:00	Min Xiao	Monocytes	40.00	20.00	I	-
+#40043: 2024-10-23
 
-36583	2024-04-16 18:08:36	Nils Engel	CD8+ T	30.00	30.00	I	-
-#36401: 2024-04-16
+40054	2024-10-11 16:42:12	Shujing Liu	PBMC	60.00	60.00	I	-
+#40053: 2024-10-24
 
-36586	2024-04-16 19:54:06	Zhiyang Gan	Total T Cells	10.00	5.00	I	-	N/A
-36588	2024-04-16 21:32:10	Ann Metzloff	CD4+ T	10.00	5.00	I	-
-#36359: 2024-04-09
+40116	2024-10-15 14:34:04	Sarah E Haines	Total T Cells	400.00	50.00	I	-
+#40099: 2024-10-24
 
-36588	2024-04-16 21:32:10	Ann Metzloff	CD8+ T	10.00	5.00	I	-
-#36359: 2024-04-09
+#40115: 2024-10-24
 
-36595	2024-04-17 10:13:33	Urvi SUDHANSHU Zankharia	Monocytes	25.00	15.00	I	Urgently require cells to finish manuscript revision
-#36524: 2024-04-16
+40122	2024-10-15 15:02:00	Erica Brown	CD4+ T	10.00	10.00	I	-
+#39941: 2024-10-15
 
-36597	2024-04-17 10:14:51	Robert Hapke	Total T Cells	25.00	25.00	I	-	N/A
-36603	2024-04-17 11:28:50	Shubhmita Bhatnagar	Total T Cells	300.00	50.00	I	-
-#36601: 2024-04-18
+#39944: 2024-10-10
 
-36623	2024-04-18 16:13:36	Jonathan Tedesco	PBMC	250.00	75.00	I	-	N/A
-36630	2024-04-19 12:28:17	Gongyi Ren	Total T Cells	10.00	5.00	I	-	N/A
-36634	2024-04-19 15:17:50	Haiwei Ni	Monocytes	20.00	20.00	I	-	N/A
-36634	2024-04-19 15:17:50	Haiwei Ni	PBMC	10.00	10.00	I	-	N/A
-36637	2024-04-20 10:34:24	Sam Kim	CD4+ T	5.00	5.00	I	-
-#36562: 2024-04-16
+#40121: 2024-10-24
 
-36637	2024-04-20 10:34:24	Sam Kim	CD8+ T	5.00	5.00	I	-
-#36562: 2024-04-16
+40122	2024-10-15 15:02:00	Erica Brown	CD8+ T	10.00	10.00	I	-
+#39941: 2024-10-15
 
-36637	2024-04-20 10:34:24	Sam Kim	Monocytes	10.00	5.00	I	-
-#36562: 2024-04-16
+#39944: 2024-10-10
 
+#40121: 2024-10-24
+
+40130	2024-10-15 16:13:30	Kelly Maurer	Monocytes	15.00	15.00	I	-
+#39770: 2024-10-08
+
+#39771: 2024-10-15
+
+#39859: 2024-10-22
+
+40168	2024-10-17 16:01:12	Aoife O'Farrell	Monocytes	20.00	15.00	I	2 recent orders cancelled
+#39577: 2024-10-15
+
+#39579: 2024-10-24
+
+#39668: 2024-10-08
+
+#40167: 2024-10-23
+
+40170	2024-10-17 16:17:06	Morgan Elizabeth Hresko	Total T Cells	10.00	10.00	I	need for in vivo experiment	N/A
+40171	2024-10-17 16:19:43	Seul Ki Jung	Total T Cells	10.00	5.00	I	-
+#40162: 2024-10-24
+
+40171	2024-10-17 16:19:43	Seul Ki Jung	PBMC	35.00	30.00	I	-
+#40127: 2024-10-17
+
+#40162: 2024-10-24
+
+40177	2024-10-18 13:30:08	Meiyin Lin	PBMC	100.00	50.00	I	-
+#40056: 2024-10-15
+
+#40176: 2024-10-22
+
+40199	2024-10-21 11:16:19	Xiaole Song	PBMC	20.00	20.00	I	-
+#40110: 2024-10-17
+
+#40198: 2024-10-22
+
+40206	2024-10-21 14:08:45	Max Herman Wadley	CD4+ T	5.00	5.00	I	-
+#39967: 2024-10-10
+
+#39979: 2024-10-15
+
+#40124: 2024-10-24
+
+40206	2024-10-21 14:08:45	Max Herman Wadley	CD8+ T	5.00	5.00	I	-
+#39967: 2024-10-10
+
+#39979: 2024-10-15
+
+#40124: 2024-10-24
+
+40212	2024-10-21 15:24:40	Jonathan Tedesco	PBMC	160.00	80.00	I	-	N/A
+40219	2024-10-22 11:16:35	Zhiyang Gan	Total T Cells	20.00	15.00	I	-
+#39968: 2024-10-10
+
+#40027: 2024-10-24
+
+40222	2024-10-22 11:22:11	Alberto Carturan	CD4+ T	10.00	5.00	I	-	N/A
+40222	2024-10-22 11:22:11	Alberto Carturan	CD8+ T	10.00	5.00	I	-	N/A
+40228	2024-10-22 14:17:13	Jean Lemoine	CD4+ T	75.00	50.00	I	We have been in touch by email with Emileigh Maddox about this large order of T cells Thank you
+#40226: 2024-10-23
+
+#40227: 2024-10-24
+
+40228	2024-10-22 14:17:13	Jean Lemoine	CD8+ T	75.00	50.00	I	We have been in touch by email with Emileigh Maddox about this large order of T cells Thank you
+#40226: 2024-10-23
+
+#40227: 2024-10-24
+
+40230	2024-10-22 14:21:51	Dongyun Lei	PBMC	50.00	50.00	I	We actually need this donor, thanks!
+#40175: 2024-10-22
+
+40232	2024-10-22 15:07:21	Shiya Su	Total T Cells	10.00	10.00	I	-
+#39957: 2024-10-10
+
+40233	2024-10-22 15:28:38	Isabel Vargas	Monocytes	20.00	10.00	I	-
+#39883: 2024-10-08
+
+#40003: 2024-10-17
+
+#40004: 2024-10-22
+
+#40246: 2024-10-24
+
+40237	2024-10-22 15:51:53	Audrey Charlotte Bochi-Layec	CD4+ T	5.00	5.00	I	-
+#39897: 2024-10-09
+
+#40015: 2024-10-15
+
+#40156: 2024-10-22
+
+40237	2024-10-22 15:51:53	Audrey Charlotte Bochi-Layec	CD8+ T	5.00	5.00	I	-
+#39897: 2024-10-09
+
+#40015: 2024-10-15
+
+#40156: 2024-10-22
+
+40240	2024-10-22 16:57:38	Lorea L Baroja	Monocytes	10.00	5.00	I	-
+#39898: 2024-10-08
+
+#40093: 2024-10-22
+
+#40094: 2024-10-23
+
+#40095: 2024-10-24
+
+40240	2024-10-22 16:57:38	Lorea L Baroja	PBMC	15.00	10.00	I	-
+#40095: 2024-10-24
+
+40243	2024-10-23 00:48:17	PHILIPP C ROMMEL	CD4+ T	10.00	10.00	I	-
+#39923: 2024-10-24
+
+#39993: 2024-10-15
+
+40243	2024-10-23 00:48:17	PHILIPP C ROMMEL	CD8+ T	10.00	10.00	I	-
+#39923: 2024-10-24
+
+#39993: 2024-10-15
+
+40245	2024-10-23 10:40:12	CAGLA ESPINOZA	Monocytes	25.00	25.00	I	-
+#40244: 2024-10-24
+
+40247	2024-10-23 11:12:34	Maxime Zamba-Campero	Monocytes	15.00	10.00	I	-	N/A
+40248	2024-10-23 13:06:43	Jake Storm Fischman	Total T Cells	20.00	10.00	I	-	N/A
+40254	2024-10-23 15:15:00	Xiaoling Jin	CD4+ T	50.00	50.00	I	-	N/A
+40258	2024-10-24 10:26:47	Roderick SEAN O'Connor	Total T Cells	10.00	10.00	I	-
+#40007: 2024-10-15
+
+40259	2024-10-24 10:53:29	Md Naushad Akhtar	Monocytes	20.00	15.00	I	-
+#40224: 2024-10-23
+
+40259	2024-10-24 10:53:29	Md Naushad Akhtar	PBMC	20.00	20.00	I	-	N/A
+40296	2024-10-24 12:25:03	Samantha Jacqueline Provost	PBMC	25.00	20.00	I	-
+#40218: 2024-10-24
+
+40297	2024-10-24 12:34:46	Miroslaw Kozlowski	CD4+ T	15.00	10.00	I	-	N/A
+40297	2024-10-24 12:34:46	Miroslaw Kozlowski	CD8+ T	15.00	10.00	I	-	N/A
+40303	2024-10-24 13:31:05	Shushu Zhao	Monocytes	10.00	5.00	I	-	N/A
+40303	2024-10-24 13:31:05	Shushu Zhao	NK Cells	10.00	5.00	I	-	N/A
+40305	2024-10-24 13:40:22	Xiaogang Zhang	PBMC	5.00	5.00	I	-
+#40186: 2024-10-24
+
+40306	2024-10-24 14:08:24	Gongping Shi	Total T Cells	100.00	50.00	I	-	N/A
+40307	2024-10-24 14:13:10	Edward Kreider	CD4+ T	20.00	10.00	I	-	N/A
+40308	2024-10-24 14:49:37	ZIJIE FENG	CD4+ T	50.00	25.00	E_C	-	N/A
+40308	2024-10-24 14:49:37	ZIJIE FENG	CD8+ T	50.00	25.00	E_C	-	N/A
+40315	2024-10-24 14:55:57	Annapurna Pranatharthi-Haran	Total T Cells	50.00	50.00	I	-
+#39999: 2024-10-10
+
+#40215: 2024-10-23
+
+#40216: 2024-10-24
+
+40321	2024-10-24 14:58:55	Feng Shen	Total T Cells	5.00	5.00	I	-	N/A
+40330	2024-10-24 15:45:29	Samuel Kim	Monocytes	10.00	5.00	I	Prior one 10/22 was cancelled
+#40148: 2024-10-22
+
+40336	2024-10-24 15:52:01	Jianwen Li	PBMC	30.00	30.00	I	dy	N/A
+40352	2024-10-25 11:38:06	Brianna LaFratta	PBMC	200.00	200.00	I	-	N/A
+40353	2024-10-25 13:02:22	Satish Sati	Bottom pellet of Ficol	5.00	5.00	I	-	N/A
+40355	2024-10-25 14:25:32	Robert Schwab	CD4+ T	40.00	20.00	I	-	N/A
+40356	2024-10-25 16:00:34	Yingshi Chen	Total T Cells	5.00	5.00	I	Can take any number of T cells that are left.	N/A
+40362	2024-10-26 14:05:22	Chet Markwalter	PBMC	10.00	5.00	E_C	-	N/A
+40363	2024-10-27 18:19:01	Junjie Jiang	NK Cells	10.00	5.00	I	-
+#40061: 2024-10-15
+
+#40139: 2024-10-17
+
+#40196: 2024-10-22
+
+#40256: 2024-10-24
+
+40364	2024-10-27 22:25:14	Wenqun Zhong	Total T Cells	20.00	10.00	I	-
+#40060: 2024-10-15
+
+40364	2024-10-27 22:25:14	Wenqun Zhong	Monocytes	40.00	20.00	I	-
+#39930: 2024-10-08
+
+#40060: 2024-10-15
+
+40367	2024-10-28 09:19:34	Tyler Ellis Papp	Total T Cells	30.00	20.00	I	-
+#40083: 2024-10-15
+
+40367	2024-10-28 09:19:34	Tyler Ellis Papp	CD4+ T	15.00	10.00	I	-	N/A
+40367	2024-10-28 09:19:34	Tyler Ellis Papp	CD8+ T	15.00	10.00	I	-	N/A
+40369	2024-10-28 09:55:32	Grzywa Tomasz Maciej	Total T Cells	20.00	10.00	I	-
+#39887: 2024-10-10
+
+#40210: 2024-10-24
+
+40371	2024-10-28 10:42:25	Ngomu Akilimali	PBMC	150.00	150.00	I	-
+#40202: 2024-10-22
+
+#40204: 2024-10-24
+
+40374	2024-10-28 11:04:33	Huijun Wei	Total T Cells	10.00	10.00	I	-	N/A
+40375	2024-10-28 11:29:06	Yeseul Kim	Unpurified Apheresis Product	40.00	20.00	I	-	N/A
+40380	2024-10-28 12:02:12	Irina R Rabinkov	PBMC	50.00	50.00	I	-
+#40075: 2024-10-15
+
+40388	2024-10-28 12:34:23	Sara Iuliucci	Total T Cells	40.00	35.00	I	-	N/A
+40390	2024-10-28 13:43:05	Qian Zhang	CD4+ T	5.00	5.00	I	please do not cancel the order. Thanks.
+#40058: 2024-10-15
+
+40390	2024-10-28 13:43:05	Qian Zhang	CD8+ T	5.00	5.00	I	please do not cancel the order. Thanks.
+#40058: 2024-10-15
+
+40392	2024-10-28 15:32:55	Leo Torres	CD4+ T	10.00	10.00	I	-	N/A
+40394	2024-10-28 16:13:29	Xiangyi Fang	Total T Cells	10.00	10.00	I	-	N/A
+40400	2024-10-28 17:14:28	Aabir Sanyal	NK Cells	5.00	5.00	I	-	N/A
+40402	2024-10-28 18:20:44	Kristy Ma	PBMC	200.00	200.00	I	-
+#39829: 2024-10-08
+
+#40192: 2024-10-22
+
+#40194: 2024-10-24
