@@ -226,7 +226,18 @@ public class TXTFileParser implements FileParser {
         return tokens;
     }
 
-
+    /**
+     * Parse the content directly from a String input.
+     * This can be used for parsing from GUI input.
+     *
+     * @param content to parse
+     */
+    public void parseFromString(String content) {
+        if (content == null || content.isEmpty()) {
+            return;
+        }
+        parse(content); // Call the existing parse method to handle the content
+    }
 
 
     @Override

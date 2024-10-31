@@ -116,30 +116,30 @@ public class Processor {
         totalOrders = nkOrders + cd8Orders + cd4Orders + monocyteOrders + pbmcOrders + totalTOrders +
                 bOrders + apheresisOrders + topLayerFicollOrders + bottomLayerFicollOrders;
 
-        // Print out the summary
-        System.out.println("\n----------------------------------------------------------------------");
-        System.out.println("Summary:\n");
-        //System.out.print(BOLD_START); // Start bold formatting
-        System.out.printf(HEADER_FORMAT, "Cell Type", "Total Requests", "Max", "Min");
-        //System.out.print(BOLD_END); // End bold formatting
-        System.out.println();
-
-        // Print individual rows of cells/apheresis
-        printRow("B Cells", bOrders, bMax, bMin);
-        printRow("NK Cells", nkOrders, nkMax, nkMin);
-        printRow("CD8+ T", cd8Orders, cd8Max, cd8Min);
-        printRow("CD4+ T", cd4Orders, cd4Max, cd4Min);
-        printRow("Monocytes", monocyteOrders, monocytesMax, monocytesMin);
-        printRow("PBMC", pbmcOrders, pbmcMax, pbmcMin);
-        printRow("Total T", totalTOrders, totalTMax, totalTMin);
-        printRow("Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
-        printRow("Top Layer Ficoll", topLayerFicollOrders, topLayerFicollMax, topLayerFicollMin);
-        printRow("Bottom Layer Ficoll", bottomLayerFicollOrders, bottomLayerFicollMax, bottomLayerFicollMin);
-
-        // Print total orders
-        System.out.println();
-        System.out.println("Total Orders: " + totalOrders);
-        System.out.println("----------------------------------------------------------------------");
+//        // Print out the summary
+//        System.out.println("\n----------------------------------------------------------------------");
+//        System.out.println("Summary:\n");
+//        //System.out.print(BOLD_START); // Start bold formatting
+//        System.out.printf(HEADER_FORMAT, "Cell Type", "Total Requests", "Max", "Min");
+//        //System.out.print(BOLD_END); // End bold formatting
+//        System.out.println();
+//
+//        // Print individual rows of cells/apheresis
+//        printRow("B Cells", bOrders, bMax, bMin);
+//        printRow("NK Cells", nkOrders, nkMax, nkMin);
+//        printRow("CD8+ T", cd8Orders, cd8Max, cd8Min);
+//        printRow("CD4+ T", cd4Orders, cd4Max, cd4Min);
+//        printRow("Monocytes", monocyteOrders, monocytesMax, monocytesMin);
+//        printRow("PBMC", pbmcOrders, pbmcMax, pbmcMin);
+//        printRow("Total T", totalTOrders, totalTMax, totalTMin);
+//        printRow("Unpurified Apheresis", apheresisOrders, apheresisMax, apheresisMin);
+//        printRow("Top Layer Ficoll", topLayerFicollOrders, topLayerFicollMax, topLayerFicollMin);
+//        printRow("Bottom Layer Ficoll", bottomLayerFicollOrders, bottomLayerFicollMax, bottomLayerFicollMin);
+//
+//        // Print total orders
+//        System.out.println();
+//        System.out.println("Total Orders: " + totalOrders);
+//        System.out.println("----------------------------------------------------------------------");
 
         // Add max and min cell orders to maxAndMinOrders arraylist
         maxAndMinOrders.add(nkMax);
@@ -174,10 +174,98 @@ public class Processor {
         System.out.printf(ROW_FORMAT, cellType, totalRequests, max, min);
     }
 
+    /**
+     * Method to calculate total cell counts and return summary of orders as a string
+     * @param hicData to investigate
+     */
+    public String getHICSummaryString(List<HICData> hicData) {
+        StringBuilder summary = new StringBuilder();
+        List<Double> maxAndMinOrders = new ArrayList<>();
 
+        // Initialize variables to store order counts and request values
+        int totalOrders = 0, cd4Orders = 0, cd8Orders = 0, monocyteOrders = 0, pbmcOrders = 0, nkOrders = 0, bOrders = 0, bottomLayerOrders = 0, topLayerOrders = 0, totalTOrders = 0;
+        double cd4Max = 0, cd8Max = 0, monocyteMax = 0, pbmcMax = 0, nkMax = 0, bMax = 0, totalTMax = 0, topLayerMax = 0, bottomLayerMax = 0;
+        double cd4Min = 0, cd8Min = 0, monocyteMin = 0, pbmcMin = 0, nkMin = 0, bMin = 0, totalTMin = 0, topLayerMin = 0, bottomLayerMin = 0;
 
-    public void calculateApheresisNeeded(List<Double> maxAndMinRequests) {
+        for (HICData data : hicData) {
+            switch (data.getCellType()) {
+                case "CD4+" -> {
+                    cd4Orders++;
+                    cd4Max += data.getMaxRequest();
+                    cd4Min += data.getMinRequest();
+                }
+                case "CD8+" -> {
+                    cd8Orders++;
+                    cd8Max += data.getMaxRequest();
+                    cd8Min += data.getMinRequest();
+                }
+                case "PBMC" -> {
+                    pbmcOrders++;
+                    pbmcMax += data.getMaxRequest();
+                    pbmcMin += data.getMinRequest();
+                }
+                case "Monocytes" -> {
+                    monocyteOrders++;
+                    monocyteMax += data.getMaxRequest();
+                    monocyteMin += data.getMinRequest();
+                }
+                case "NK Cells" -> {
+                    nkOrders++;
+                    nkMax += data.getMaxRequest();
+                    nkMin += data.getMinRequest();
+                }
+                case "B Cells" -> {
+                    bOrders++;
+                    bMax += data.getMaxRequest();
+                    bMin += data.getMinRequest();
+                }
+                case "Total T" -> {
+                    totalTOrders++;
+                    totalTMax += data.getMaxRequest();
+                    totalTMin += data.getMinRequest();
+                }
+                case "Top Layer Ficoll" -> {
+                    topLayerOrders++;
+                    topLayerMax += data.getMaxRequest();
+                    topLayerMin += data.getMinRequest();
+                }
+                case "Bottom Layer Ficoll" -> {
+                    bottomLayerOrders++;
+                    bottomLayerMax += data.getMaxRequest();
+                    bottomLayerMin += data.getMinRequest();
+                }
+            }
+        }
 
+        // Add total orders
+        totalOrders = cd4Orders + cd8Orders + pbmcOrders + nkOrders + bOrders + totalTOrders + monocyteOrders + topLayerOrders + bottomLayerOrders;
+
+        // Format the summary text
+        summary.append("Summary:\n");
+        summary.append(String.format("%-20s%-15s%-10s%-10s%n", "Cell Type", "Requests", "Max", "Min"));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "NK Cells", nkOrders, nkMax, nkMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "CD8+ T", cd8Orders, cd8Max, cd8Min));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "CD4+ T", cd4Orders, cd4Max, cd4Min));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Monocytes", monocyteOrders, monocyteMax, monocyteMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "PBMC", pbmcOrders, pbmcMax, pbmcMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "B Cells", bOrders, bMax, bMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Total T", totalTOrders, totalTMax, totalTMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Top Ficoll", topLayerOrders, topLayerMax, topLayerMin));
+        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Bottom Ficoll", bottomLayerOrders, bottomLayerMax, bottomLayerMin));
+        summary.append("\nTotal Orders: ").append(totalOrders).append("\n");
+
+        return summary.toString();
+    }
+
+    /**
+     * Method to calculate apheresis requirements and return the summary as a string
+     * @param maxAndMinRequests list of max and min requests
+     * @return formatted string for display
+     */
+    public String getApheresisCalculationString(List<Double> maxAndMinRequests) {
+        StringBuilder apheresisSummary = new StringBuilder();
+
+        // Sample calculations
         double nkMaxNeeded;
         double nkMinNeeded;
         double cd8MaxNeeded;
@@ -193,6 +281,7 @@ public class Processor {
 
         double totalMaxNeeded = 0;
         double totalMinNeeded = 0;
+        // Continue for other cell types
 
         // Calculate apheresis needed for each cell type/request type
         nkMaxNeeded = (maxAndMinRequests.get(0) * 20) / 40;
@@ -216,25 +305,20 @@ public class Processor {
         totalMaxNeeded += nkMaxNeeded + cd8MaxNeeded + cd4MaxNeeded + monocytesMaxNeeded + totalTMaxNeeded + bMaxNeeded;
         totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
 
-        // Print out the summary
-        System.out.println("Summary of Apheresis Required: ");
-        System.out.println();
-        //System.out.print(BOLD_START); // Start bold formatting
-        System.out.printf(HEADER_FORMAT_APHERESIS, "Cell Type", "Max", "Min");
-        //System.out.print(BOLD_END); // End bold formatting
-        System.out.println();
+        // Format the calculation text
+        apheresisSummary.append("Summary of Apheresis Required:\n");
+        apheresisSummary.append(String.format("%-20s%-10s%-10s%n", "Cell Type", "Max", "Min"));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "CD8 Cells", cd8MaxNeeded, cd8MinNeeded));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "CD4 Cells", cd4MaxNeeded, cd4MinNeeded));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded));
+        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Total Apheresis", totalMaxNeeded, totalMinNeeded));
+        // Append more cell types as needed
 
-        // Print individual rows
-        printRowApheresis("B Cells", bMaxNeeded, bMinNeeded);
-        printRowApheresis("NK Cells", nkMaxNeeded, nkMinNeeded);
-        printRowApheresis("CD8+ T", cd8MaxNeeded, cd8MinNeeded);
-        printRowApheresis("CD4+ T", cd4MaxNeeded, cd4MinNeeded);
-        printRowApheresis("Monocytes", monocytesMaxNeeded, monocytesMinNeeded);
-        printRowApheresis("Total T", totalTMaxNeeded, totalTMinNeeded);
-        printRowApheresis("Total Volume:", totalMaxNeeded, totalMinNeeded);
-        System.out.println("----------------------------------------------------------------------");
-
+        return apheresisSummary.toString();
     }
+
 
     /**
      * Method to print a single row for apheresis summary
