@@ -3,6 +3,7 @@ package hic.logging;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import hic.datamanagement.FileReader;
+import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
@@ -254,7 +255,7 @@ public class HICExcelLogger {
      * @param outputPath path for sign out sheet export
      * @param donor number
      */
-    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) {
+    public void exportToSignOutSheet(List<HICData> hicData, String templatePath, String outputPath, String donor) throws HICDataNotFoundException {
 
         FileReader fileReader = FileReader.getInstance();
         Processor processor = new Processor(fileReader);

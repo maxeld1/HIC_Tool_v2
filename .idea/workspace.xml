@@ -9,17 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="updated HIC_Tool_v1.jar file">
-      <change afterPath="$PROJECT_DIR$/.idea/artifacts/HIC_Tool_v1_jar2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/artifacts/HIC_Tool_v1_jar3.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hic/Main2.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" afterDir="false" />
+    <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="updated HIC_Tool_v1.jar fto v3 with fancy GUI">
+      <change afterPath="$PROJECT_DIR$/src/main/java/hic/processor/HICDataNotFoundException.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/datamanagement/TXTFileParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/UserInterface.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +92,7 @@
       <updated>1712975278471</updated>
       <workItem from="1712975279614" duration="3000" />
       <workItem from="1713187706294" duration="13781000" />
-      <workItem from="1730211051775" duration="13051000" />
+      <workItem from="1730211051775" duration="16833000" />
     </task>
     <task id="LOCAL-00001" summary="have made apheresusCalculation method and now working on label maker">
       <option name="closed" value="true" />
@@ -211,7 +206,15 @@
       <option name="project" value="LOCAL" />
       <updated>1730214078099</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="updated HIC_Tool_v1.jar fto v3 with fancy GUI">
+      <option name="closed" value="true" />
+      <created>1730398307456</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1730398307456</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -243,6 +246,7 @@
     <MESSAGE value="UI stuff" />
     <MESSAGE value="added functionality for top and bottom later ficoll" />
     <MESSAGE value="updated HIC_Tool_v1.jar file" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated HIC_Tool_v1.jar file" />
+    <MESSAGE value="updated HIC_Tool_v1.jar fto v3 with fancy GUI" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated HIC_Tool_v1.jar fto v3 with fancy GUI" />
   </component>
 </project>

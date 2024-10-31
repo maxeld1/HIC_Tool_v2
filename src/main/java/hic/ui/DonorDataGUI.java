@@ -2,6 +2,7 @@ package hic.ui;
 
 import hic.datamanagement.TXTFileParser;
 import hic.logging.HICExcelLogger;
+import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import hic.util.HICData;
 
@@ -70,13 +71,31 @@ public class DonorDataGUI extends JFrame {
         JButton clearOutputButton = new JButton("Clear Output");
 
         // Button Actions
-        summaryButton.addActionListener(e -> getHICSummary());
-        apheresisButton.addActionListener(e -> calculateApheresis());
+        summaryButton.addActionListener(e -> {
+            getHICSummary();
+        });
+
+        apheresisButton.addActionListener(e -> {
+            calculateApheresis();
+        });
+
         exportUnsortedButton.addActionListener(e -> exportToExcelUnsorted());
-        exportSortedButton.addActionListener(e -> exportToExcelSorted());
-        labelButton.addActionListener(e -> makeLabels());
-        signOutButton.addActionListener(e -> exportToSignOutSheet());
-        performAllButton.addActionListener(e -> performAllActions());
+        exportSortedButton.addActionListener(e -> {
+            exportToExcelSorted();
+        });
+
+        labelButton.addActionListener(e -> {
+            makeLabels();
+        });
+
+        signOutButton.addActionListener(e -> {
+            exportToSignOutSheet();
+        });
+
+        performAllButton.addActionListener(e -> {
+            performAllActions();
+        });
+
         clearOutputButton.addActionListener(e -> outputArea.setText("")); // Clears the output area
 
         // Customize button appearance
@@ -144,58 +163,113 @@ public class DonorDataGUI extends JFrame {
         String dataText = dataArea.getText(); // Get data from dataArea
         txtFileParser.parseFromString(dataText); // Parse the text input
         hicData = txtFileParser.getHICData(); // Update hicData from parsed result
+        if (hicData == null) {
+            outputArea.setText("No data found. Please try again.");
+        }
     }
 
     private void getHICSummary() {
-        updateHICDataFromInput();
-        String maxAndMinRequests = processor.getHICSummaryString(hicData); //get the max and min requests
-        outputArea.setText(maxAndMinRequests);
+        try {
+            updateHICDataFromInput();
+            String summaryText = processor.getHICSummaryString(hicData); // This may throw HICDataNotFoundException
+            outputArea.setText(summaryText);
+        } catch (HICDataNotFoundException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void calculateApheresis() {
-        updateHICDataFromInput(); // Update hicData from GUI input
-        List<Double> maxAndMinRequests = processor.printHICSummary(hicData);
-        String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests); //calculate the amount of apheresis needed
-        outputArea.append("\n" + apheresisText);
+        try {
+            updateHICDataFromInput();
+            List<Double> maxAndMinRequests = processor.printHICSummary(hicData); // This may throw HICDataNotFoundException
+            String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests);
+            outputArea.append("\n" + apheresisText);
+        } catch (HICDataNotFoundException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void exportToExcelUnsorted() {
-        updateHICDataFromInput(); // Update hicData from GUI input
+        updateHICDataFromInput();
         hicExcelLogger.logHICData(hicData, "Output Files/UnsortedHICList.xlsx", false);
         outputArea.setText("Exported unsorted data to Excel successfully.");
     }
 
     private void exportToExcelSorted() {
-        updateHICDataFromInput(); // Update hicData from GUI input
-        processor.sortByCellTypeAndDateTime(hicData);
-        hicExcelLogger.logHICData(hicData, "Output Files/SortedHICList.xlsx", true);
-        outputArea.setText("Exported sorted data to Excel successfully.");
+        try {
+            updateHICDataFromInput();
+            processor.sortByCellTypeAndDateTime(hicData);
+            hicExcelLogger.logHICData(hicData, "Output Files/SortedHICList.xlsx", true);
+            outputArea.setText("Exported sorted data to Excel successfully.");
+        } catch (HICDataNotFoundException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void makeLabels() {
-        updateHICDataFromInput(); // Update hicData from GUI input
-        String donor = donorField.getText();
-        processor.sortByCellTypeAndDateTime(hicData);
-        hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(hicData), "Templates/HIC_Program_Label_Template.docx", "Output Files/CD4CD8_Labels.docx", donor);
-        hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(hicData), "Templates/HIC_Program_Label_Template.docx", "Output Files/OTHERCellTypes_Labels.docx", donor);
-        outputArea.setText("Labels created successfully.");
+        try {
+            updateHICDataFromInput();
+            String donor = donorField.getText();
+            processor.sortByCellTypeAndDateTime(hicData);
+            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(hicData), "Templates/HIC_Program_Label_Template.docx", "Output Files/CD4CD8_Labels.docx", donor);
+            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(hicData), "Templates/HIC_Program_Label_Template.docx", "Output Files/OTHERCellTypes_Labels.docx", donor);
+            outputArea.setText("Labels created successfully.");
+        } catch (HICDataNotFoundException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void exportToSignOutSheet() {
-        updateHICDataFromInput(); // Update hicData from GUI input
-        String donor = donorField.getText();
-        hicExcelLogger.exportToSignOutSheet(hicData, "Templates/HIC_Signout_Template.xlsx", "Output Files/HIC Sign-out Sheet.xlsx", donor);
-        outputArea.setText("Sign-out sheet exported successfully.");
+        try {
+            updateHICDataFromInput();
+            String donor = donorField.getText();
+            hicExcelLogger.exportToSignOutSheet(hicData, "Templates/HIC_Signout_Template.xlsx", "Output Files/HIC Sign-out Sheet.xlsx", donor);
+            outputArea.setText("Sign-out sheet exported successfully.");
+        } catch (HICDataNotFoundException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void performAllActions() {
-        updateHICDataFromInput(); // Update hicData from GUI input
-        getHICSummary();
-        calculateApheresis();
-        exportToExcelUnsorted();
-        exportToExcelSorted();
-        makeLabels();
-        exportToSignOutSheet();
-        outputArea.append("\nPerformed all actions successfully.");
+        try {
+            updateHICDataFromInput(); // Update hicData from GUI input
+
+            if (hicData == null || hicData.isEmpty()) {
+                throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+            }
+
+            // Capture and display HIC Summary in output area
+//            String summaryText = processor.getHICSummaryString(hicData);
+//            outputArea.setText(summaryText); // Set the summary as the initial output
+            getHICSummary();
+
+
+            // Capture and display apheresis calculations in output area
+//            List<Double> maxAndMinRequests = processor.printHICSummary(hicData);
+//            String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests);
+//            outputArea.append("\n" + apheresisText); // Append apheresis calculation to summary
+            calculateApheresis();
+
+            // Revalidate and repaint the output area to force update
+            outputArea.revalidate();
+            outputArea.repaint();
+
+            // Export data to Excel files
+            exportToExcelUnsorted();
+            exportToExcelSorted();
+
+            // Create labels
+            makeLabels();
+
+            // Export sign-out sheet
+            exportToSignOutSheet();
+
+            // Append final message and revalidate/repaint again to ensure it shows up
+            outputArea.append("\nPerformed all actions successfully.");
+
+        } catch (HICDataNotFoundException e) {
+            // Show a single error message if no HIC data is found
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

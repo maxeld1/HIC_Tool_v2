@@ -27,7 +27,11 @@ public class Processor {
      * Method to calculate total cell counts and print summary of orders
      * @param hicData to investigate
      */
-    public List<Double> printHICSummary(List<HICData> hicData) {
+    public List<Double> printHICSummary(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
 
         List<Double> maxAndMinOrders = new ArrayList<>();
 
@@ -178,7 +182,12 @@ public class Processor {
      * Method to calculate total cell counts and return summary of orders as a string
      * @param hicData to investigate
      */
-    public String getHICSummaryString(List<HICData> hicData) {
+    public String getHICSummaryString(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
+
         StringBuilder summary = new StringBuilder();
         List<Double> maxAndMinOrders = new ArrayList<>();
 
@@ -331,7 +340,12 @@ public class Processor {
     }
 
 
-    public void sortByCellTypeAndDateTime(List<HICData> hicData) {
+    public void sortByCellTypeAndDateTime(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
+
         // Define a custom comparator
         Comparator<HICData> customComparator = new Comparator<HICData>() {
 
@@ -383,7 +397,11 @@ public class Processor {
      * @param hicData input
      * @return list of CD4 and CD8 records
      */
-    public List<HICData> getCD4CD8CellRecords(List<HICData> hicData) {
+    public List<HICData> getCD4CD8CellRecords(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
 
         List<HICData> cd4Cd8Records = new ArrayList<>();
 
@@ -402,7 +420,11 @@ public class Processor {
      * @param hicData input
      * @return list of records that dont have CD4 or CD8
      */
-    public List<HICData> getOtherCellTypeRecords(List<HICData> hicData) {
+    public List<HICData> getOtherCellTypeRecords(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
 
         List<HICData> otherCellTypeRecords = new ArrayList<>();
 
@@ -423,7 +445,11 @@ public class Processor {
      * @param hicData list
      * @return incubator cells list
      */
-    public List<HICData> getIncubatorCells(List<HICData> hicData) {
+    public List<HICData> getIncubatorCells(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
 
         List<HICData> incubatorCells = new ArrayList<>();
 
@@ -444,7 +470,11 @@ public class Processor {
      * @param hicData list
      * @return deli fridge list
      */
-    public List<HICData> getDeliFridgeCells(List<HICData> hicData) {
+    public List<HICData> getDeliFridgeCells(List<HICData> hicData) throws HICDataNotFoundException {
+
+        if (hicData == null || hicData.isEmpty()) {
+            throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
+        }
 
         List<HICData> deliFridgeCells = new ArrayList<>();
 
