@@ -10,9 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="updated HIC_Tool_v1.jar fto v3 with fancy GUI">
-      <change afterPath="$PROJECT_DIR$/src/main/java/hic/processor/HICDataNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/HIC_LOGO.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/logging/HICExcelLogger.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" afterDir="false" />
     </list>
@@ -51,7 +50,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/maxeld/Downloads",
+    "last_opened_file_path": "C:/Users/maxeld/IdeaProjects/HIC_Tool_v2/src/main/java/hic/ui",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -65,10 +64,15 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src\main\java\hic\ui" />
       <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\maxel\IdeaProjects\HIC_Tool_v2\out\artifacts\HIC_Tool_v1_jar" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src\main\resources" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src\main\java\hic" />
+      <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src\main" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="hic" />
@@ -92,7 +96,7 @@
       <updated>1712975278471</updated>
       <workItem from="1712975279614" duration="3000" />
       <workItem from="1713187706294" duration="13781000" />
-      <workItem from="1730211051775" duration="16833000" />
+      <workItem from="1730211051775" duration="22895000" />
     </task>
     <task id="LOCAL-00001" summary="have made apheresusCalculation method and now working on label maker">
       <option name="closed" value="true" />
@@ -214,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1730398307456</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="updated HIC_Tool_v1.jar fto v3 with fancy GUI">
+      <option name="closed" value="true" />
+      <created>1730402208544</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1730402208544</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

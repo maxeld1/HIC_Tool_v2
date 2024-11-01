@@ -192,9 +192,9 @@ public class Processor {
         List<Double> maxAndMinOrders = new ArrayList<>();
 
         // Initialize variables to store order counts and request values
-        int totalOrders = 0, cd4Orders = 0, cd8Orders = 0, monocyteOrders = 0, pbmcOrders = 0, nkOrders = 0, bOrders = 0, bottomLayerOrders = 0, topLayerOrders = 0, totalTOrders = 0;
-        double cd4Max = 0, cd8Max = 0, monocyteMax = 0, pbmcMax = 0, nkMax = 0, bMax = 0, totalTMax = 0, topLayerMax = 0, bottomLayerMax = 0;
-        double cd4Min = 0, cd8Min = 0, monocyteMin = 0, pbmcMin = 0, nkMin = 0, bMin = 0, totalTMin = 0, topLayerMin = 0, bottomLayerMin = 0;
+        int totalOrders = 0, cd4Orders = 0, cd8Orders = 0, monocyteOrders = 0, pbmcOrders = 0, nkOrders = 0, bOrders = 0, bottomLayerOrders = 0, topLayerOrders = 0, totalTOrders = 0, unpurifiedAphOrders = 0;
+        double cd4Max = 0, cd8Max = 0, monocyteMax = 0, pbmcMax = 0, nkMax = 0, bMax = 0, totalTMax = 0, topLayerMax = 0, bottomLayerMax = 0, unpurifiedAphMax = 0;
+        double cd4Min = 0, cd8Min = 0, monocyteMin = 0, pbmcMin = 0, nkMin = 0, bMin = 0, totalTMin = 0, topLayerMin = 0, bottomLayerMin = 0, unpurifiedAphMin = 0;
 
         for (HICData data : hicData) {
             switch (data.getCellType()) {
@@ -243,25 +243,42 @@ public class Processor {
                     bottomLayerMax += data.getMaxRequest();
                     bottomLayerMin += data.getMinRequest();
                 }
+                case "Unpurified Apheresis" -> {
+                    unpurifiedAphOrders++;
+                    unpurifiedAphMax += data.getMaxRequest();
+                    unpurifiedAphMin += data.getMinRequest();
+                }
             }
         }
 
         // Add total orders
-        totalOrders = cd4Orders + cd8Orders + pbmcOrders + nkOrders + bOrders + totalTOrders + monocyteOrders + topLayerOrders + bottomLayerOrders;
+        totalOrders = cd4Orders + cd8Orders + pbmcOrders + nkOrders + bOrders + totalTOrders + monocyteOrders + topLayerOrders + bottomLayerOrders + unpurifiedAphOrders;
 
         // Format the summary text
-        summary.append("Summary:\n");
-        summary.append(String.format("%-20s%-15s%-10s%-10s%n", "Cell Type", "Requests", "Max", "Min"));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "NK Cells", nkOrders, nkMax, nkMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "CD8+ T", cd8Orders, cd8Max, cd8Min));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "CD4+ T", cd4Orders, cd4Max, cd4Min));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Monocytes", monocyteOrders, monocyteMax, monocyteMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "PBMC", pbmcOrders, pbmcMax, pbmcMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "B Cells", bOrders, bMax, bMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Total T", totalTOrders, totalTMax, totalTMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Top Ficoll", topLayerOrders, topLayerMax, topLayerMin));
-        summary.append(String.format("%-20s%-15d%-10.2f%-10.2f%n", "Bottom Ficoll", bottomLayerOrders, bottomLayerMax, bottomLayerMin));
-        summary.append("\nTotal Orders: ").append(totalOrders).append("\n");
+        // Format the summary text with dividers and aligned headers
+        summary.append("=====================================================\n");
+        summary.append("                   HIC Order Summary           \n");
+        summary.append("=====================================================\n");
+
+// Add column headers with padding
+        summary.append(String.format("%-20s %-12s %-10s %-10s%n", "Cell Type", "Requests", "Max", "Min"));
+        summary.append("-----------------------------------------------------\n");
+
+// Append each row with data
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "B Cells", bOrders, bMax, bMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "NK Cells", nkOrders, nkMax, nkMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "CD8+ T", cd8Orders, cd8Max, cd8Min));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "CD4+ T", cd4Orders, cd4Max, cd4Min));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "Monocytes", monocyteOrders, monocyteMax, monocyteMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "PBMC", pbmcOrders, pbmcMax, pbmcMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "Total T", totalTOrders, totalTMax, totalTMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "Apheresis", unpurifiedAphOrders, unpurifiedAphMax, unpurifiedAphMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "Top Ficoll", topLayerOrders, topLayerMax, topLayerMin));
+        summary.append(String.format("%-20s %-12d %-10.2f %-10.2f%n", "Bottom Ficoll", bottomLayerOrders, bottomLayerMax, bottomLayerMin));
+
+        summary.append("-----------------------------------------------------\n");
+        summary.append(String.format("%-20s %-12d%n", "Total Orders:", totalOrders));
+        summary.append("=====================================================\n");
 
         return summary.toString();
     }
@@ -315,15 +332,25 @@ public class Processor {
         totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
 
         // Format the calculation text
-        apheresisSummary.append("Summary of Apheresis Required:\n");
-        apheresisSummary.append(String.format("%-20s%-10s%-10s%n", "Cell Type", "Max", "Min"));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "CD8 Cells", cd8MaxNeeded, cd8MinNeeded));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "CD4 Cells", cd4MaxNeeded, cd4MinNeeded));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded));
-        apheresisSummary.append(String.format("%-20s%-10.2f%-10.2f%n", "Total Apheresis", totalMaxNeeded, totalMinNeeded));
-        // Append more cell types as needed
+        apheresisSummary.append("========================================\n");
+        apheresisSummary.append("     Summary of Apheresis Required      \n");
+        apheresisSummary.append("========================================\n");
+
+        // Add column headers with padding
+        apheresisSummary.append(String.format("%-20s %-10s %-10s%n", "Cell Type", "Max", "Min"));
+        apheresisSummary.append("----------------------------------------\n");
+
+        // Append each row with data
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD8 Cells", cd8MaxNeeded, cd8MinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD4 Cells", cd4MaxNeeded, cd4MinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded));
+
+        // Total apheresis section with additional divider
+        apheresisSummary.append("----------------------------------------\n");
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total Apheresis", totalMaxNeeded, totalMinNeeded));
+        apheresisSummary.append("========================================\n");
 
         return apheresisSummary.toString();
     }

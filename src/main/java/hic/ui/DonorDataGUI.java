@@ -6,10 +6,14 @@ import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import hic.util.HICData;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DonorDataGUI extends JFrame {
 
@@ -26,9 +30,25 @@ public class DonorDataGUI extends JFrame {
         this.processor = processor;
         this.txtFileParser = new TXTFileParser();
 
+        // Set HIC icon
+        try {
+            // Load the image
+            Image icon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/HIC_LOGO.png")));
+
+            // Resize the image to 64x64 pixels
+            Image resizedIcon = icon.getScaledInstance(256, 256, Image.SCALE_SMOOTH);
+
+            // Set the resized icon as the frame's icon
+            setIconImage(resizedIcon);
+        } catch (IOException e) {
+            System.err.println("Icon image not found.");
+        } catch (NullPointerException e) {
+            System.err.println("Icon path not found.");
+        }
+
         // Frame settings
         setTitle("HIC Tool v3");
-        setSize(1000, 750);
+        setSize(1000, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Set a consistent font and color style
@@ -55,6 +75,7 @@ public class DonorDataGUI extends JFrame {
         JLabel dataLabel = new JLabel("HIC Input Data:");
         dataLabel.setFont(mainFont);
         dataArea = new JTextArea(5, 20);
+        //dataArea.setPreferredSize(new Dimension(800, 100));
         dataArea.setLineWrap(true);
         dataArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(dataArea);
@@ -140,7 +161,7 @@ public class DonorDataGUI extends JFrame {
         outputArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         JScrollPane outputScrollPane = new JScrollPane(outputArea);
         outputScrollPane.setBorder(BorderFactory.createTitledBorder("Output"));
-        outputScrollPane.setPreferredSize(new Dimension(800, 300));
+        outputScrollPane.setPreferredSize(new Dimension(800, 500));
 
         // Set up the split pane with button panel on top and output area at the bottom
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, buttonPanel, outputScrollPane);
@@ -171,8 +192,8 @@ public class DonorDataGUI extends JFrame {
     private void getHICSummary() {
         try {
             updateHICDataFromInput();
-            String summaryText = processor.getHICSummaryString(hicData); // This may throw HICDataNotFoundException
-            outputArea.setText(summaryText);
+            String summaryText = processor.getHICSummaryString(hicData);
+            outputArea.append("\n" + summaryText + "\n"); // Append to outputArea
         } catch (HICDataNotFoundException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -181,9 +202,9 @@ public class DonorDataGUI extends JFrame {
     private void calculateApheresis() {
         try {
             updateHICDataFromInput();
-            List<Double> maxAndMinRequests = processor.printHICSummary(hicData); // This may throw HICDataNotFoundException
+            List<Double> maxAndMinRequests = processor.printHICSummary(hicData); // This should not print directly
             String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests);
-            outputArea.append("\n" + apheresisText);
+            outputArea.append("\n" + apheresisText + "\n"); // Append to outputArea
         } catch (HICDataNotFoundException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -232,27 +253,31 @@ public class DonorDataGUI extends JFrame {
 
     private void performAllActions() {
         try {
-            updateHICDataFromInput(); // Update hicData from GUI input
+            updateHICDataFromInput();
 
             if (hicData == null || hicData.isEmpty()) {
                 throw new HICDataNotFoundException("No HIC Data Found. Please try again.");
             }
 
-            // Capture and display HIC Summary in output area
-//            String summaryText = processor.getHICSummaryString(hicData);
-//            outputArea.setText(summaryText); // Set the summary as the initial output
-            getHICSummary();
+            // Clear output area at the start
+            SwingUtilities.invokeLater(() -> outputArea.setText(""));
 
+            // Get HIC Summary and append to output area
+            String summaryText = processor.getHICSummaryString(hicData);
+            SwingUtilities.invokeLater(() -> {
+                outputArea.append(summaryText + "\n");
+                outputArea.revalidate();
+                outputArea.repaint();
+            });
 
-            // Capture and display apheresis calculations in output area
-//            List<Double> maxAndMinRequests = processor.printHICSummary(hicData);
-//            String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests);
-//            outputArea.append("\n" + apheresisText); // Append apheresis calculation to summary
-            calculateApheresis();
-
-            // Revalidate and repaint the output area to force update
-            outputArea.revalidate();
-            outputArea.repaint();
+            // Calculate Apheresis and append to output area
+            List<Double> maxAndMinRequests = processor.printHICSummary(hicData);
+            String apheresisText = processor.getApheresisCalculationString(maxAndMinRequests);
+            SwingUtilities.invokeLater(() -> {
+                outputArea.append(apheresisText + "\n");
+                outputArea.revalidate();
+                outputArea.repaint();
+            });
 
             // Export data to Excel files
             exportToExcelUnsorted();
@@ -264,11 +289,14 @@ public class DonorDataGUI extends JFrame {
             // Export sign-out sheet
             exportToSignOutSheet();
 
-            // Append final message and revalidate/repaint again to ensure it shows up
-            outputArea.append("\nPerformed all actions successfully.");
+            // Append final success message
+            SwingUtilities.invokeLater(() -> {
+                outputArea.append("\nPerformed all actions successfully.");
+                outputArea.revalidate();
+                outputArea.repaint();
+            });
 
         } catch (HICDataNotFoundException e) {
-            // Show a single error message if no HIC data is found
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
