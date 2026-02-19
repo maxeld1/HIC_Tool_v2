@@ -21,7 +21,14 @@ $stagingRoot = Join-Path $destDir "jpackage-input"
 $stagedInput = Join-Path $stagingRoot ([Guid]::NewGuid().ToString())
 $stagedTemplates = Join-Path $stagedInput "Templates"
 
-if (-not $IsWindows) {
+$runningOnWindows = $false
+if (Get-Variable -Name IsWindows -ErrorAction SilentlyContinue) {
+    $runningOnWindows = [bool]$IsWindows
+} else {
+    $runningOnWindows = ($env:OS -eq "Windows_NT")
+}
+
+if (-not $runningOnWindows) {
     throw "build-windows.ps1 must be run on Windows."
 }
 
