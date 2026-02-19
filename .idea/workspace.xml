@@ -10,15 +10,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73e0e0d8-7e02-4ca7-be92-8c386438417d" name="Changes" comment="updated HIC_Tool_v1.jar fto v3 with fancy GUI">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/HIC_LOGO.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HIC__INPUT_FILE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HIC__INPUT_FILE.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/processor/Processor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hic/ui/DonorDataGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/HIC_LOGO.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/HIC_LOGO.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="42" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -31,11 +36,26 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;maxeld1&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/maxeld1/HIC_Tool_v2.git&quot;,
+    &quot;accountId&quot;: &quot;d98ff37a-8db5-4983-a783-1d851472bf52&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="2f1j39rOzJpaCvOsHVjMH7aMNDK" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -45,25 +65,32 @@
     "Application.DonorDataGUI.executor": "Run",
     "Application.Main.executor": "Run",
     "Application.Main2.executor": "Run",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "/Users/maxeldabbas/Library/Application Support/JetBrains/IntelliJIdea2025.3/plugins/Shell Script/shellcheck",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/maxeld/IdeaProjects/HIC_Tool_v2/src/main/java/hic/ui",
+    "last_opened_file_path": "/Users/maxeldabbas/IdeaProjects/HIC_Tool_v2/src/main/resources",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Artifacts",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources" />
       <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2\src\main\java\hic\ui" />
       <recent name="C:\Users\maxeld\IdeaProjects\HIC_Tool_v2" />
     </key>
@@ -78,11 +105,18 @@
       <recent name="hic" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.15989.150" />
-        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-IU-241.15989.150" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.30387.90" />
       </set>
     </attachedChunks>
   </component>
@@ -97,6 +131,15 @@
       <workItem from="1712975279614" duration="3000" />
       <workItem from="1713187706294" duration="13781000" />
       <workItem from="1730211051775" duration="22895000" />
+      <workItem from="1771011950580" duration="668000" />
+      <workItem from="1771012738387" duration="145000" />
+      <workItem from="1771012889074" duration="257000" />
+      <workItem from="1771013392339" duration="2288000" />
+      <workItem from="1771338688790" duration="92000" />
+      <workItem from="1771338877744" duration="568000" />
+      <workItem from="1771339567265" duration="21000" />
+      <workItem from="1771339596820" duration="18483000" />
+      <workItem from="1771450448631" duration="4138000" />
     </task>
     <task id="LOCAL-00001" summary="have made apheresusCalculation method and now working on label maker">
       <option name="closed" value="true" />

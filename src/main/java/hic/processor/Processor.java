@@ -6,7 +6,9 @@ import hic.util.HICData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class Processor {
@@ -18,6 +20,12 @@ public class Processor {
     final String ROW_FORMAT_APHERESIS = "%-20s%-10.2f%-10.2f%n";
     final String BOLD_START = "\033[1m";
     final String BOLD_END = "\033[0m";
+    private static final double NK_FACTOR = 20.0 / 40.0;
+    private static final double CD8_FACTOR = 17.0 / 40.0;
+    private static final double CD4_FACTOR = 5.0 / 40.0;
+    private static final double MONOCYTES_FACTOR = 7.0 / 40.0;
+    private static final double TOTAL_T_FACTOR = 4.0 / 40.0;
+    private static final double B_CELLS_FACTOR = 20.0 / 40.0;
 
     public Processor(FileReader fileReader) {
         this.fileReader = fileReader;
@@ -290,46 +298,8 @@ public class Processor {
      */
     public String getApheresisCalculationString(List<Double> maxAndMinRequests) {
         StringBuilder apheresisSummary = new StringBuilder();
-
-        // Sample calculations
-        double nkMaxNeeded;
-        double nkMinNeeded;
-        double cd8MaxNeeded;
-        double cd8MinNeeded;
-        double cd4MaxNeeded;
-        double cd4MinNeeded;
-        double monocytesMaxNeeded;
-        double monocytesMinNeeded;
-        double totalTMaxNeeded;
-        double totalTMinNeeded;
-        double bMaxNeeded;
-        double bMinNeeded;
-
-        double totalMaxNeeded = 0;
-        double totalMinNeeded = 0;
-        // Continue for other cell types
-
-        // Calculate apheresis needed for each cell type/request type
-        nkMaxNeeded = (maxAndMinRequests.get(0) * 20) / 40;
-        nkMinNeeded = (maxAndMinRequests.get(1) * 20) / 40;
-
-        cd8MaxNeeded = (maxAndMinRequests.get(2) * 17) / 40;
-        cd8MinNeeded = (maxAndMinRequests.get(3) * 17) / 40;
-
-        cd4MaxNeeded = (maxAndMinRequests.get(4) * 5) / 40;
-        cd4MinNeeded = (maxAndMinRequests.get(5) * 5) / 40;
-
-        monocytesMaxNeeded = (maxAndMinRequests.get(6) * 7) / 40;
-        monocytesMinNeeded = (maxAndMinRequests.get(7) * 7) / 40;
-
-        totalTMaxNeeded = (maxAndMinRequests.get(8) * 4) / 40;
-        totalTMinNeeded = (maxAndMinRequests.get(9) * 4) / 40;
-
-        bMaxNeeded = (maxAndMinRequests.get(10) * 20) / 40;
-        bMinNeeded = (maxAndMinRequests.get(11) * 20) / 40;
-
-        totalMaxNeeded += nkMaxNeeded + cd8MaxNeeded + cd4MaxNeeded + monocytesMaxNeeded + totalTMaxNeeded + bMaxNeeded;
-        totalMinNeeded += nkMinNeeded + cd8MinNeeded + cd4MinNeeded + monocytesMinNeeded + totalTMinNeeded + bMinNeeded;
+        Map<String, double[]> byCell = calculateDefaultApheresisByCell(maxAndMinRequests);
+        double[] totals = getApheresisTotals(byCell);
 
         // Format the calculation text
         apheresisSummary.append("========================================\n");
@@ -341,18 +311,51 @@ public class Processor {
         apheresisSummary.append("----------------------------------------\n");
 
         // Append each row with data
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "NK Cells", nkMaxNeeded, nkMinNeeded));
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD8 Cells", cd8MaxNeeded, cd8MinNeeded));
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD4 Cells", cd4MaxNeeded, cd4MinNeeded));
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Monocytes", monocytesMaxNeeded, monocytesMinNeeded));
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total T", totalTMaxNeeded, totalTMinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "NK Cells", byCell.get("NK Cells")[0], byCell.get("NK Cells")[1]));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD8 Cells", byCell.get("CD8+")[0], byCell.get("CD8+")[1]));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "CD4 Cells", byCell.get("CD4+")[0], byCell.get("CD4+")[1]));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Monocytes", byCell.get("Monocytes")[0], byCell.get("Monocytes")[1]));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total T", byCell.get("Total T")[0], byCell.get("Total T")[1]));
 
         // Total apheresis section with additional divider
         apheresisSummary.append("----------------------------------------\n");
-        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total Apheresis", totalMaxNeeded, totalMinNeeded));
+        apheresisSummary.append(String.format("%-20s %-10.2f %-10.2f%n", "Total Apheresis", totals[0], totals[1]));
         apheresisSummary.append("========================================\n");
 
         return apheresisSummary.toString();
+    }
+
+    public Map<String, double[]> calculateDefaultApheresisByCell(List<Double> maxAndMinRequests) {
+        Map<String, double[]> result = new LinkedHashMap<>();
+        result.put("NK Cells", new double[]{maxAndMinRequests.get(0) * NK_FACTOR, maxAndMinRequests.get(1) * NK_FACTOR});
+        result.put("CD8+", new double[]{maxAndMinRequests.get(2) * CD8_FACTOR, maxAndMinRequests.get(3) * CD8_FACTOR});
+        result.put("CD4+", new double[]{maxAndMinRequests.get(4) * CD4_FACTOR, maxAndMinRequests.get(5) * CD4_FACTOR});
+        result.put("Monocytes", new double[]{maxAndMinRequests.get(6) * MONOCYTES_FACTOR, maxAndMinRequests.get(7) * MONOCYTES_FACTOR});
+        result.put("Total T", new double[]{maxAndMinRequests.get(8) * TOTAL_T_FACTOR, maxAndMinRequests.get(9) * TOTAL_T_FACTOR});
+        result.put("B Cells", new double[]{maxAndMinRequests.get(10) * B_CELLS_FACTOR, maxAndMinRequests.get(11) * B_CELLS_FACTOR});
+        return result;
+    }
+
+    public Map<String, double[]> calculateRequestedCellsByCell(List<Double> maxAndMinRequests) {
+        Map<String, double[]> result = new LinkedHashMap<>();
+        result.put("NK Cells", new double[]{maxAndMinRequests.get(0), maxAndMinRequests.get(1)});
+        result.put("CD8+", new double[]{maxAndMinRequests.get(2), maxAndMinRequests.get(3)});
+        result.put("CD4+", new double[]{maxAndMinRequests.get(4), maxAndMinRequests.get(5)});
+        result.put("Monocytes", new double[]{maxAndMinRequests.get(6), maxAndMinRequests.get(7)});
+        result.put("Total T", new double[]{maxAndMinRequests.get(8), maxAndMinRequests.get(9)});
+        result.put("B Cells", new double[]{maxAndMinRequests.get(10), maxAndMinRequests.get(11)});
+        return result;
+    }
+
+    public double[] getApheresisTotals(Map<String, double[]> byCell) {
+        double totalMaxNeeded = 0;
+        double totalMinNeeded = 0;
+
+        for (double[] values : byCell.values()) {
+            totalMaxNeeded += values[0];
+            totalMinNeeded += values[1];
+        }
+        return new double[]{totalMaxNeeded, totalMinNeeded};
     }
 
 
