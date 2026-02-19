@@ -3,7 +3,6 @@ package hic.processor;
 import hic.datamanagement.FileReader;
 import hic.datamanagement.HICDataComparator;
 import hic.util.HICData;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
