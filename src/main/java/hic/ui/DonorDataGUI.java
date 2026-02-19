@@ -1972,7 +1972,9 @@ public class DonorDataGUI extends JFrame {
         List<Path> candidates = new ArrayList<>();
         if (configured != null) {
             candidates.add(configured);
-            candidates.add(Path.of(System.getProperty("user.dir"), normalizedConfiguredPath));
+            if (!configured.isAbsolute()) {
+                candidates.add(Path.of(System.getProperty("user.dir"), normalizedConfiguredPath));
+            }
         }
 
         Path appDir = detectAppDirectory();
