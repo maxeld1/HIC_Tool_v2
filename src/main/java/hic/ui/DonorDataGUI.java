@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -1965,12 +1966,13 @@ public class DonorDataGUI extends JFrame {
     }
 
     private String resolveTemplatePath(String configuredPath, String fallbackName) throws HICDataNotFoundException {
-        Path configured = configuredPath == null || configuredPath.isBlank() ? null : Path.of(configuredPath);
+        String normalizedConfiguredPath = normalizeConfiguredPath(configuredPath);
+        Path configured = toPathOrNull(normalizedConfiguredPath);
 
         List<Path> candidates = new ArrayList<>();
         if (configured != null) {
             candidates.add(configured);
-            candidates.add(Path.of(System.getProperty("user.dir"), configuredPath));
+            candidates.add(Path.of(System.getProperty("user.dir"), normalizedConfiguredPath));
         }
 
         Path appDir = detectAppDirectory();
@@ -1993,6 +1995,30 @@ public class DonorDataGUI extends JFrame {
         throw new HICDataNotFoundException(
                 "Missing template: " + fallbackName + ". Configure template paths in Settings."
         );
+    }
+
+    private String normalizeConfiguredPath(String value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = value.trim();
+        if (normalized.length() >= 2
+                && normalized.startsWith("\"")
+                && normalized.endsWith("\"")) {
+            normalized = normalized.substring(1, normalized.length() - 1).trim();
+        }
+        return normalized;
+    }
+
+    private Path toPathOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Path.of(value);
+        } catch (InvalidPathException ignored) {
+            return null;
+        }
     }
 
     private Path detectAppDirectory() {
@@ -2279,8 +2305,10 @@ public class DonorDataGUI extends JFrame {
 
     private void saveSettingsValues(String outputDir, String labelTemplate, String signOutTemplate, String donorHistorySheetUrl, boolean markSetupComplete) {
         preferences.put(PREF_OUTPUT_DIR, outputDir == null || outputDir.isBlank() ? DEFAULT_OUTPUT_DIR : outputDir);
-        preferences.put(PREF_LABEL_TEMPLATE, labelTemplate == null || labelTemplate.isBlank() ? DEFAULT_LABEL_TEMPLATE : labelTemplate);
-        preferences.put(PREF_SIGNOUT_TEMPLATE, signOutTemplate == null || signOutTemplate.isBlank() ? DEFAULT_SIGNOUT_TEMPLATE : signOutTemplate);
+        String normalizedLabelTemplate = normalizeConfiguredPath(labelTemplate);
+        String normalizedSignOutTemplate = normalizeConfiguredPath(signOutTemplate);
+        preferences.put(PREF_LABEL_TEMPLATE, normalizedLabelTemplate.isBlank() ? DEFAULT_LABEL_TEMPLATE : normalizedLabelTemplate);
+        preferences.put(PREF_SIGNOUT_TEMPLATE, normalizedSignOutTemplate.isBlank() ? DEFAULT_SIGNOUT_TEMPLATE : normalizedSignOutTemplate);
         preferences.put(PREF_DONOR_HISTORY_SHEET_URL, donorHistorySheetUrl == null ? DEFAULT_DONOR_HISTORY_SHEET_URL : donorHistorySheetUrl);
         if (markSetupComplete) {
             preferences.putBoolean(PREF_SETUP_COMPLETE, true);
