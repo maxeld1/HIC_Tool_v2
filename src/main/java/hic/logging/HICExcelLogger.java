@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import hic.util.HICData;
 import org.apache.poi.xwpf.usermodel.*;
+import org.apache.xmlbeans.XmlCursor;
 
 import java.awt.*;
 import java.io.*;
@@ -18,9 +19,12 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
 
 /**
  * Class to log data to excel files
@@ -101,6 +105,83 @@ public class HICExcelLogger {
         }
     }
 
+    public void exportCD4CD8RequestList(List<HICData> hicData, String filePath) {
+        Map<String, RequesterCellOrders> requesters = new LinkedHashMap<>();
+
+        for (HICData data : hicData) {
+            if (!Objects.equals(data.getCellType(), "CD4+") && !Objects.equals(data.getCellType(), "CD8+")) {
+                continue;
+            }
+
+            String rawRequesterName = data.getName() == null ? "" : data.getName().trim();
+            String requesterName = rawRequesterName.isEmpty() ? "Unknown" : rawRequesterName;
+            String key = requesterName.toLowerCase();
+            RequesterCellOrders requester = requesters.computeIfAbsent(key, ignored -> new RequesterCellOrders(requesterName));
+            OrderRequest orderRequest = new OrderRequest(data.getOrderNumber(), data.getMaxRequest(), data.getMinRequest());
+
+            if (Objects.equals(data.getCellType(), "CD4+")) {
+                requester.cd4Orders.add(orderRequest);
+            } else {
+                requester.cd8Orders.add(orderRequest);
+            }
+        }
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("CD4 CD8 Requests");
+
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            int rowNum = 0;
+            Row titleRow = sheet.createRow(rowNum++);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("CD4/CD8 Requester List");
+            titleCell.setCellStyle(titleStyle);
+
+            rowNum++;
+            Row headerRow = sheet.createRow(rowNum++);
+            String[] headers = {"Category", "Name", "CD4 Orders (Max/Min)", "CD8 Orders (Max/Min)"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            rowNum = writeRequesterGroupRows(sheet, rowNum, "CD4 & CD8", requesters.values().stream()
+                    .filter(RequesterCellOrders::hasBoth)
+                    .toList());
+            rowNum++;
+            rowNum = writeRequesterGroupRows(sheet, rowNum, "Only CD4", requesters.values().stream()
+                    .filter(RequesterCellOrders::hasOnlyCd4)
+                    .toList());
+            rowNum++;
+            writeRequesterGroupRows(sheet, rowNum, "Only CD8", requesters.values().stream()
+                    .filter(RequesterCellOrders::hasOnlyCd8)
+                    .toList());
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                workbook.write(fileOut);
+                System.out.println("\nCD4/CD8 requester list exported successfully.");
+            } catch (IOException e) {
+                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Method to export hic data into labels
      *
@@ -108,59 +189,84 @@ public class HICExcelLogger {
      * @param wordTemplatePath to duplicate and write to
      * @param wordFilePath     to export to
      */
-    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) {
-        try {
-            // Open the Word document template
-            try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
-                String currentCellType = ""; // Initialize currentCellType
-                int dataIndex = 0; // Initialize dataIndex to track the index of hicData
+    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) throws IOException {
+        // Open the Word document template
+        try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
+            List<CTTbl> templateTables = doc.getTables().stream()
+                    .map(table -> (CTTbl) table.getCTTbl().copy())
+                    .toList();
 
-                // Iterate over the document tables
-                for (XWPFTable table : doc.getTables()) {
-                    List<XWPFTableRow> rows = table.getRows();
+            LabelExportState state = new LabelExportState();
+            List<XWPFTable> pageTables = new ArrayList<>(doc.getTables());
 
-                    // Iterate over each row
-                    for (XWPFTableRow row : rows) {
-                        List<XWPFTableCell> cells = row.getTableCells();
-
-                        // Filter out empty cells
-                        List<XWPFTableCell> nonEmptyCells = cells.stream()
-                                .filter(cell -> !cell.getText().trim().isEmpty())
-                                .toList();
-
-                        // Iterate over each non-empty cell
-                        for (XWPFTableCell cell : nonEmptyCells) {
-                            // Check if the dataIndex is within bounds
-                            if (dataIndex < hicData.size()) {
-                                // Check if the cell type has changed
-                                if (!Objects.equals(hicData.get(dataIndex).getCellType(), currentCellType)) {
-                                    // Print the cell type label in the current cell
-                                    replaceMergeFieldsWithLabel(cell, hicData.get(dataIndex));
-                                    currentCellType = hicData.get(dataIndex).getCellType();
-                                } else {
-                                    // Replace merge fields in the current cell with hicData
-                                    replaceMergeFields(cell, hicData.get(dataIndex), donor);
-                                    dataIndex++; // Increment dataIndex after processing each cell
-                                }
-                            } else {
-                                // If all data has been processed, exit the loop
-                                break;
-                            }
-                        }
-                    }
+            while (state.dataIndex < hicData.size()) {
+                boolean wroteAnyLabelCell = populateLabelPage(pageTables, hicData, state, donor);
+                if (!wroteAnyLabelCell) {
+                    throw new IOException("The label template does not contain usable label cells.");
                 }
 
-                // Save the populated document
-                try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
-                    doc.write(out);
-                    System.out.println("\nHICData logged to labels Word document successfully.");
-                } catch (IOException e) {
-                    System.err.println("\nError saving the Word file: " + e.getMessage());
+                if (state.dataIndex < hicData.size()) {
+                    pageTables = appendTemplatePage(doc, templateTables);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            // Save the populated document
+            try (FileOutputStream out = new FileOutputStream(wordFilePath)) {
+                doc.write(out);
+                System.out.println("\nHICData logged to labels Word document successfully.");
+            }
         }
+    }
+
+    private boolean populateLabelPage(List<XWPFTable> tables, List<HICData> hicData, LabelExportState state, String donor) {
+        boolean wroteAnyLabelCell = false;
+
+        for (XWPFTable table : tables) {
+            for (XWPFTableRow row : table.getRows()) {
+                List<XWPFTableCell> nonEmptyCells = row.getTableCells().stream()
+                        .filter(cell -> !cell.getText().trim().isEmpty())
+                        .toList();
+
+                for (XWPFTableCell cell : nonEmptyCells) {
+                    if (state.dataIndex >= hicData.size()) {
+                        return wroteAnyLabelCell;
+                    }
+
+                    HICData data = hicData.get(state.dataIndex);
+                    if (!Objects.equals(data.getCellType(), state.currentCellType)) {
+                        replaceMergeFieldsWithLabel(cell, data);
+                        state.currentCellType = data.getCellType();
+                    } else {
+                        replaceMergeFields(cell, data, donor);
+                        state.dataIndex++;
+                    }
+                    wroteAnyLabelCell = true;
+                }
+            }
+        }
+
+        return wroteAnyLabelCell;
+    }
+
+    private List<XWPFTable> appendTemplatePage(XWPFDocument doc, List<CTTbl> templateTables) {
+        XWPFParagraph pageBreak = doc.createParagraph();
+        pageBreak.createRun().addBreak(BreakType.PAGE);
+
+        List<XWPFTable> pageTables = new ArrayList<>();
+        XmlCursor cursor = pageBreak.getCTP().newCursor();
+        cursor.toNextSibling();
+        try {
+            for (CTTbl templateTable : templateTables) {
+                XWPFTable table = doc.insertNewTbl(cursor);
+                table.getCTTbl().set((CTTbl) templateTable.copy());
+                pageTables.add(new XWPFTable(table.getCTTbl(), doc));
+                cursor = table.getCTTbl().newCursor();
+                cursor.toNextSibling();
+            }
+        } finally {
+            cursor.dispose();
+        }
+        return pageTables;
     }
 
 
@@ -390,6 +496,80 @@ public class HICExcelLogger {
         style.setBorderRight(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         cell.setCellStyle(style);
+    }
+
+    private int writeRequesterGroupRows(Sheet sheet, int rowNum, String category, List<RequesterCellOrders> requesters) {
+        if (requesters.isEmpty()) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(category);
+            row.createCell(1).setCellValue("None");
+            return rowNum;
+        }
+
+        for (RequesterCellOrders requester : requesters) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(category);
+            row.createCell(1).setCellValue(requester.name);
+            row.createCell(2).setCellValue(joinOrderRequests(requester.cd4Orders));
+            row.createCell(3).setCellValue(joinOrderRequests(requester.cd8Orders));
+        }
+        return rowNum;
+    }
+
+    private String joinOrderRequests(List<OrderRequest> orderRequests) {
+        return orderRequests.stream()
+                .map(OrderRequest::toDisplayText)
+                .collect(Collectors.joining(", "));
+    }
+
+    private static class RequesterCellOrders {
+        private final String name;
+        private final List<OrderRequest> cd4Orders = new ArrayList<>();
+        private final List<OrderRequest> cd8Orders = new ArrayList<>();
+
+        private RequesterCellOrders(String name) {
+            this.name = name;
+        }
+
+        private boolean hasBoth() {
+            return !cd4Orders.isEmpty() && !cd8Orders.isEmpty();
+        }
+
+        private boolean hasOnlyCd4() {
+            return !cd4Orders.isEmpty() && cd8Orders.isEmpty();
+        }
+
+        private boolean hasOnlyCd8() {
+            return cd4Orders.isEmpty() && !cd8Orders.isEmpty();
+        }
+    }
+
+    private static class OrderRequest {
+        private final int orderNumber;
+        private final double maxRequest;
+        private final double minRequest;
+
+        private OrderRequest(int orderNumber, double maxRequest, double minRequest) {
+            this.orderNumber = orderNumber;
+            this.maxRequest = maxRequest;
+            this.minRequest = minRequest;
+        }
+
+        private String toDisplayText() {
+            return orderNumber + " (Max: " + formatRequest(maxRequest) + ", Min: " + formatRequest(minRequest) + ")";
+        }
+
+        private String formatRequest(double request) {
+            if (request == Math.rint(request)) {
+                return String.valueOf((int) request);
+            }
+            return String.valueOf(request);
+        }
+    }
+
+    private static class LabelExportState {
+        private int dataIndex = 0;
+        private String currentCellType = "";
     }
 
 

@@ -1744,22 +1744,27 @@ public class DonorDataGUI extends JFrame {
 
             String cdOutput = outputPath("CD4CD8_Labels.docx");
             String otherOutput = outputPath("OTHERCellTypes_Labels.docx");
+            String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
 
             if (dryRunCheck.isSelected()) {
                 appendOutput("DRY RUN: Would generate labels using template: " + labelTemplatePath);
                 appendOutput("DRY RUN: - " + cdOutput);
                 appendOutput("DRY RUN: - " + otherOutput);
+                appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
                 addRunStep("Dry run label generation");
             } else {
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
+                hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
                 appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
+                appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
                 addRunStep("Labels created");
                 addGeneratedFile(cdOutput);
                 addGeneratedFile(otherOutput);
+                addGeneratedFile(cdRequestListOutput);
             }
 
-            writeAudit(action, true, data.size(), List.of(cdOutput, otherOutput), "");
+            writeAudit(action, true, data.size(), List.of(cdOutput, otherOutput, cdRequestListOutput), "");
         } catch (Exception e) {
             handleActionError(action, e, 0, List.of());
         }
@@ -1812,6 +1817,7 @@ public class DonorDataGUI extends JFrame {
             String sortedOutput = outputPath("SortedHICList.xlsx");
             String cdOutput = outputPath("CD4CD8_Labels.docx");
             String otherOutput = outputPath("OTHERCellTypes_Labels.docx");
+            String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
             String signOutOutput = outputPath("HIC Sign-out Sheet.xlsx");
             String labelTemplatePath = resolveLabelTemplatePath();
             String signOutTemplatePath = resolveSignoutTemplatePath();
@@ -1822,6 +1828,7 @@ public class DonorDataGUI extends JFrame {
                 appendOutput("DRY RUN: Would create labels using: " + labelTemplatePath);
                 appendOutput("DRY RUN: - " + cdOutput);
                 appendOutput("DRY RUN: - " + otherOutput);
+                appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
                 appendOutput("DRY RUN: Would export sign-out sheet using: " + signOutTemplatePath);
                 appendOutput("DRY RUN: - " + signOutOutput);
                 addRunStep("Dry run full workflow completed");
@@ -1835,8 +1842,10 @@ public class DonorDataGUI extends JFrame {
 
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
+                hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
                 addGeneratedFile(cdOutput);
                 addGeneratedFile(otherOutput);
+                addGeneratedFile(cdRequestListOutput);
 
                 hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, signOutOutput, donor);
                 addGeneratedFile(signOutOutput);
@@ -1845,7 +1854,7 @@ public class DonorDataGUI extends JFrame {
 
             appendOutput("\nAll workflow actions completed successfully.");
             appendOutput("[SUCCESS] Completed full workflow.");
-            writeAudit(action, true, data.size(), List.of(unsortedOutput, sortedOutput, cdOutput, otherOutput, signOutOutput), "");
+            writeAudit(action, true, data.size(), List.of(unsortedOutput, sortedOutput, cdOutput, otherOutput, cdRequestListOutput, signOutOutput), "");
         } catch (Exception e) {
             handleActionError(action, e, 0, List.of());
         }
