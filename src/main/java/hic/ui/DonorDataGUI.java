@@ -434,7 +434,7 @@ public class DonorDataGUI extends JFrame {
         JPanel card = createCard("Parsed Preview (Editable)", javax.swing.border.TitledBorder.CENTER);
         card.setLayout(new BorderLayout(0, 10));
 
-        previewModel = new DefaultTableModel(new Object[]{"Row", "Order #", "Request Date", "Name", "Cell Type", "Max", "Min"}, 0) {
+        previewModel = new DefaultTableModel(new Object[]{"Row", "Order #", "Request Date", "Name", "Cell Type", "Max", "Min", "Cancellations"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column != 0;
@@ -1429,7 +1429,8 @@ public class DonorDataGUI extends JFrame {
                         record.getName(),
                         record.getCellType(),
                         record.getMaxRequest(),
-                        record.getMinRequest()
+                        record.getMinRequest(),
+                        record.getRecentlyCancelledRequests()
                 });
             }
 
@@ -1482,12 +1483,15 @@ public class DonorDataGUI extends JFrame {
                 String cellType = String.valueOf(previewModel.getValueAt(row, 4)).trim();
                 double max = Double.parseDouble(String.valueOf(previewModel.getValueAt(row, 5)).trim());
                 double min = Double.parseDouble(String.valueOf(previewModel.getValueAt(row, 6)).trim());
+                String cancellations = previewModel.getColumnCount() > 7
+                        ? String.valueOf(previewModel.getValueAt(row, 7)).trim()
+                        : "";
 
                 if (name.isEmpty()) {
                     throw new HICDataNotFoundException("Row " + (row + 1) + " has an empty name.");
                 }
 
-                data.add(new HICData(row + 1, orderNumber, requestDate, name, cellType, max, min));
+                data.add(new HICData(row + 1, orderNumber, requestDate, name, cellType, max, min, cancellations));
             } catch (NumberFormatException | DateTimeParseException e) {
                 throw new HICDataNotFoundException("Row " + (row + 1) + " contains invalid numeric/date values. Use yyyy-MM-dd HH:mm:ss for Request Date.");
             }
@@ -1745,26 +1749,31 @@ public class DonorDataGUI extends JFrame {
             String cdOutput = outputPath("CD4CD8_Labels.docx");
             String otherOutput = outputPath("OTHERCellTypes_Labels.docx");
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
+            String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
 
             if (dryRunCheck.isSelected()) {
                 appendOutput("DRY RUN: Would generate labels using template: " + labelTemplatePath);
                 appendOutput("DRY RUN: - " + cdOutput);
                 appendOutput("DRY RUN: - " + otherOutput);
                 appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
+                appendOutput("DRY RUN: Would export low-yield order priority list to: " + priorityOutput);
                 addRunStep("Dry run label generation");
             } else {
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
                 hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
+                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput);
                 appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
                 appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
+                appendOutput("Exported low-yield order priority list to: " + priorityOutput);
                 addRunStep("Labels created");
                 addGeneratedFile(cdOutput);
                 addGeneratedFile(otherOutput);
                 addGeneratedFile(cdRequestListOutput);
+                addGeneratedFile(priorityOutput);
             }
 
-            writeAudit(action, true, data.size(), List.of(cdOutput, otherOutput, cdRequestListOutput), "");
+            writeAudit(action, true, data.size(), List.of(cdOutput, otherOutput, cdRequestListOutput, priorityOutput), "");
         } catch (Exception e) {
             handleActionError(action, e, 0, List.of());
         }
@@ -1818,6 +1827,7 @@ public class DonorDataGUI extends JFrame {
             String cdOutput = outputPath("CD4CD8_Labels.docx");
             String otherOutput = outputPath("OTHERCellTypes_Labels.docx");
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
+            String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
             String signOutOutput = outputPath("HIC Sign-out Sheet.xlsx");
             String labelTemplatePath = resolveLabelTemplatePath();
             String signOutTemplatePath = resolveSignoutTemplatePath();
@@ -1829,6 +1839,7 @@ public class DonorDataGUI extends JFrame {
                 appendOutput("DRY RUN: - " + cdOutput);
                 appendOutput("DRY RUN: - " + otherOutput);
                 appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
+                appendOutput("DRY RUN: Would export low-yield order priority list to: " + priorityOutput);
                 appendOutput("DRY RUN: Would export sign-out sheet using: " + signOutTemplatePath);
                 appendOutput("DRY RUN: - " + signOutOutput);
                 addRunStep("Dry run full workflow completed");
@@ -1843,9 +1854,11 @@ public class DonorDataGUI extends JFrame {
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
                 hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
+                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput);
                 addGeneratedFile(cdOutput);
                 addGeneratedFile(otherOutput);
                 addGeneratedFile(cdRequestListOutput);
+                addGeneratedFile(priorityOutput);
 
                 hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, signOutOutput, donor);
                 addGeneratedFile(signOutOutput);
@@ -1854,7 +1867,7 @@ public class DonorDataGUI extends JFrame {
 
             appendOutput("\nAll workflow actions completed successfully.");
             appendOutput("[SUCCESS] Completed full workflow.");
-            writeAudit(action, true, data.size(), List.of(unsortedOutput, sortedOutput, cdOutput, otherOutput, cdRequestListOutput, signOutOutput), "");
+            writeAudit(action, true, data.size(), List.of(unsortedOutput, sortedOutput, cdOutput, otherOutput, cdRequestListOutput, priorityOutput, signOutOutput), "");
         } catch (Exception e) {
             handleActionError(action, e, 0, List.of());
         }

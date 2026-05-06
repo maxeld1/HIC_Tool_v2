@@ -38,13 +38,18 @@ public class TXTFileParser implements FileParser {
         StringBuilder currentRecord = new StringBuilder(); //create currentRecord stringbuilder
 
         int IDCounter = 0;
+        HICData lastRecord = null;
 
         // Iterate over the lines of the file
         for (String line : lines) {
+            String trimmedLine = line.trim();
 
             // If the line starts with a hashtag, append that line to the current record
-            if (line.startsWith("#")) {
-                currentRecord.append(" ").append(line);
+            if (trimmedLine.startsWith("#")) {
+                if (lastRecord != null) {
+                    lastRecord.addRecentlyCancelledRequest(trimmedLine);
+                }
+                currentRecord.append(" ").append(trimmedLine);
             } else {
 
                 String[] token = line.split("[\t ]+"); //split the line by tab or space
@@ -165,6 +170,7 @@ public class TXTFileParser implements FileParser {
 
                             HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
+                            lastRecord = hicDataItem;
                             //System.out.println(hicDataItem);
                         } catch (DateTimeParseException e) {
                         System.err.println("Error parsing date/time: " + e.getMessage());

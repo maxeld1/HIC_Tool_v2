@@ -18,6 +18,10 @@ public class HICData {
 
 
     public HICData(int ID, int orderNumber, LocalDateTime requestDate, String name, String cellType, double maxRequest, double minRequest) {
+        this(ID, orderNumber, requestDate, name, cellType, maxRequest, minRequest, "");
+    }
+
+    public HICData(int ID, int orderNumber, LocalDateTime requestDate, String name, String cellType, double maxRequest, double minRequest, String recentlyCancelledRequests) {
         this.ID = ID;
         this.orderNumber = orderNumber;
         this.requestDate = requestDate;
@@ -25,6 +29,7 @@ public class HICData {
         this.cellType = cellType;
         this.maxRequest = maxRequest;
         this.minRequest = minRequest;
+        this.recentlyCancelledRequests = recentlyCancelledRequests;
 
 
     }
@@ -69,6 +74,17 @@ public class HICData {
 
     public String getRecentlyCancelledRequests() {
         return recentlyCancelledRequests;
+    }
+
+    public void addRecentlyCancelledRequest(String recentlyCancelledRequest) {
+        if (recentlyCancelledRequest == null || recentlyCancelledRequest.isBlank()) {
+            return;
+        }
+        if (recentlyCancelledRequests == null || recentlyCancelledRequests.isBlank()) {
+            recentlyCancelledRequests = recentlyCancelledRequest.trim();
+        } else {
+            recentlyCancelledRequests += "\n" + recentlyCancelledRequest.trim();
+        }
     }
 
     @Override

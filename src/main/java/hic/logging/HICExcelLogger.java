@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +175,108 @@ public class HICExcelLogger {
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
                 workbook.write(fileOut);
                 System.out.println("\nCD4/CD8 requester list exported successfully.");
+            } catch (IOException e) {
+                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void exportLowYieldPriorityList(List<HICData> hicData, String filePath) {
+        List<String> cellTypeOrder = List.of(
+                "B Cells", "NK Cells", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T",
+                "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"
+        );
+
+        Map<String, List<HICData>> byCellType = hicData.stream()
+                .collect(Collectors.groupingBy(HICData::getCellType, LinkedHashMap::new, Collectors.toCollection(ArrayList::new)));
+
+        List<String> orderedCellTypes = new ArrayList<>(byCellType.keySet());
+        orderedCellTypes.sort(Comparator
+                .comparingInt((String cellType) -> {
+                    int index = cellTypeOrder.indexOf(cellType);
+                    return index >= 0 ? index : cellTypeOrder.size();
+                })
+                .thenComparing(Comparator.naturalOrder()));
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Low Yield Priority");
+
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            CellStyle groupStyle = workbook.createCellStyle();
+            Font groupFont = workbook.createFont();
+            groupFont.setBold(true);
+            groupFont.setFontHeightInPoints((short) 12);
+            groupStyle.setFont(groupFont);
+
+            int rowNum = 0;
+            Row titleRow = sheet.createRow(rowNum++);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Low Yield Order Priority List");
+            titleCell.setCellStyle(titleStyle);
+
+            rowNum++;
+
+            String[] headers = {
+                    "Rank", "Order #", "Name", "Request Date", "Max", "Min",
+                    "Cancellation Count", "Recent Cancellations"
+            };
+
+            for (String cellType : orderedCellTypes) {
+                List<HICData> ranked = byCellType.get(cellType).stream()
+                        .sorted(Comparator
+                                .comparingInt((HICData data) -> countRecentlyCancelledRequests(data)).reversed()
+                                .thenComparing(HICData::getRequestDate)
+                                .thenComparingInt(HICData::getOrderNumber))
+                        .toList();
+
+                Row groupRow = sheet.createRow(rowNum++);
+                Cell groupCell = groupRow.createCell(0);
+                groupCell.setCellValue(cellType);
+                groupCell.setCellStyle(groupStyle);
+
+                Row headerRow = sheet.createRow(rowNum++);
+                for (int i = 0; i < headers.length; i++) {
+                    Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(headers[i]);
+                    cell.setCellStyle(headerStyle);
+                }
+
+                for (int i = 0; i < ranked.size(); i++) {
+                    HICData data = ranked.get(i);
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(i + 1);
+                    row.createCell(1).setCellValue(data.getOrderNumber());
+                    row.createCell(2).setCellValue(data.getName());
+                    row.createCell(3).setCellValue(data.getRequestDate().toString());
+                    row.createCell(4).setCellValue(data.getMaxRequest());
+                    row.createCell(5).setCellValue(data.getMinRequest());
+                    row.createCell(6).setCellValue(countRecentlyCancelledRequests(data));
+                    row.createCell(7).setCellValue(formatRecentlyCancelledRequests(data.getRecentlyCancelledRequests()));
+                }
+
+                rowNum++;
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            sheet.createFreezePane(0, 3);
+
+            try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                workbook.write(fileOut);
+                System.out.println("\nLow-yield priority list exported successfully.");
             } catch (IOException e) {
                 System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
             }
@@ -514,6 +617,33 @@ public class HICExcelLogger {
             row.createCell(3).setCellValue(joinOrderRequests(requester.cd8Orders));
         }
         return rowNum;
+    }
+
+    private int countRecentlyCancelledRequests(HICData data) {
+        String cancellations = data.getRecentlyCancelledRequests();
+        if (cancellations == null || cancellations.isBlank() || cancellations.equalsIgnoreCase("N/A")) {
+            return 0;
+        }
+        int count = 0;
+        for (String line : cancellations.split("\\R")) {
+            if (line.trim().startsWith("#")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String formatRecentlyCancelledRequests(String cancellations) {
+        if (cancellations == null || cancellations.isBlank()) {
+            return "";
+        }
+        if (cancellations.equalsIgnoreCase("N/A")) {
+            return "";
+        }
+        return cancellations.lines()
+                .map(String::trim)
+                .filter(line -> !line.isEmpty())
+                .collect(Collectors.joining("; "));
     }
 
     private String joinOrderRequests(List<OrderRequest> orderRequests) {
