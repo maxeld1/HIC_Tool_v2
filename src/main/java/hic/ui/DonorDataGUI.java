@@ -1,6 +1,9 @@
 package hic.ui;
 
 import hic.datamanagement.TXTFileParser;
+import hic.hiccell.FulfillmentStats;
+import hic.hiccell.FulfillmentStatsService;
+import hic.hiccell.HicCellMonthViewScraper;
 import hic.logging.HICExcelLogger;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
@@ -84,7 +87,9 @@ public class DonorDataGUI extends JFrame {
     private JTextPane outputArea;
     private JTextArea validationArea;
     private JTextArea historyArea;
+    private JTextArea fulfillmentArea;
     private JTextPane donorSpecificApheresisArea;
+    private JTabbedPane feedbackTabs;
     private JLabel runStatusValueLabel;
     private JLabel runDonorValueLabel;
     private JLabel runRecordsValueLabel;
@@ -107,11 +112,13 @@ public class DonorDataGUI extends JFrame {
     private final StringBuilder rawLogHtml = new StringBuilder();
     private int rawLogMaxLineLength = 0;
     private String lastDonorSpecificReportText = "Donor-specific report will appear here.";
+    private FulfillmentStats lastFulfillmentStats;
 
     private final HICExcelLogger hicExcelLogger;
     private final Processor processor;
     private final TXTFileParser txtFileParser;
     private final GoogleSheetDonorYieldService donorYieldService;
+    private final FulfillmentStatsService fulfillmentStatsService;
     private final Preferences preferences;
 
     public DonorDataGUI(HICExcelLogger hicExcelLogger, Processor processor) {
@@ -119,6 +126,7 @@ public class DonorDataGUI extends JFrame {
         this.processor = processor;
         this.txtFileParser = new TXTFileParser();
         this.donorYieldService = new GoogleSheetDonorYieldService();
+        this.fulfillmentStatsService = new FulfillmentStatsService(new HicCellMonthViewScraper());
         this.preferences = Preferences.userNodeForPackage(DonorDataGUI.class);
 
         try {
@@ -478,8 +486,8 @@ public class DonorDataGUI extends JFrame {
         JPanel card = createCard("HIC Summary & Apheresis", javax.swing.border.TitledBorder.CENTER);
         card.setLayout(new BorderLayout());
 
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.setFont(BODY_FONT);
+        feedbackTabs = new JTabbedPane();
+        feedbackTabs.setFont(BODY_FONT);
 
         outputArea = new JTextPane() {
             @Override
@@ -516,6 +524,16 @@ public class DonorDataGUI extends JFrame {
         historyArea.setRows(14);
         historyArea.setColumns(48);
 
+        fulfillmentArea = new JTextArea();
+        fulfillmentArea.setEditable(false);
+        fulfillmentArea.setFont(MONO_FONT);
+        fulfillmentArea.setLineWrap(false);
+        fulfillmentArea.setWrapStyleWord(false);
+        fulfillmentArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        fulfillmentArea.setRows(14);
+        fulfillmentArea.setColumns(48);
+        fulfillmentArea.setText("Fulfillment results will appear here after Make Labels or Perform All Actions.");
+
         donorSpecificApheresisArea = new JTextPane() {
             @Override
             public boolean getScrollableTracksViewportWidth() {
@@ -534,7 +552,7 @@ public class DonorDataGUI extends JFrame {
             }
         });
 
-        tabs.addTab("Output", buildRunSummaryPanel());
+        feedbackTabs.addTab("Output", buildRunSummaryPanel());
         JScrollPane rawLogScroll = new JScrollPane(outputArea);
         rawLogScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         rawLogScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -543,12 +561,13 @@ public class DonorDataGUI extends JFrame {
         donorSpecificScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         donorSpecificScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        tabs.addTab("Summary", rawLogScroll);
-        tabs.addTab("Donor Specific Apheresis", donorSpecificScroll);
-        tabs.addTab("Validation", new JScrollPane(validationArea));
-        tabs.addTab("History", new JScrollPane(historyArea));
+        feedbackTabs.addTab("Summary", rawLogScroll);
+        feedbackTabs.addTab("Fulfillment", new JScrollPane(fulfillmentArea));
+        feedbackTabs.addTab("Donor Specific Apheresis", donorSpecificScroll);
+        feedbackTabs.addTab("Validation", new JScrollPane(validationArea));
+        feedbackTabs.addTab("History", new JScrollPane(historyArea));
 
-        card.add(tabs, BorderLayout.CENTER);
+        card.add(feedbackTabs, BorderLayout.CENTER);
         return card;
     }
 
@@ -1406,6 +1425,19 @@ public class DonorDataGUI extends JFrame {
         validationArea.setCaretPosition(0);
     }
 
+    private void selectFeedbackTab(String title) {
+        if (feedbackTabs == null || title == null) {
+            return;
+        }
+
+        for (int i = 0; i < feedbackTabs.getTabCount(); i++) {
+            if (title.equals(feedbackTabs.getTitleAt(i))) {
+                feedbackTabs.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
     private void parseAndPreview() {
         try {
             String input = dataArea.getText();
@@ -1664,6 +1696,37 @@ public class DonorDataGUI extends JFrame {
         return value != null && value.matches("-?\\d+(\\.\\d+)?");
     }
 
+    private FulfillmentStats refreshFulfillmentStats(List<HICData> data) {
+        setStatus("Checking 3-week fulfillment...");
+        addRunStep("Checking 3-week fulfillment");
+        if (fulfillmentArea != null) {
+            fulfillmentArea.setText("Checking 3-week fulfillment...\n\nLog in if prompted. Workflow will continue if this check fails.");
+        }
+
+        try {
+            FulfillmentStats stats = fulfillmentStatsService.calculateForTodayOrders(data);
+            lastFulfillmentStats = stats;
+            if (fulfillmentArea != null) {
+                fulfillmentArea.setText(stats.toDisplayTextByCellType());
+                fulfillmentArea.setCaretPosition(0);
+            }
+            appendOutputStatus("SUCCESS", "Checked 3-week fulfillment for priority ranking.");
+            return stats;
+        } catch (Exception e) {
+            lastFulfillmentStats = null;
+            String message = e.getMessage() == null ? "Unexpected scraping error." : e.getMessage();
+            if (fulfillmentArea != null) {
+                fulfillmentArea.setText("Fulfillment check failed.\n\n"
+                        + message
+                        + "\n\nThe rest of the workflow continued. Low_Yield_Order_Priority.xlsx will mark fulfillment as unavailable.");
+                fulfillmentArea.setCaretPosition(0);
+            }
+            appendOutputStatus("ERROR", "Fulfillment check failed; continuing without fulfillment fractions.");
+            addRunStep("Fulfillment unavailable");
+            return null;
+        }
+    }
+
     private void getHICSummary() {
         String action = "Get HIC Summary";
         try {
@@ -1762,7 +1825,8 @@ public class DonorDataGUI extends JFrame {
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
                 hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
-                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput);
+                FulfillmentStats fulfillmentStats = refreshFulfillmentStats(data);
+                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
                 appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
                 appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
                 appendOutput("Exported low-yield order priority list to: " + priorityOutput);
@@ -1814,6 +1878,7 @@ public class DonorDataGUI extends JFrame {
             outputArea.setText(renderRawLogHtml());
 
             appendOutput("Running complete workflow...\n");
+            FulfillmentStats fulfillmentStats = refreshFulfillmentStats(data);
 
             String summaryText = processor.getHICSummaryString(data);
             appendOutput(summaryText);
@@ -1854,7 +1919,7 @@ public class DonorDataGUI extends JFrame {
                 hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
                 hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
                 hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
-                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput);
+                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
                 addGeneratedFile(cdOutput);
                 addGeneratedFile(otherOutput);
                 addGeneratedFile(cdRequestListOutput);

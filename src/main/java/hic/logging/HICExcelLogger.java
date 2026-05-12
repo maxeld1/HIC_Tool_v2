@@ -3,6 +3,7 @@ package hic.logging;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import hic.datamanagement.FileReader;
+import hic.hiccell.FulfillmentStats;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import org.apache.poi.ss.usermodel.*;
@@ -184,6 +185,10 @@ public class HICExcelLogger {
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath) {
+        exportLowYieldPriorityList(hicData, filePath, null);
+    }
+
+    public void exportLowYieldPriorityList(List<HICData> hicData, String filePath, FulfillmentStats fulfillmentStats) {
         List<String> cellTypeOrder = List.of(
                 "B Cells", "NK Cells", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T",
                 "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"
@@ -230,15 +235,14 @@ public class HICExcelLogger {
 
             String[] headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
-                    "Cancellation Count", "Recent Cancellations"
+                    "3-Week Fulfillment"
             };
 
             for (String cellType : orderedCellTypes) {
                 List<HICData> ranked = byCellType.get(cellType).stream()
                         .sorted(Comparator
-                                .comparingInt((HICData data) -> countRecentlyCancelledRequests(data)).reversed()
-                                .thenComparing(HICData::getRequestDate)
-                                .thenComparingInt(HICData::getOrderNumber))
+                                .comparingDouble((HICData data) -> fulfillmentRateForPriority(data, fulfillmentStats))
+                                .thenComparing(lowYieldPriorityTieBreaker()))
                         .toList();
 
                 Row groupRow = sheet.createRow(rowNum++);
@@ -262,8 +266,7 @@ public class HICExcelLogger {
                     row.createCell(3).setCellValue(data.getRequestDate().toString());
                     row.createCell(4).setCellValue(data.getMaxRequest());
                     row.createCell(5).setCellValue(data.getMinRequest());
-                    row.createCell(6).setCellValue(countRecentlyCancelledRequests(data));
-                    row.createCell(7).setCellValue(formatRecentlyCancelledRequests(data.getRecentlyCancelledRequests()));
+                    row.createCell(6).setCellValue(fulfillmentFraction(data, fulfillmentStats));
                 }
 
                 rowNum++;
@@ -283,6 +286,40 @@ public class HICExcelLogger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private Comparator<HICData> lowYieldPriorityTieBreaker() {
+        return Comparator
+                .comparingInt((HICData data) -> countRecentlyCancelledRequests(data)).reversed()
+                .thenComparing(HICData::getRequestDate)
+                .thenComparingInt(HICData::getOrderNumber);
+    }
+
+    private double fulfillmentRateForPriority(HICData data, FulfillmentStats fulfillmentStats) {
+        double rate = fulfillmentRate(data, fulfillmentStats);
+        return rate < 0 ? 2.0 : rate;
+    }
+
+    private double fulfillmentRate(HICData data, FulfillmentStats fulfillmentStats) {
+        if (fulfillmentStats == null) {
+            return -1.0;
+        }
+        return fulfillmentStats.fulfillmentRate(data.getName(), data.getCellType());
+    }
+
+    private int fulfillmentTotal(HICData data, FulfillmentStats fulfillmentStats) {
+        if (fulfillmentStats == null) {
+            return 0;
+        }
+        FulfillmentStats.StatLine line = fulfillmentStats.findLine(data.getName(), data.getCellType());
+        return line == null ? 0 : line.fulfilled() + line.cancelled();
+    }
+
+    private String fulfillmentFraction(HICData data, FulfillmentStats fulfillmentStats) {
+        if (fulfillmentStats == null) {
+            return "Fulfillment unavailable";
+        }
+        return fulfillmentStats.fulfillmentFraction(data.getName(), data.getCellType());
     }
 
     /**
