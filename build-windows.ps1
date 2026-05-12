@@ -59,10 +59,18 @@ if (-not (Get-Command jpackage -ErrorAction SilentlyContinue)) {
 Set-Location $projectRoot
 
 Write-Host "Building shaded JAR..."
-mvn clean package -DskipTests
+& mvn clean package -DskipTests
+if ($LASTEXITCODE -ne 0) {
+    throw "Maven build failed with exit code $LASTEXITCODE. Review the Maven error above."
+}
 
 if (-not (Test-Path $jarPath)) {
-    throw "$jarPath not found after build."
+    $availableJars = Get-ChildItem -Path $targetDir -Filter "*.jar" -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName
+    if ($availableJars) {
+        throw "$jarPath not found after build. JAR files found:`n$($availableJars -join "`n")"
+    }
+    throw "$jarPath not found after build. No JAR files were found in $targetDir."
 }
 
 New-Item -ItemType Directory -Path $destDir -Force | Out-Null
