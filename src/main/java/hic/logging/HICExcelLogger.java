@@ -289,9 +289,7 @@ public class HICExcelLogger {
 
         for (String cellType : orderedCellTypes) {
             List<HICData> ranked = byCellType.get(cellType).stream()
-                    .sorted(Comparator
-                            .comparingDouble((HICData data) -> fulfillmentRateForPriority(data, fulfillmentStats))
-                            .thenComparing(lowYieldPriorityTieBreaker()))
+                    .sorted((left, right) -> compareLowYieldPriority(left, right, fulfillmentStats))
                     .toList();
 
             Row groupRow = sheet.createRow(rowNum++);
@@ -333,6 +331,37 @@ public class HICExcelLogger {
                 .thenComparingInt(HICData::getOrderNumber);
     }
 
+    private int compareLowYieldPriority(HICData left, HICData right, FulfillmentStats fulfillmentStats) {
+        double leftRate = fulfillmentRateForPriority(left, fulfillmentStats);
+        double rightRate = fulfillmentRateForPriority(right, fulfillmentStats);
+        int byRate = Double.compare(leftRate, rightRate);
+        if (byRate != 0) {
+            return byRate;
+        }
+
+        if (leftRate >= 0 && leftRate <= 1 && rightRate >= 0 && rightRate <= 1) {
+            if (Double.compare(leftRate, 1.0) == 0) {
+                int byLowerVolume = Integer.compare(
+                        fulfillmentTotal(left, fulfillmentStats),
+                        fulfillmentTotal(right, fulfillmentStats)
+                );
+                if (byLowerVolume != 0) {
+                    return byLowerVolume;
+                }
+            } else {
+                int byMoreCancellations = Integer.compare(
+                        fulfillmentCancelled(right, fulfillmentStats),
+                        fulfillmentCancelled(left, fulfillmentStats)
+                );
+                if (byMoreCancellations != 0) {
+                    return byMoreCancellations;
+                }
+            }
+        }
+
+        return lowYieldPriorityTieBreaker().compare(left, right);
+    }
+
     private double fulfillmentRateForPriority(HICData data, FulfillmentStats fulfillmentStats) {
         double rate = fulfillmentRate(data, fulfillmentStats);
         return rate < 0 ? 2.0 : rate;
@@ -351,6 +380,14 @@ public class HICExcelLogger {
         }
         FulfillmentStats.StatLine line = fulfillmentStats.findLine(data.getName(), data.getCellType());
         return line == null ? 0 : line.fulfilled() + line.cancelled();
+    }
+
+    private int fulfillmentCancelled(HICData data, FulfillmentStats fulfillmentStats) {
+        if (fulfillmentStats == null) {
+            return 0;
+        }
+        FulfillmentStats.StatLine line = fulfillmentStats.findLine(data.getName(), data.getCellType());
+        return line == null ? 0 : line.cancelled();
     }
 
     private String fulfillmentFraction(HICData data, FulfillmentStats fulfillmentStats) {
