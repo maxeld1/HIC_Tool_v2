@@ -190,7 +190,7 @@ public class HICExcelLogger {
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath, FulfillmentStats fulfillmentStats) {
         List<String> cellTypeOrder = List.of(
-                "B Cells", "NK Cells", "CD8+", "CD4+", "Monocytes", "PBMC", "Total T",
+                "CD8+", "CD4+", "B Cells", "NK Cells", "Monocytes", "PBMC", "Total T",
                 "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"
         );
 
@@ -206,8 +206,6 @@ public class HICExcelLogger {
                 .thenComparing(Comparator.naturalOrder()));
 
         try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Low Yield Priority");
-
             CellStyle titleStyle = workbook.createCellStyle();
             Font titleFont = workbook.createFont();
             titleFont.setBold(true);
@@ -225,57 +223,40 @@ public class HICExcelLogger {
             groupFont.setFontHeightInPoints((short) 12);
             groupStyle.setFont(groupFont);
 
-            int rowNum = 0;
-            Row titleRow = sheet.createRow(rowNum++);
-            Cell titleCell = titleRow.createCell(0);
-            titleCell.setCellValue("Low Yield Order Priority List");
-            titleCell.setCellStyle(titleStyle);
-
-            rowNum++;
-
             String[] headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
                     "3-Week Fulfillment"
             };
 
-            for (String cellType : orderedCellTypes) {
-                List<HICData> ranked = byCellType.get(cellType).stream()
-                        .sorted(Comparator
-                                .comparingDouble((HICData data) -> fulfillmentRateForPriority(data, fulfillmentStats))
-                                .thenComparing(lowYieldPriorityTieBreaker()))
-                        .toList();
+            writeLowYieldPrioritySheet(
+                    workbook,
+                    "CD4 CD8 Requests",
+                    "Low Yield Priority - CD4/CD8 Requests",
+                    orderedCellTypes.stream()
+                            .filter(cellType -> Objects.equals(cellType, "CD4+") || Objects.equals(cellType, "CD8+"))
+                            .toList(),
+                    byCellType,
+                    fulfillmentStats,
+                    titleStyle,
+                    headerStyle,
+                    groupStyle,
+                    headers
+            );
 
-                Row groupRow = sheet.createRow(rowNum++);
-                Cell groupCell = groupRow.createCell(0);
-                groupCell.setCellValue(cellType);
-                groupCell.setCellStyle(groupStyle);
-
-                Row headerRow = sheet.createRow(rowNum++);
-                for (int i = 0; i < headers.length; i++) {
-                    Cell cell = headerRow.createCell(i);
-                    cell.setCellValue(headers[i]);
-                    cell.setCellStyle(headerStyle);
-                }
-
-                for (int i = 0; i < ranked.size(); i++) {
-                    HICData data = ranked.get(i);
-                    Row row = sheet.createRow(rowNum++);
-                    row.createCell(0).setCellValue(i + 1);
-                    row.createCell(1).setCellValue(data.getOrderNumber());
-                    row.createCell(2).setCellValue(data.getName());
-                    row.createCell(3).setCellValue(data.getRequestDate().toString());
-                    row.createCell(4).setCellValue(data.getMaxRequest());
-                    row.createCell(5).setCellValue(data.getMinRequest());
-                    row.createCell(6).setCellValue(fulfillmentFraction(data, fulfillmentStats));
-                }
-
-                rowNum++;
-            }
-
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            sheet.createFreezePane(0, 3);
+            writeLowYieldPrioritySheet(
+                    workbook,
+                    "Other Requests",
+                    "Low Yield Priority - Other Requests",
+                    orderedCellTypes.stream()
+                            .filter(cellType -> !Objects.equals(cellType, "CD4+") && !Objects.equals(cellType, "CD8+"))
+                            .toList(),
+                    byCellType,
+                    fulfillmentStats,
+                    titleStyle,
+                    headerStyle,
+                    groupStyle,
+                    headers
+            );
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
                 workbook.write(fileOut);
@@ -286,6 +267,64 @@ public class HICExcelLogger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void writeLowYieldPrioritySheet(Workbook workbook, String sheetName, String title,
+                                            List<String> orderedCellTypes,
+                                            Map<String, List<HICData>> byCellType,
+                                            FulfillmentStats fulfillmentStats,
+                                            CellStyle titleStyle,
+                                            CellStyle headerStyle,
+                                            CellStyle groupStyle,
+                                            String[] headers) {
+        Sheet sheet = workbook.createSheet(sheetName);
+        int rowNum = 0;
+
+        Row titleRow = sheet.createRow(rowNum++);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue(title);
+        titleCell.setCellStyle(titleStyle);
+
+        rowNum++;
+
+        for (String cellType : orderedCellTypes) {
+            List<HICData> ranked = byCellType.get(cellType).stream()
+                    .sorted(Comparator
+                            .comparingDouble((HICData data) -> fulfillmentRateForPriority(data, fulfillmentStats))
+                            .thenComparing(lowYieldPriorityTieBreaker()))
+                    .toList();
+
+            Row groupRow = sheet.createRow(rowNum++);
+            Cell groupCell = groupRow.createCell(0);
+            groupCell.setCellValue(cellType);
+            groupCell.setCellStyle(groupStyle);
+
+            Row headerRow = sheet.createRow(rowNum++);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            for (int i = 0; i < ranked.size(); i++) {
+                HICData data = ranked.get(i);
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(i + 1);
+                row.createCell(1).setCellValue(data.getOrderNumber());
+                row.createCell(2).setCellValue(data.getName());
+                row.createCell(3).setCellValue(data.getRequestDate().toString());
+                row.createCell(4).setCellValue(data.getMaxRequest());
+                row.createCell(5).setCellValue(data.getMinRequest());
+                row.createCell(6).setCellValue(fulfillmentFraction(data, fulfillmentStats));
+            }
+
+            rowNum++;
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+        sheet.createFreezePane(0, 1);
     }
 
     private Comparator<HICData> lowYieldPriorityTieBreaker() {
