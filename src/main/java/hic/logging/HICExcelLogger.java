@@ -329,8 +329,7 @@ public class HICExcelLogger {
 
     private Comparator<HICData> lowYieldPriorityTieBreaker() {
         return Comparator
-                .comparingInt((HICData data) -> countRecentlyCancelledRequests(data)).reversed()
-                .thenComparing(HICData::getRequestDate)
+                .comparing(HICData::getRequestDate)
                 .thenComparingInt(HICData::getOrderNumber);
     }
 

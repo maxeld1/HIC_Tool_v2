@@ -49,6 +49,7 @@ public class HicCellMonthViewScraper {
                             .setHeadless(false)
             );
             context.setDefaultTimeout(120_000);
+            blockNonEssentialResources(context);
             try {
                 Page page = context.pages().isEmpty() ? context.newPage() : context.pages().get(0);
                 page.setDefaultNavigationTimeout(120_000);
@@ -58,13 +59,11 @@ public class HicCellMonthViewScraper {
                 clickTab(page, "Live Cells");
                 page.waitForLoadState();
                 waitForVisibleTableRows(page);
-                setVisibleTablePageLength(page, 50);
                 List<HicCellOrderRecord> liveCells = readAllPages(page, false);
 
                 clickTab(page, "Cancelled");
                 page.waitForLoadState();
                 waitForVisibleTableRows(page);
-                setVisibleTablePageLength(page, 50);
                 List<HicCellOrderRecord> cancelled = readAllPages(page, true);
 
                 return new HicCellMonthViewRows(liveCells, cancelled);
@@ -84,6 +83,7 @@ public class HicCellMonthViewScraper {
                             .setHeadless(false)
             );
             context.setDefaultTimeout(120_000);
+            blockNonEssentialResources(context);
             try {
                 Page page = context.pages().isEmpty() ? context.newPage() : context.pages().get(0);
                 page.setDefaultNavigationTimeout(120_000);
@@ -92,7 +92,6 @@ public class HicCellMonthViewScraper {
                 clickTab(page, tabName);
                 page.waitForLoadState();
                 waitForVisibleTableRows(page);
-                setVisibleTablePageLength(page, 50);
                 return readAllPages(page, cancelled);
             } finally {
                 context.close();
@@ -112,6 +111,17 @@ public class HicCellMonthViewScraper {
         } catch (IOException ignored) {
             // Chrome will report a clearer profile-in-use error if this is an active lock.
         }
+    }
+
+    private void blockNonEssentialResources(BrowserContext context) {
+        context.route("**/*", route -> {
+            String resourceType = route.request().resourceType();
+            if ("image".equals(resourceType) || "media".equals(resourceType) || "font".equals(resourceType)) {
+                route.abort();
+            } else {
+                route.resume();
+            }
+        });
     }
 
     private void clickTab(Page page, String tabName) {
@@ -148,6 +158,8 @@ public class HicCellMonthViewScraper {
         if (!apiRecords.isEmpty()) {
             return apiRecords;
         }
+
+        setVisibleTablePageLength(page, 50);
 
         List<HicCellOrderRecord> records = new ArrayList<>();
         Set<String> seen = new HashSet<>();
