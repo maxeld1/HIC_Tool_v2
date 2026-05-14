@@ -521,8 +521,4 @@ public class Processor {
         return deliFridgeCells;
     }
 
-
-
-
-
 }
