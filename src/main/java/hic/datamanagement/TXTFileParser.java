@@ -101,35 +101,22 @@ public class TXTFileParser implements FileParser {
                         StringBuilder nameBuilder = new StringBuilder(tokens.get(3).trim());
                         for (int i = 4; i < tokens.size(); i++) {
 
-                            if (tokens.get(i).contains("CD4") || tokens.get(i).contains("CD8") || tokens.get(i).contains("Total")
-                                    || tokens.get(i).contains("Monocytes") || tokens.get(i).equalsIgnoreCase("PBMC")
-                                    || tokens.get(i).contains("NK") || tokens.get(i).contains("B") || tokens.get(i).equalsIgnoreCase("Unpurified")
-                                    || tokens.get(i).equalsIgnoreCase("Top") || tokens.get(i).equalsIgnoreCase("Bottom")) {
+                            if (isCellTypeStart(tokens, i)) {
                                 break;
                             }
                             nameBuilder.append(" ").append(tokens.get(i));
                         }
 
-                        String name = nameBuilder.toString(); //put nameBuilder into string
-
-                        String[] firstMiddleLastName = name.split(" "); //split first middle and last name
-
-                        // If the full name is more than 2 names, only get first and middle/last
-                        if (firstMiddleLastName.length > 2) {
-                            //System.out.println(Arrays.toString(firstMiddleLastName));
-                            name = firstMiddleLastName[0] + " " + firstMiddleLastName[2];
-                        }
+                        String name = formatFirstLastName(nameBuilder.toString()); //put nameBuilder into string
 
                         // Get the cell type
                         String cellType = null;
 
                         //System.out.println(tokens);
 
-                        for (String parts : tokens) {
-                            if (parts.equalsIgnoreCase("CD4+") || parts.equalsIgnoreCase("CD8+") || parts.equalsIgnoreCase("Total")
-                                    || parts.trim().equalsIgnoreCase("Monocytes") || parts.equalsIgnoreCase("PBMC")
-                                    || parts.equalsIgnoreCase("NK") || parts.equalsIgnoreCase("B") || parts.equalsIgnoreCase("Unpurified")
-                                    || parts.equalsIgnoreCase("Top") || parts.equalsIgnoreCase("Bottom")) {
+                        for (int i = 0; i < tokens.size(); i++) {
+                            String parts = tokens.get(i);
+                            if (isCellTypeStart(tokens, i)) {
                                 cellType = parts.trim();
 
                                 if (cellType.equalsIgnoreCase("Total")) {
@@ -188,6 +175,46 @@ public class TXTFileParser implements FileParser {
      */
     private boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");
+    }
+
+    private boolean isCellTypeStart(List<String> tokens, int index) {
+        if (tokens == null || index < 0 || index >= tokens.size()) {
+            return false;
+        }
+
+        String token = cleanToken(tokens.get(index));
+        if (token.equalsIgnoreCase("CD4+") || token.equalsIgnoreCase("CD8+")
+                || token.equalsIgnoreCase("Monocytes") || token.equalsIgnoreCase("PBMC")
+                || token.equalsIgnoreCase("NK") || token.equalsIgnoreCase("B")
+                || token.equalsIgnoreCase("Unpurified") || token.equalsIgnoreCase("Top")
+                || token.equalsIgnoreCase("Bottom")) {
+            return true;
+        }
+
+        if (token.equalsIgnoreCase("Total")) {
+            return index + 1 < tokens.size() && cleanToken(tokens.get(index + 1)).equalsIgnoreCase("T");
+        }
+
+        return false;
+    }
+
+    private String cleanToken(String token) {
+        return token == null ? "" : token.replaceAll("[^A-Za-z0-9+]", "").trim();
+    }
+
+    private String formatFirstLastName(String name) {
+        if (name == null) {
+            return "";
+        }
+        String normalized = name.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            return "";
+        }
+        String[] parts = normalized.split(" ");
+        if (parts.length <= 2) {
+            return normalized;
+        }
+        return parts[0] + " " + parts[parts.length - 1];
     }
 
     /**

@@ -225,7 +225,7 @@ public class HICExcelLogger {
 
             String[] headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
-                    "3-Week Fulfillment"
+                    "3-Week Fulfillment", "Filled this Week?"
             };
 
             writeLowYieldPrioritySheet(
@@ -314,6 +314,7 @@ public class HICExcelLogger {
                 row.createCell(4).setCellValue(data.getMaxRequest());
                 row.createCell(5).setCellValue(data.getMinRequest());
                 row.createCell(6).setCellValue(fulfillmentFraction(data, fulfillmentStats));
+                row.createCell(7).setCellValue(filledThisWeek(data, fulfillmentStats));
             }
 
             rowNum++;
@@ -395,6 +396,13 @@ public class HICExcelLogger {
             return "Fulfillment unavailable";
         }
         return fulfillmentStats.fulfillmentFraction(data.getName(), data.getCellType());
+    }
+
+    private String filledThisWeek(HICData data, FulfillmentStats fulfillmentStats) {
+        if (fulfillmentStats == null) {
+            return "N";
+        }
+        return fulfillmentStats.filledThisWeek(data.getName(), data.getCellType()) ? "Y" : "N";
     }
 
     /**

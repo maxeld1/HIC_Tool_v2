@@ -3,7 +3,9 @@ package hic.hiccell;
 import hic.util.HICData;
 
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +29,9 @@ public class FulfillmentStatsService {
     public FulfillmentStats calculateForTodayOrders(List<HICData> todayOrders) {
         LocalDate endDate = LocalDate.now(clock);
         LocalDate startDate = endDate.minusDays(21);
+        LocalDate orderWeekAnchor = latestOrderDate(todayOrders, endDate);
+        LocalDate orderWeekStart = orderWeekAnchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate orderWeekEnd = orderWeekAnchor.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         Map<String, MutableStatLine> stats = new LinkedHashMap<>();
         Set<String> requestedKeys = new HashSet<>();
@@ -41,13 +46,13 @@ public class FulfillmentStatsService {
         List<HicCellOrderRecord> fulfilled = monthViewRows.liveCells();
         List<HicCellOrderRecord> cancelled = monthViewRows.cancelled();
 
-        countRows(stats, requestedKeys, fulfilled, startDate, endDate, false);
-        countRows(stats, requestedKeys, cancelled, startDate, endDate, true);
+        countRows(stats, requestedKeys, fulfilled, startDate, endDate, orderWeekStart, orderWeekEnd, false);
+        countRows(stats, requestedKeys, cancelled, startDate, endDate, orderWeekStart, orderWeekEnd, true);
 
         Map<String, FulfillmentStats.StatLine> output = new LinkedHashMap<>();
         for (MutableStatLine line : stats.values()) {
             output.put(key(line.orderedBy, line.cellType),
-                    new FulfillmentStats.StatLine(line.orderedBy, line.cellType, line.fulfilled, line.cancelled));
+                    new FulfillmentStats.StatLine(line.orderedBy, line.cellType, line.fulfilled, line.cancelled, line.filledThisWeek));
         }
 
         return new FulfillmentStats(startDate, endDate, output, fulfilled.size(), cancelled.size());
@@ -55,6 +60,7 @@ public class FulfillmentStatsService {
 
     private void countRows(Map<String, MutableStatLine> stats, Set<String> requestedKeys,
                            List<HicCellOrderRecord> rows, LocalDate startDate, LocalDate endDate,
+                           LocalDate orderWeekStart, LocalDate orderWeekEnd,
                            boolean cancelled) {
         for (HicCellOrderRecord row : rows) {
             if (cancelled && isUserRetracted(row.cancellationReason())) {
@@ -77,8 +83,25 @@ public class FulfillmentStatsService {
                 line.cancelled++;
             } else {
                 line.fulfilled++;
+                if (!date.isBefore(orderWeekStart) && !date.isAfter(orderWeekEnd)) {
+                    line.filledThisWeek = true;
+                }
             }
         }
+    }
+
+    private LocalDate latestOrderDate(List<HICData> todayOrders, LocalDate fallback) {
+        LocalDate latest = null;
+        for (HICData order : todayOrders) {
+            if (order.getRequestDate() == null) {
+                continue;
+            }
+            LocalDate date = order.getRequestDate().toLocalDate();
+            if (latest == null || date.isAfter(latest)) {
+                latest = date;
+            }
+        }
+        return latest == null ? fallback : latest;
     }
 
     private boolean isUserRetracted(String cancellationReason) {
@@ -127,6 +150,7 @@ public class FulfillmentStatsService {
         private final String cellType;
         private int fulfilled;
         private int cancelled;
+        private boolean filledThisWeek;
 
         private MutableStatLine(String orderedBy, String cellType) {
             this.orderedBy = orderedBy;

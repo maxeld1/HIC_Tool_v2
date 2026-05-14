@@ -30,8 +30,8 @@ public class FulfillmentStats {
         sb.append("Date Range: ").append(startDate).append(" to ").append(endDate).append("\n");
         sb.append("Source Rows: ").append(scrapedFulfilledRows).append(" Live Cells, ")
                 .append(scrapedCancelledRows).append(" Cancelled\n\n");
-        sb.append(String.format("%-28s %-18s %-12s %-12s %-12s%n",
-                "Ordered By", "Cell Type", "Fulfilled", "Cancelled", "Fraction"));
+        sb.append(String.format("%-28s %-18s %-12s %-12s %-12s %-8s%n",
+                "Ordered By", "Cell Type", "Fulfilled", "Cancelled", "Fraction", "Week"));
         sb.append("--------------------------------------------------------------------------------\n");
 
         List<StatLine> sorted = new ArrayList<>(lines.values());
@@ -46,8 +46,8 @@ public class FulfillmentStats {
         for (StatLine line : sorted) {
             int total = line.fulfilled() + line.cancelled();
             String fraction = total == 0 ? "0/0" : line.fulfilled() + "/" + total;
-            sb.append(String.format("%-28s %-18s %-12d %-12d %-12s%n",
-                    line.orderedBy(), line.cellType(), line.fulfilled(), line.cancelled(), fraction));
+            sb.append(String.format("%-28s %-18s %-12d %-12d %-12s %-8s%n",
+                    line.orderedBy(), line.cellType(), line.fulfilled(), line.cancelled(), fraction, line.filledThisWeek() ? "Y" : "N"));
         }
 
         sb.append("\nNote: Total equals Live Cells plus Cancelled rows scraped from the Month View data available to this session.");
@@ -80,13 +80,13 @@ public class FulfillmentStats {
                 currentCellType = line.cellType();
                 sb.append(currentCellType).append("\n");
                 sb.append("-".repeat(Math.max(8, currentCellType.length()))).append("\n");
-                sb.append(String.format("%-28s %-12s %-12s %-12s%n", "Ordered By", "Fulfilled", "Cancelled", "Fraction"));
+                sb.append(String.format("%-28s %-12s %-12s %-12s %-8s%n", "Ordered By", "Fulfilled", "Cancelled", "Fraction", "Week"));
             }
 
             int total = line.fulfilled() + line.cancelled();
             String fraction = total == 0 ? "0/0" : line.fulfilled() + "/" + total;
-            sb.append(String.format("%-28s %-12d %-12d %-12s%n",
-                    line.orderedBy(), line.fulfilled(), line.cancelled(), fraction));
+            sb.append(String.format("%-28s %-12d %-12d %-12s %-8s%n",
+                    line.orderedBy(), line.fulfilled(), line.cancelled(), fraction, line.filledThisWeek() ? "Y" : "N"));
         }
 
         return sb.toString();
@@ -115,6 +115,11 @@ public class FulfillmentStats {
         }
         int total = line.fulfilled() + line.cancelled();
         return line.fulfilled() + "/" + total;
+    }
+
+    public boolean filledThisWeek(String orderedBy, String cellType) {
+        StatLine line = findLine(orderedBy, cellType);
+        return line != null && line.filledThisWeek();
     }
 
     private String key(String orderedBy, String cellType) {
@@ -153,6 +158,6 @@ public class FulfillmentStats {
         return normalized;
     }
 
-    public record StatLine(String orderedBy, String cellType, int fulfilled, int cancelled) {
+    public record StatLine(String orderedBy, String cellType, int fulfilled, int cancelled, boolean filledThisWeek) {
     }
 }
