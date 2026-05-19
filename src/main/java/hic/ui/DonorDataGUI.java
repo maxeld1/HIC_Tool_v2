@@ -100,7 +100,7 @@ public class DonorDataGUI extends JFrame {
     private DefaultListModel<String> runFilesModel;
     private JLabel statusLabel;
     private JLabel recordsLabel;
-    private JCheckBox dryRunCheck;
+    private JCheckBox fulfillmentStatsCheck;
     private JButton instructionToggleButton;
     private JPanel topContainerPanel;
     private JPanel instructionPanel;
@@ -232,7 +232,7 @@ public class DonorDataGUI extends JFrame {
                 "<html><div style='font-family:Avenir Next; font-size:13px; color:#33465A;'>" +
                         "<b>Quick Start:</b> Paste input and donor number, click <b>Parse & Preview</b>, " +
                         "fix validation issues, then run one action or <b>Perform All Actions</b>. " +
-                        "Use <b>Dry Run</b> to simulate exports." +
+                        "Toggle <b>Use Fulfillment Stats</b> to control whether the scraper runs for the low-yield priority list." +
                         "</div></html>"
         );
         instructions.add(text, BorderLayout.CENTER);
@@ -306,10 +306,6 @@ public class DonorDataGUI extends JFrame {
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         controls.setOpaque(false);
-        dryRunCheck = new JCheckBox("Dry Run");
-        dryRunCheck.setFont(BODY_FONT);
-        dryRunCheck.setOpaque(false);
-        dryRunCheck.setForeground(new Color(45, 56, 67));
 
         JButton settingsButton = new JButton("Settings");
         settingsButton.setFont(BODY_FONT);
@@ -317,7 +313,7 @@ public class DonorDataGUI extends JFrame {
         settingsButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         settingsButton.addActionListener(e -> openSettingsDialog());
 
-        controls.add(dryRunCheck);
+        controls.add(createFulfillmentStatsCheckBox());
         controls.add(settingsButton);
 
         strip.add(buttons, BorderLayout.CENTER);
@@ -419,18 +415,13 @@ public class DonorDataGUI extends JFrame {
         controls.setOpaque(false);
         controls.setBorder(new EmptyBorder(2, 0, 0, 0));
 
-        dryRunCheck = new JCheckBox("Dry Run (validate + simulate exports)");
-        dryRunCheck.setFont(BODY_FONT);
-        dryRunCheck.setOpaque(false);
-        dryRunCheck.setForeground(new Color(45, 56, 67));
-
         JButton settingsButton = new JButton("Settings");
         settingsButton.setFont(BODY_FONT);
         settingsButton.setFocusPainted(false);
         settingsButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         settingsButton.addActionListener(e -> openSettingsDialog());
 
-        controls.add(dryRunCheck);
+        controls.add(createFulfillmentStatsCheckBox());
         controls.add(settingsButton);
 
         card.add(grid, BorderLayout.NORTH);
@@ -697,6 +688,29 @@ public class DonorDataGUI extends JFrame {
             }
         });
         return button;
+    }
+
+    private JCheckBox createFulfillmentStatsCheckBox() {
+        fulfillmentStatsCheck = new JCheckBox("Use Fulfillment Stats", true);
+        fulfillmentStatsCheck.setFont(new Font("Avenir Next", Font.BOLD, 16));
+        fulfillmentStatsCheck.setOpaque(true);
+        fulfillmentStatsCheck.setBackground(new Color(223, 242, 235));
+        fulfillmentStatsCheck.setForeground(new Color(22, 85, 66));
+        fulfillmentStatsCheck.setBorder(new CompoundBorder(
+                new LineBorder(new Color(112, 179, 154), 1, true),
+                new EmptyBorder(8, 12, 8, 12)
+        ));
+        fulfillmentStatsCheck.setFocusPainted(false);
+        fulfillmentStatsCheck.setPreferredSize(new Dimension(210, 40));
+        fulfillmentStatsCheck.setToolTipText("When selected, Make Labels and Perform All Actions scrape fulfillment stats for the low-yield priority list.");
+        fulfillmentStatsCheck.addActionListener(e -> {
+            if (fulfillmentStatsCheck.isSelected()) {
+                setStatus("Fulfillment stats scraper enabled.");
+            } else {
+                setStatus("Fulfillment stats scraper disabled.");
+            }
+        });
+        return fulfillmentStatsCheck;
     }
 
     private void markInputChanged() {
@@ -1727,6 +1741,22 @@ public class DonorDataGUI extends JFrame {
         }
     }
 
+    private FulfillmentStats fulfillmentStatsForPriorityExport(List<HICData> data) {
+        if (fulfillmentStatsCheck != null && !fulfillmentStatsCheck.isSelected()) {
+            lastFulfillmentStats = null;
+            if (fulfillmentArea != null) {
+                fulfillmentArea.setText("Fulfillment stats scraper skipped.\n\n"
+                        + "Use Fulfillment Stats is turned off. Low_Yield_Order_Priority.xlsx will mark fulfillment as unavailable.");
+                fulfillmentArea.setCaretPosition(0);
+            }
+            appendOutputStatus("INFO", "Skipped fulfillment stats scraper by user choice.");
+            addRunStep("Fulfillment skipped");
+            return null;
+        }
+
+        return refreshFulfillmentStats(data);
+    }
+
     private void getHICSummary() {
         String action = "Get HIC Summary";
         try {
@@ -1761,15 +1791,10 @@ public class DonorDataGUI extends JFrame {
             List<HICData> data = prepareData(false);
             String output = outputPath("UnsortedHICList.xlsx");
 
-            if (dryRunCheck.isSelected()) {
-                appendOutput("DRY RUN: Would export unsorted data to: " + output);
-                addRunStep("Dry run export unsorted");
-            } else {
-                hicExcelLogger.logHICData(data, output, false);
-                appendOutput("Exported unsorted data to: " + output);
-                addRunStep("Exported unsorted data");
-                addGeneratedFile(output);
-            }
+            hicExcelLogger.logHICData(data, output, false);
+            appendOutput("Exported unsorted data to: " + output);
+            addRunStep("Exported unsorted data");
+            addGeneratedFile(output);
 
             writeAudit(action, true, data.size(), List.of(output), "");
         } catch (Exception e) {
@@ -1784,15 +1809,10 @@ public class DonorDataGUI extends JFrame {
             processor.sortByCellTypeAndDateTime(data);
             String output = outputPath("SortedHICList.xlsx");
 
-            if (dryRunCheck.isSelected()) {
-                appendOutput("DRY RUN: Would export sorted data to: " + output);
-                addRunStep("Dry run export sorted");
-            } else {
-                hicExcelLogger.logHICData(data, output, true);
-                appendOutput("Exported sorted data to: " + output);
-                addRunStep("Exported sorted data");
-                addGeneratedFile(output);
-            }
+            hicExcelLogger.logHICData(data, output, true);
+            appendOutput("Exported sorted data to: " + output);
+            addRunStep("Exported sorted data");
+            addGeneratedFile(output);
 
             writeAudit(action, true, data.size(), List.of(output), "");
         } catch (Exception e) {
@@ -1814,28 +1834,19 @@ public class DonorDataGUI extends JFrame {
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
             String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
 
-            if (dryRunCheck.isSelected()) {
-                appendOutput("DRY RUN: Would generate labels using template: " + labelTemplatePath);
-                appendOutput("DRY RUN: - " + cdOutput);
-                appendOutput("DRY RUN: - " + otherOutput);
-                appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
-                appendOutput("DRY RUN: Would export low-yield order priority list to: " + priorityOutput);
-                addRunStep("Dry run label generation");
-            } else {
-                hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
-                hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-                hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
-                FulfillmentStats fulfillmentStats = refreshFulfillmentStats(data);
-                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
-                appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
-                appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
-                appendOutput("Exported low-yield order priority list to: " + priorityOutput);
-                addRunStep("Labels created");
-                addGeneratedFile(cdOutput);
-                addGeneratedFile(otherOutput);
-                addGeneratedFile(cdRequestListOutput);
-                addGeneratedFile(priorityOutput);
-            }
+            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
+            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
+            FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
+            appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
+            appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
+            appendOutput("Exported low-yield order priority list to: " + priorityOutput);
+            addRunStep("Labels created");
+            addGeneratedFile(cdOutput);
+            addGeneratedFile(otherOutput);
+            addGeneratedFile(cdRequestListOutput);
+            addGeneratedFile(priorityOutput);
 
             writeAudit(action, true, data.size(), List.of(cdOutput, otherOutput, cdRequestListOutput, priorityOutput), "");
         } catch (Exception e) {
@@ -1851,16 +1862,10 @@ public class DonorDataGUI extends JFrame {
             String signOutTemplatePath = resolveSignoutTemplatePath();
             String output = outputPath("HIC Sign-out Sheet.xlsx");
 
-            if (dryRunCheck.isSelected()) {
-                appendOutput("DRY RUN: Would export sign-out sheet using template: " + signOutTemplatePath);
-                appendOutput("DRY RUN: - " + output);
-                addRunStep("Dry run sign-out export");
-            } else {
-                hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, output, donor);
-                appendOutput("Exported sign-out sheet to: " + output);
-                addRunStep("Sign-out sheet exported");
-                addGeneratedFile(output);
-            }
+            hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, output, donor);
+            appendOutput("Exported sign-out sheet to: " + output);
+            addRunStep("Sign-out sheet exported");
+            addGeneratedFile(output);
 
             writeAudit(action, true, data.size(), List.of(output), "");
         } catch (Exception e) {
@@ -1878,7 +1883,6 @@ public class DonorDataGUI extends JFrame {
             outputArea.setText(renderRawLogHtml());
 
             appendOutput("Running complete workflow...\n");
-            FulfillmentStats fulfillmentStats = refreshFulfillmentStats(data);
 
             String summaryText = processor.getHICSummaryString(data);
             appendOutput(summaryText);
@@ -1897,38 +1901,27 @@ public class DonorDataGUI extends JFrame {
             String labelTemplatePath = resolveLabelTemplatePath();
             String signOutTemplatePath = resolveSignoutTemplatePath();
 
-            if (dryRunCheck.isSelected()) {
-                appendOutput("DRY RUN: Would export unsorted data to: " + unsortedOutput);
-                appendOutput("DRY RUN: Would export sorted data to: " + sortedOutput);
-                appendOutput("DRY RUN: Would create labels using: " + labelTemplatePath);
-                appendOutput("DRY RUN: - " + cdOutput);
-                appendOutput("DRY RUN: - " + otherOutput);
-                appendOutput("DRY RUN: Would export CD4/CD8 requester list to: " + cdRequestListOutput);
-                appendOutput("DRY RUN: Would export low-yield order priority list to: " + priorityOutput);
-                appendOutput("DRY RUN: Would export sign-out sheet using: " + signOutTemplatePath);
-                appendOutput("DRY RUN: - " + signOutOutput);
-                addRunStep("Dry run full workflow completed");
-            } else {
-                hicExcelLogger.logHICData(data, unsortedOutput, false);
-                addGeneratedFile(unsortedOutput);
+            FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
 
-                processor.sortByCellTypeAndDateTime(data);
-                hicExcelLogger.logHICData(data, sortedOutput, true);
-                addGeneratedFile(sortedOutput);
+            hicExcelLogger.logHICData(data, unsortedOutput, false);
+            addGeneratedFile(unsortedOutput);
 
-                hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
-                hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-                hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
-                hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
-                addGeneratedFile(cdOutput);
-                addGeneratedFile(otherOutput);
-                addGeneratedFile(cdRequestListOutput);
-                addGeneratedFile(priorityOutput);
+            processor.sortByCellTypeAndDateTime(data);
+            hicExcelLogger.logHICData(data, sortedOutput, true);
+            addGeneratedFile(sortedOutput);
 
-                hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, signOutOutput, donor);
-                addGeneratedFile(signOutOutput);
-                addRunStep("Workflow exports completed");
-            }
+            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
+            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
+            addGeneratedFile(cdOutput);
+            addGeneratedFile(otherOutput);
+            addGeneratedFile(cdRequestListOutput);
+            addGeneratedFile(priorityOutput);
+
+            hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, signOutOutput, donor);
+            addGeneratedFile(signOutOutput);
+            addRunStep("Workflow exports completed");
 
             appendOutput("\nAll workflow actions completed successfully.");
             appendOutput("[SUCCESS] Completed full workflow.");
