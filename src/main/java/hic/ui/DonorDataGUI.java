@@ -1,6 +1,9 @@
 package hic.ui;
 
 import hic.datamanagement.TXTFileParser;
+import hic.hiccell.CompleteFulfillmentReport;
+import hic.hiccell.FulfillmentReport;
+import hic.hiccell.FulfillmentReportService;
 import hic.hiccell.FulfillmentStats;
 import hic.hiccell.FulfillmentStatsService;
 import hic.hiccell.HicCellMonthViewScraper;
@@ -32,6 +35,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -101,6 +105,7 @@ public class DonorDataGUI extends JFrame {
     private JLabel statusLabel;
     private JLabel recordsLabel;
     private JCheckBox fulfillmentStatsCheck;
+    private JCheckBox fulfillmentReportCellTypeCheck;
     private JButton instructionToggleButton;
     private JPanel topContainerPanel;
     private JPanel instructionPanel;
@@ -119,6 +124,7 @@ public class DonorDataGUI extends JFrame {
     private final TXTFileParser txtFileParser;
     private final GoogleSheetDonorYieldService donorYieldService;
     private final FulfillmentStatsService fulfillmentStatsService;
+    private final FulfillmentReportService fulfillmentReportService;
     private final Preferences preferences;
 
     public DonorDataGUI(HICExcelLogger hicExcelLogger, Processor processor) {
@@ -126,7 +132,9 @@ public class DonorDataGUI extends JFrame {
         this.processor = processor;
         this.txtFileParser = new TXTFileParser();
         this.donorYieldService = new GoogleSheetDonorYieldService();
-        this.fulfillmentStatsService = new FulfillmentStatsService(new HicCellMonthViewScraper());
+        HicCellMonthViewScraper monthViewScraper = new HicCellMonthViewScraper();
+        this.fulfillmentStatsService = new FulfillmentStatsService(monthViewScraper);
+        this.fulfillmentReportService = new FulfillmentReportService(monthViewScraper);
         this.preferences = Preferences.userNodeForPackage(DonorDataGUI.class);
 
         try {
@@ -236,6 +244,14 @@ public class DonorDataGUI extends JFrame {
                         "</div></html>"
         );
         instructions.add(text, BorderLayout.CENTER);
+
+        JButton fulfillmentReportButton = createActionButton("Fulfillment Reports", PRIMARY_COLOR, PRIMARY_HOVER, e -> openFulfillmentReportWindow());
+        fulfillmentReportButton.setPreferredSize(new Dimension(180, 38));
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        actionPanel.setOpaque(false);
+        actionPanel.add(fulfillmentReportButton);
+        instructions.add(actionPanel, BorderLayout.EAST);
+
         return instructions;
     }
 
@@ -386,7 +402,7 @@ public class DonorDataGUI extends JFrame {
         JPanel card = createCard("Workflow Actions");
         card.setLayout(new BorderLayout(0, 14));
 
-        JPanel grid = new JPanel(new GridLayout(4, 2, 10, 10));
+        JPanel grid = new JPanel(new GridLayout(5, 2, 10, 10));
         grid.setOpaque(false);
 
         JButton summaryButton = createActionButton("Get HIC Summary", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Get HIC Summary", "Generated HIC summary", this::getHICSummary));
@@ -395,6 +411,8 @@ public class DonorDataGUI extends JFrame {
         JButton exportSortedButton = createActionButton("Export Sorted", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Export Sorted", "Exported sorted data", this::exportToExcelSorted));
         JButton labelButton = createActionButton("Make Labels", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Make Labels", "Generated labels", this::makeLabels));
         JButton signOutButton = createActionButton("Export Sign-Out Sheet", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Export Sign-Out Sheet", "Exported sign-out sheet", this::exportToSignOutSheet));
+        JButton labOwnerFulfillmentButton = createActionButton("Identify by: Lab Owner", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Identify by Lab Owner", "Exported fulfillment report", () -> exportFulfillmentReport(FulfillmentReport.GroupBy.LAB_OWNER)));
+        JButton orderedByFulfillmentButton = createActionButton("Identify by: Ordered By", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Identify by Ordered By", "Exported fulfillment report", () -> exportFulfillmentReport(FulfillmentReport.GroupBy.ORDERED_BY)));
         JButton performAllButton = createActionButton("Perform All Actions", ACCENT_COLOR, ACCENT_HOVER, e -> runAction("Perform All Actions", "Completed full workflow", this::performAllActions));
         JButton clearOutputButton = createActionButton("Clear Output", DANGER_COLOR, DANGER_HOVER, e -> {
             outputArea.setText("");
@@ -408,6 +426,8 @@ public class DonorDataGUI extends JFrame {
         grid.add(exportSortedButton);
         grid.add(labelButton);
         grid.add(signOutButton);
+        grid.add(labOwnerFulfillmentButton);
+        grid.add(orderedByFulfillmentButton);
         grid.add(performAllButton);
         grid.add(clearOutputButton);
 
@@ -422,6 +442,7 @@ public class DonorDataGUI extends JFrame {
         settingsButton.addActionListener(e -> openSettingsDialog());
 
         controls.add(createFulfillmentStatsCheckBox());
+        controls.add(createFulfillmentReportCellTypeCheckBox());
         controls.add(settingsButton);
 
         card.add(grid, BorderLayout.NORTH);
@@ -713,6 +734,22 @@ public class DonorDataGUI extends JFrame {
         return fulfillmentStatsCheck;
     }
 
+    private JCheckBox createFulfillmentReportCellTypeCheckBox() {
+        fulfillmentReportCellTypeCheck = new JCheckBox("Report by Cell Type", true);
+        fulfillmentReportCellTypeCheck.setFont(new Font("Avenir Next", Font.BOLD, 16));
+        fulfillmentReportCellTypeCheck.setOpaque(true);
+        fulfillmentReportCellTypeCheck.setBackground(new Color(229, 239, 250));
+        fulfillmentReportCellTypeCheck.setForeground(new Color(26, 71, 118));
+        fulfillmentReportCellTypeCheck.setBorder(new CompoundBorder(
+                new LineBorder(new Color(112, 153, 198), 1, true),
+                new EmptyBorder(8, 12, 8, 12)
+        ));
+        fulfillmentReportCellTypeCheck.setFocusPainted(false);
+        fulfillmentReportCellTypeCheck.setPreferredSize(new Dimension(205, 40));
+        fulfillmentReportCellTypeCheck.setToolTipText("When selected, fulfillment reports are grouped by person and cell type. When cleared, each person gets one total line.");
+        return fulfillmentReportCellTypeCheck;
+    }
+
     private void markInputChanged() {
         String currentHash = hashText(dataArea.getText());
         if (!currentHash.equals(lastParsedInputHash)) {
@@ -725,6 +762,11 @@ public class DonorDataGUI extends JFrame {
         beginRunSummary(actionName);
         appendOutputActionHeader(actionName);
         action.run();
+        if ("Action cancelled.".equals(statusLabel.getText())) {
+            finishRunSummary("Cancelled");
+            appendOutputSeparator();
+            return;
+        }
         if (!"Action failed.".equals(statusLabel.getText())) {
             setStatus(successStatus);
             appendOutputStatus("SUCCESS", successStatus);
@@ -1820,6 +1862,354 @@ public class DonorDataGUI extends JFrame {
         }
     }
 
+    private void openFulfillmentReportWindow() {
+        JDialog dialog = new JDialog(this, "Fulfillment Reports", false);
+        dialog.setLayout(new BorderLayout(12, 12));
+        dialog.getContentPane().setBackground(BG_COLOR);
+
+        LocalDate defaultEnd = LocalDate.now();
+        LocalDate defaultStart = defaultEnd.minusDays(21);
+        JTextField startField = new JTextField(defaultStart.toString(), 12);
+        JTextField endField = new JTextField(defaultEnd.toString(), 12);
+
+        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        datePanel.setOpaque(false);
+        datePanel.add(new JLabel("Start Collection Date"));
+        datePanel.add(startField);
+        datePanel.add(new JLabel("End Collection Date"));
+        datePanel.add(endField);
+
+        JTextArea previewArea = new JTextArea();
+        previewArea.setEditable(false);
+        previewArea.setFont(MONO_FONT);
+        previewArea.setLineWrap(false);
+        previewArea.setText("Choose a date range, then generate the complete fulfillment workbook.\n"
+                + "One site scrape creates tabs for Lab Owner, Lab Owner by Cell Type, Ordered By, and Ordered By by Cell Type.\n"
+                + "No donor number, order number, or pasted HIC input is required.");
+
+        JButton generateButton = createActionButton("Generate Complete Report", PRIMARY_COLOR, PRIMARY_HOVER,
+                e -> runCompleteFulfillmentReport(startField.getText(), endField.getText(), previewArea));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(generateButton);
+
+        JPanel controls = new JPanel(new BorderLayout(0, 10));
+        controls.setOpaque(false);
+        controls.setBorder(new EmptyBorder(12, 12, 0, 12));
+        controls.add(datePanel, BorderLayout.NORTH);
+        controls.add(buttonPanel, BorderLayout.CENTER);
+
+        JScrollPane previewScroll = new JScrollPane(previewArea);
+        previewScroll.setBorder(new CompoundBorder(
+                new EmptyBorder(0, 12, 12, 12),
+                new LineBorder(new Color(212, 223, 235), 1, true)
+        ));
+
+        dialog.add(controls, BorderLayout.NORTH);
+        dialog.add(previewScroll, BorderLayout.CENTER);
+        dialog.setSize(980, 620);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void runCompleteFulfillmentReport(String startText, String endText, JTextArea previewArea) {
+        String action = "Complete Fulfillment Report";
+        String output = "";
+        try {
+            LocalDate startDate = LocalDate.parse(startText.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDate endDate = LocalDate.parse(endText.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            if (endDate.isBefore(startDate)) {
+                throw new HICDataNotFoundException("End Collection Date must be on or after Start Collection Date.");
+            }
+
+            createOutputDirectoryIfNeeded();
+            output = outputPath("Complete_Fulfillment_Report.xlsx");
+            setStatus("Scraping fulfillment rows...");
+            previewArea.setText("Scraping fulfillment rows once...\n\nLog in if prompted. The Excel workbook will export when the scrape completes.");
+            previewArea.setCaretPosition(0);
+
+            CompleteFulfillmentReport report = fulfillmentReportService.calculateComplete(startDate, endDate);
+            hicExcelLogger.exportCompleteFulfillmentReport(report, output);
+
+            previewArea.setText(completeFulfillmentReportPreviewText(report, output));
+            previewArea.setCaretPosition(0);
+            setStatus("Complete fulfillment report exported.");
+            appendOutputActionHeader(action);
+            appendOutput("Exported complete fulfillment report to: " + output);
+            appendOutput("Date range: " + startDate + " to " + endDate);
+            appendOutputStatus("SUCCESS", "Exported complete fulfillment report");
+            writeAudit(action, true, report.totalLineCount(), List.of(output), "");
+        } catch (DateTimeParseException e) {
+            String message = "Use yyyy-MM-dd for both Collection Date fields.";
+            previewArea.setText(message);
+            setStatus("Action failed.");
+            appendOutputStatus("ERROR", action + " - " + message);
+            writeAudit(action, false, 0, output.isBlank() ? List.of() : List.of(output), message);
+        } catch (Exception e) {
+            String message = conciseError(e);
+            previewArea.setText("Complete fulfillment report failed.\n\n"
+                    + message
+                    + (output.isBlank() ? "" : "\n\nIntended output:\n" + output));
+            previewArea.setCaretPosition(0);
+            setStatus("Action failed.");
+            appendOutputActionHeader(action);
+            appendOutputStatus("ERROR", message);
+            if (!output.isBlank()) {
+                appendOutput("Intended output path: " + output);
+            }
+            JOptionPane.showMessageDialog(this,
+                    "Complete fulfillment report failed.\n\n" + message,
+                    "Fulfillment Report Error",
+                    JOptionPane.ERROR_MESSAGE);
+            writeAudit(action, false, 0, output.isBlank() ? List.of() : List.of(output), message);
+        }
+    }
+
+    private void runStandaloneFulfillmentReport(FulfillmentReport.GroupBy groupBy, String startText,
+                                                String endText, boolean separateByCellType,
+                                                JTextArea previewArea) {
+        String action = "Standalone Fulfillment Report by " + groupBy.label();
+        String output = "";
+        try {
+            LocalDate startDate = LocalDate.parse(startText.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDate endDate = LocalDate.parse(endText.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            if (endDate.isBefore(startDate)) {
+                throw new HICDataNotFoundException("End Collection Date must be on or after Start Collection Date.");
+            }
+
+            createOutputDirectoryIfNeeded();
+            output = outputPath("Fulfillment_Report_By_" + groupBy.label().replace(" ", "_") + ".xlsx");
+            setStatus("Scraping fulfillment rows...");
+            previewArea.setText("Scraping fulfillment rows...\n\nLog in if prompted. The Excel report will export when the scrape completes.");
+            previewArea.setCaretPosition(0);
+
+            FulfillmentReport report = fulfillmentReportService.calculate(startDate, endDate, groupBy, separateByCellType);
+            hicExcelLogger.exportFulfillmentReport(report, output);
+
+            previewArea.setText(fulfillmentReportPreviewText(report, output));
+            previewArea.setCaretPosition(0);
+            setStatus("Fulfillment report exported.");
+            appendOutputActionHeader(action);
+            appendOutput("Exported fulfillment report to: " + output);
+            appendOutput("Date range: " + startDate + " to " + endDate);
+            appendOutput("Grouped by: " + groupBy.label() + (separateByCellType ? " and Cell Type" : ""));
+            appendOutputStatus("SUCCESS", "Exported fulfillment report");
+            writeAudit(action, true, report.sortedLines().size(), List.of(output), "");
+        } catch (DateTimeParseException e) {
+            String message = "Use yyyy-MM-dd for both Collection Date fields.";
+            previewArea.setText(message);
+            setStatus("Action failed.");
+            appendOutputStatus("ERROR", action + " - " + message);
+            writeAudit(action, false, 0, output.isBlank() ? List.of() : List.of(output), message);
+        } catch (Exception e) {
+            String message = conciseError(e);
+            previewArea.setText("Fulfillment report failed.\n\n"
+                    + message
+                    + (output.isBlank() ? "" : "\n\nIntended output:\n" + output));
+            previewArea.setCaretPosition(0);
+            setStatus("Action failed.");
+            appendOutputActionHeader(action);
+            appendOutputStatus("ERROR", message);
+            if (!output.isBlank()) {
+                appendOutput("Intended output path: " + output);
+            }
+            JOptionPane.showMessageDialog(this,
+                    "Fulfillment report failed.\n\n" + message,
+                    "Fulfillment Report Error",
+                    JOptionPane.ERROR_MESSAGE);
+            writeAudit(action, false, 0, output.isBlank() ? List.of() : List.of(output), message);
+        }
+    }
+
+    private String conciseError(Exception e) {
+        String message = e.getMessage();
+        if (message == null || message.isBlank()) {
+            message = e.toString();
+        }
+        return message.replaceAll("\\s+", " ").trim();
+    }
+
+    private String completeFulfillmentReportPreviewText(CompleteFulfillmentReport completeReport, String output) {
+        StringBuilder text = new StringBuilder();
+        text.append("Exported complete fulfillment report to:\n").append(output).append("\n\n");
+        text.append("Collection Date Range: ").append(completeReport.startDate()).append(" to ").append(completeReport.endDate()).append("\n\n");
+        text.append("Workbook tabs\n");
+        text.append("=============\n");
+        for (FulfillmentReport report : completeReport.reports()) {
+            text.append(fulfillmentReportSheetLabel(report))
+                    .append(": ")
+                    .append(report.sortedLines().size())
+                    .append(" rows")
+                    .append(" (")
+                    .append(report.scrapedFulfilledRows())
+                    .append(" Live Cells, ")
+                    .append(report.scrapedCancelledRows())
+                    .append(" Cancelled source rows)")
+                    .append("\n");
+        }
+        text.append("\nTabs included:\n");
+        text.append("- Lab Owner Total\n");
+        text.append("- Lab Owner by Cell\n");
+        text.append("- Ordered By Total, including Lab Owner(s)\n");
+        text.append("- Ordered By by Cell, including Lab Owner(s)\n");
+        return text.toString();
+    }
+
+    private String fulfillmentReportSheetLabel(FulfillmentReport report) {
+        return report.groupBy().label() + (report.separateByCellType() ? " by Cell" : " Total");
+    }
+
+    private String fulfillmentReportPreviewText(FulfillmentReport report, String output) {
+        StringBuilder text = new StringBuilder();
+        text.append("Exported fulfillment report to:\n").append(output).append("\n\n");
+        text.append("Fulfillment Report by ").append(report.groupBy().label()).append("\n");
+        text.append("Date Range: ").append(report.startDate()).append(" to ").append(report.endDate()).append("\n");
+        text.append("Grouping: ").append(report.separateByCellType() ? "Person and Cell Type" : "Person Only").append("\n");
+        text.append("Source Rows: ").append(report.scrapedFulfilledRows()).append(" Live Cells, ")
+                .append(report.scrapedCancelledRows()).append(" Cancelled\n\n");
+        if (report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY) {
+            text.append(String.format("%-28s %-28s %-18s %-10s %-10s %-10s %-10s%n",
+                    report.groupBy().label(), "Lab Owner(s)", "Cell Type", "Fulfilled", "Cancelled", "Total", "Fraction"));
+            text.append("------------------------------------------------------------------------------------------------------------\n");
+        } else {
+            text.append(String.format("%-28s %-18s %-10s %-10s %-10s %-10s%n",
+                    report.groupBy().label(), "Cell Type", "Fulfilled", "Cancelled", "Total", "Fraction"));
+            text.append("--------------------------------------------------------------------------------\n");
+        }
+
+        List<FulfillmentReport.ReportLine> lines = report.sortedLines();
+        if (lines.isEmpty()) {
+            text.append("No rows found for the selected Collection Date range.\n");
+        }
+        for (FulfillmentReport.ReportLine line : lines) {
+            if (report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY) {
+                text.append(String.format("%-28s %-28s %-18s %-10d %-10d %-10d %-10s%n",
+                        line.groupName(), line.labOwners(), line.cellType(), line.fulfilled(), line.cancelled(), line.total(),
+                        line.fulfilled() + "/" + line.total()));
+            } else {
+                text.append(String.format("%-28s %-18s %-10d %-10d %-10d %-10s%n",
+                        line.groupName(), line.cellType(), line.fulfilled(), line.cancelled(), line.total(),
+                        line.fulfilled() + "/" + line.total()));
+            }
+        }
+        return text.toString();
+    }
+
+    private void exportFulfillmentReport(FulfillmentReport.GroupBy groupBy) {
+        String action = "Identify by " + groupBy.label();
+        try {
+            DateRange dateRange = promptForFulfillmentDateRange();
+            if (dateRange == null) {
+                setStatus("Action cancelled.");
+                appendOutputStatus("INFO", "Fulfillment report cancelled.");
+                return;
+            }
+
+            boolean separateByCellType = fulfillmentReportCellTypeCheck == null || fulfillmentReportCellTypeCheck.isSelected();
+            setStatus("Scraping fulfillment rows...");
+            addRunStep("Scraping fulfillment rows");
+            if (fulfillmentArea != null) {
+                fulfillmentArea.setText("Scraping fulfillment rows...\n\nLog in if prompted. The report will export when the scrape completes.");
+                fulfillmentArea.setCaretPosition(0);
+            }
+
+            FulfillmentReport report = fulfillmentReportService.calculate(
+                    dateRange.startDate(), dateRange.endDate(), groupBy, separateByCellType);
+            String output = outputPath("Fulfillment_Report_By_" + groupBy.label().replace(" ", "_") + ".xlsx");
+            hicExcelLogger.exportFulfillmentReport(report, output);
+
+            appendOutput("Exported fulfillment report to: " + output);
+            appendOutput("Date range: " + dateRange.startDate() + " to " + dateRange.endDate());
+            appendOutput("Grouped by: " + groupBy.label() + (separateByCellType ? " and Cell Type" : ""));
+            addRunStep("Fulfillment report exported");
+            addGeneratedFile(output);
+            updateFulfillmentReportPreview(report);
+            writeAudit(action, true, report.sortedLines().size(), List.of(output), "");
+        } catch (Exception e) {
+            handleActionError(action, e, 0, List.of());
+        }
+    }
+
+    private DateRange promptForFulfillmentDateRange() throws HICDataNotFoundException {
+        LocalDate defaultEnd = LocalDate.now();
+        LocalDate defaultStart = defaultEnd.minusDays(21);
+        JTextField startField = new JTextField(defaultStart.toString(), 12);
+        JTextField endField = new JTextField(defaultEnd.toString(), 12);
+
+        JPanel panel = new JPanel(new GridLayout(2, 2, 8, 8));
+        panel.add(new JLabel("Start Collection Date (yyyy-MM-dd)"));
+        panel.add(startField);
+        panel.add(new JLabel("End Collection Date (yyyy-MM-dd)"));
+        panel.add(endField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Fulfillment Report Date Range",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (result != JOptionPane.OK_OPTION) {
+            return null;
+        }
+
+        try {
+            LocalDate startDate = LocalDate.parse(startField.getText().trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDate endDate = LocalDate.parse(endField.getText().trim(), DateTimeFormatter.ISO_LOCAL_DATE);
+            if (endDate.isBefore(startDate)) {
+                throw new HICDataNotFoundException("End Collection Date must be on or after Start Collection Date.");
+            }
+            return new DateRange(startDate, endDate);
+        } catch (DateTimeParseException e) {
+            throw new HICDataNotFoundException("Use yyyy-MM-dd for both fulfillment report dates.");
+        }
+    }
+
+    private void updateFulfillmentReportPreview(FulfillmentReport report) {
+        if (fulfillmentArea == null) {
+            return;
+        }
+
+        StringBuilder text = new StringBuilder();
+        text.append("Fulfillment Report by ").append(report.groupBy().label()).append("\n");
+        text.append("Date Range: ").append(report.startDate()).append(" to ").append(report.endDate()).append("\n");
+        text.append("Grouping: ").append(report.separateByCellType() ? "Person and Cell Type" : "Person Only").append("\n");
+        text.append("Source Rows: ").append(report.scrapedFulfilledRows()).append(" Live Cells, ")
+                .append(report.scrapedCancelledRows()).append(" Cancelled\n\n");
+        if (report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY) {
+            text.append(String.format("%-28s %-28s %-18s %-10s %-10s %-10s %-10s%n",
+                    report.groupBy().label(), "Lab Owner(s)", "Cell Type", "Fulfilled", "Cancelled", "Total", "Fraction"));
+            text.append("------------------------------------------------------------------------------------------------------------\n");
+        } else {
+            text.append(String.format("%-28s %-18s %-10s %-10s %-10s %-10s%n",
+                    report.groupBy().label(), "Cell Type", "Fulfilled", "Cancelled", "Total", "Fraction"));
+            text.append("--------------------------------------------------------------------------------\n");
+        }
+
+        List<FulfillmentReport.ReportLine> lines = report.sortedLines();
+        if (lines.isEmpty()) {
+            text.append("No rows found for the selected Collection Date range.\n");
+        }
+        for (FulfillmentReport.ReportLine line : lines) {
+            if (report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY) {
+                text.append(String.format("%-28s %-28s %-18s %-10d %-10d %-10d %-10s%n",
+                        line.groupName(), line.labOwners(), line.cellType(), line.fulfilled(), line.cancelled(), line.total(),
+                        line.fulfilled() + "/" + line.total()));
+            } else {
+                text.append(String.format("%-28s %-18s %-10d %-10d %-10d %-10s%n",
+                        line.groupName(), line.cellType(), line.fulfilled(), line.cancelled(), line.total(),
+                        line.fulfilled() + "/" + line.total()));
+            }
+        }
+
+        fulfillmentArea.setText(text.toString());
+        fulfillmentArea.setCaretPosition(0);
+        if (feedbackTabs != null) {
+            feedbackTabs.setSelectedIndex(2);
+        }
+    }
+
     private void makeLabels() {
         String action = "Make Labels";
         try {
@@ -1941,8 +2331,11 @@ public class DonorDataGUI extends JFrame {
         writeAudit(action, false, recordCount, outputs, message);
     }
 
+    private record DateRange(LocalDate startDate, LocalDate endDate) {
+    }
+
     private String outputPath(String fileName) {
-        return Path.of(outputDirectory(), fileName).toString();
+        return Path.of(outputDirectory(), fileName).toAbsolutePath().normalize().toString();
     }
 
     private void createOutputDirectoryIfNeeded() {

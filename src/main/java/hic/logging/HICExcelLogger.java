@@ -3,6 +3,8 @@ package hic.logging;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import hic.datamanagement.FileReader;
+import hic.hiccell.CompleteFulfillmentReport;
+import hic.hiccell.FulfillmentReport;
 import hic.hiccell.FulfillmentStats;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
@@ -97,6 +99,7 @@ public class HICExcelLogger {
 
             // Write workbook to file
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                applyPrintDefaults(workbook);
                 workbook.write(fileOut);
                 System.out.println("\nHICData logged to Excel file successfully.");
             } catch (IOException e) {
@@ -174,6 +177,7 @@ public class HICExcelLogger {
             }
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                applyPrintDefaults(workbook);
                 workbook.write(fileOut);
                 System.out.println("\nCD4/CD8 requester list exported successfully.");
             } catch (IOException e) {
@@ -259,6 +263,7 @@ public class HICExcelLogger {
             );
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                applyPrintDefaults(workbook);
                 workbook.write(fileOut);
                 System.out.println("\nLow-yield priority list exported successfully.");
             } catch (IOException e) {
@@ -267,6 +272,122 @@ public class HICExcelLogger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void exportFulfillmentReport(FulfillmentReport report, String filePath) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            CellStyle percentStyle = workbook.createCellStyle();
+            percentStyle.setDataFormat(workbook.createDataFormat().getFormat("0.0%"));
+
+            writeFulfillmentReportSheet(workbook, "Fulfillment Report", report, titleStyle, headerStyle, percentStyle);
+
+            try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                applyPrintDefaults(workbook);
+                workbook.write(fileOut);
+                System.out.println("\nFulfillment report exported successfully.");
+            }
+        }
+    }
+
+    public void exportCompleteFulfillmentReport(CompleteFulfillmentReport completeReport, String filePath) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            CellStyle percentStyle = workbook.createCellStyle();
+            percentStyle.setDataFormat(workbook.createDataFormat().getFormat("0.0%"));
+
+            for (FulfillmentReport report : completeReport.reports()) {
+                writeFulfillmentReportSheet(workbook, fulfillmentReportSheetName(report), report, titleStyle, headerStyle, percentStyle);
+            }
+
+            try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                applyPrintDefaults(workbook);
+                workbook.write(fileOut);
+                System.out.println("\nComplete fulfillment report exported successfully.");
+            }
+        }
+    }
+
+    private void writeFulfillmentReportSheet(Workbook workbook, String sheetName, FulfillmentReport report,
+                                             CellStyle titleStyle, CellStyle headerStyle, CellStyle percentStyle) {
+        Sheet sheet = workbook.createSheet(sheetName);
+        int rowNum = 0;
+        Row titleRow = sheet.createRow(rowNum++);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("Fulfillment Report by " + report.groupBy().label());
+        titleCell.setCellStyle(titleStyle);
+
+        Row dateRow = sheet.createRow(rowNum++);
+        dateRow.createCell(0).setCellValue("Collection Date Range");
+        dateRow.createCell(1).setCellValue(report.startDate() + " to " + report.endDate());
+
+        Row sourceRow = sheet.createRow(rowNum++);
+        sourceRow.createCell(0).setCellValue("Source Rows");
+        sourceRow.createCell(1).setCellValue(report.scrapedFulfilledRows() + " Live Cells, "
+                + report.scrapedCancelledRows() + " Cancelled");
+
+        Row groupingRow = sheet.createRow(rowNum++);
+        groupingRow.createCell(0).setCellValue("Cell Type Grouping");
+        groupingRow.createCell(1).setCellValue(report.separateByCellType() ? "Separated by Cell Type" : "All Cell Types");
+
+        rowNum++;
+
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY
+                ? new String[]{report.groupBy().label(), "Lab Owner(s)", "Cell Type", "Fulfilled", "Cancelled", "Total Orders", "Fulfillment Rate", "Fraction"}
+                : new String[]{report.groupBy().label(), "Cell Type", "Fulfilled", "Cancelled", "Total Orders", "Fulfillment Rate", "Fraction"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        for (FulfillmentReport.ReportLine line : report.sortedLines()) {
+            Row row = sheet.createRow(rowNum++);
+            int column = 0;
+            row.createCell(column++).setCellValue(line.groupName());
+            if (report.groupBy() == FulfillmentReport.GroupBy.ORDERED_BY) {
+                row.createCell(column++).setCellValue(line.labOwners());
+            }
+            row.createCell(column++).setCellValue(line.cellType());
+            row.createCell(column++).setCellValue(line.fulfilled());
+            row.createCell(column++).setCellValue(line.cancelled());
+            row.createCell(column++).setCellValue(line.total());
+            Cell rateCell = row.createCell(column++);
+            rateCell.setCellValue(line.fulfillmentRate());
+            rateCell.setCellStyle(percentStyle);
+            row.createCell(column).setCellValue(line.fulfilled() + "/" + line.total());
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+        sheet.createFreezePane(0, 6);
+    }
+
+    private String fulfillmentReportSheetName(FulfillmentReport report) {
+        String suffix = report.separateByCellType() ? " by Cell" : " Total";
+        return report.groupBy().label() + suffix;
     }
 
     private void writeLowYieldPrioritySheet(Workbook workbook, String sheetName, String title,
@@ -647,6 +768,7 @@ public class HICExcelLogger {
 
             // Write workbook to file
             try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+                applyPrintDefaults(workbook);
                 workbook.write(fileOut);
                 System.out.println("\nHICData exported to SignOutSheet successfully.");
             } catch (IOException e) {
@@ -700,6 +822,22 @@ public class HICExcelLogger {
             }
             row.setHeightInPoints(25); // Set row height to 25 points
         }
+    }
+
+    private void applyPrintDefaults(Workbook workbook) {
+        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            applyPrintDefaults(workbook.getSheetAt(i));
+        }
+    }
+
+    private void applyPrintDefaults(Sheet sheet) {
+        sheet.setFitToPage(true);
+
+        PrintSetup printSetup = sheet.getPrintSetup();
+        printSetup.setPaperSize(PrintSetup.LETTER_PAPERSIZE);
+        printSetup.setFitWidth((short) 1);
+        printSetup.setFitHeight((short) 0);
+        printSetup.setValidSettings(true);
     }
 
     // Method to create centered cell style
