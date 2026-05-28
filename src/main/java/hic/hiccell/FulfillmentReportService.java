@@ -62,7 +62,7 @@ public class FulfillmentReportService {
                            FulfillmentReport.GroupBy groupBy, boolean separateByCellType,
                            boolean cancelled) {
         for (HicCellOrderRecord row : rows) {
-            if (cancelled && isUserRetracted(row.cancellationReason())) {
+            if (cancelled && CancellationReasonFilters.isExcludedFromFulfillmentCounts(row.cancellationReason())) {
                 continue;
             }
 
@@ -97,11 +97,6 @@ public class FulfillmentReportService {
             return "Unknown";
         }
         return value.trim().replaceAll("\\s+", " ");
-    }
-
-    private boolean isUserRetracted(String cancellationReason) {
-        return cancellationReason != null
-                && cancellationReason.trim().equalsIgnoreCase("The cell request was retracted.");
     }
 
     private static class MutableReportLine {

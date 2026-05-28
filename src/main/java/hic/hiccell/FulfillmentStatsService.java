@@ -63,7 +63,7 @@ public class FulfillmentStatsService {
                            LocalDate orderWeekStart, LocalDate orderWeekEnd,
                            boolean cancelled) {
         for (HicCellOrderRecord row : rows) {
-            if (cancelled && isUserRetracted(row.cancellationReason())) {
+            if (cancelled && CancellationReasonFilters.isExcludedFromFulfillmentCounts(row.cancellationReason())) {
                 continue;
             }
 
@@ -102,11 +102,6 @@ public class FulfillmentStatsService {
             }
         }
         return latest == null ? fallback : latest;
-    }
-
-    private boolean isUserRetracted(String cancellationReason) {
-        return cancellationReason != null
-                && cancellationReason.trim().equalsIgnoreCase("The cell request was retracted.");
     }
 
     static String normalizeCellType(String cellType) {

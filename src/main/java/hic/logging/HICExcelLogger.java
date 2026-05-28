@@ -231,6 +231,11 @@ public class HICExcelLogger {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
                     "3-Week Fulfillment", "Filled this Week?"
             };
+            String[] cd4Cd8Headers = {
+                    "Rank", "Order #", "Name", "Request Date", "Max", "Min",
+                    "3-Week Fulfillment", "Filled this Week?", "CD4/CD8 Order Type"
+            };
+            Map<String, RequesterCellOrders> cd4Cd8OrderTypes = buildCd4Cd8OrderTypes(hicData);
 
             writeLowYieldPrioritySheet(
                     workbook,
@@ -244,7 +249,8 @@ public class HICExcelLogger {
                     titleStyle,
                     headerStyle,
                     groupStyle,
-                    headers
+                    cd4Cd8Headers,
+                    cd4Cd8OrderTypes
             );
 
             writeLowYieldPrioritySheet(
@@ -259,7 +265,8 @@ public class HICExcelLogger {
                     titleStyle,
                     headerStyle,
                     groupStyle,
-                    headers
+                    headers,
+                    null
             );
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
@@ -397,7 +404,8 @@ public class HICExcelLogger {
                                             CellStyle titleStyle,
                                             CellStyle headerStyle,
                                             CellStyle groupStyle,
-                                            String[] headers) {
+                                            String[] headers,
+                                            Map<String, RequesterCellOrders> cd4Cd8OrderTypes) {
         Sheet sheet = workbook.createSheet(sheetName);
         int rowNum = 0;
 
@@ -436,6 +444,9 @@ public class HICExcelLogger {
                 row.createCell(5).setCellValue(data.getMinRequest());
                 row.createCell(6).setCellValue(fulfillmentFraction(data, fulfillmentStats));
                 row.createCell(7).setCellValue(filledThisWeek(data, fulfillmentStats));
+                if (cd4Cd8OrderTypes != null) {
+                    row.createCell(8).setCellValue(cd4Cd8OrderType(data, cd4Cd8OrderTypes));
+                }
             }
 
             rowNum++;
@@ -445,6 +456,45 @@ public class HICExcelLogger {
             sheet.autoSizeColumn(i);
         }
         sheet.createFreezePane(0, 1);
+    }
+
+    private Map<String, RequesterCellOrders> buildCd4Cd8OrderTypes(List<HICData> hicData) {
+        Map<String, RequesterCellOrders> requesters = new LinkedHashMap<>();
+        for (HICData data : hicData) {
+            if (!Objects.equals(data.getCellType(), "CD4+") && !Objects.equals(data.getCellType(), "CD8+")) {
+                continue;
+            }
+
+            String requesterName = normalizedRequesterName(data.getName());
+            String key = requesterName.toLowerCase();
+            RequesterCellOrders requester = requesters.computeIfAbsent(key, ignored -> new RequesterCellOrders(requesterName));
+            OrderRequest orderRequest = new OrderRequest(data.getOrderNumber(), data.getMaxRequest(), data.getMinRequest());
+            if (Objects.equals(data.getCellType(), "CD4+")) {
+                requester.cd4Orders.add(orderRequest);
+            } else {
+                requester.cd8Orders.add(orderRequest);
+            }
+        }
+        return requesters;
+    }
+
+    private String cd4Cd8OrderType(HICData data, Map<String, RequesterCellOrders> cd4Cd8OrderTypes) {
+        RequesterCellOrders requester = cd4Cd8OrderTypes.get(normalizedRequesterName(data.getName()).toLowerCase());
+        if (requester == null) {
+            return "";
+        }
+        if (requester.hasOnlyCd4()) {
+            return "Only CD4";
+        }
+        if (requester.hasOnlyCd8()) {
+            return "Only CD8";
+        }
+        return "";
+    }
+
+    private String normalizedRequesterName(String name) {
+        String rawRequesterName = name == null ? "" : name.trim();
+        return rawRequesterName.isEmpty() ? "Unknown" : rawRequesterName;
     }
 
     private Comparator<HICData> lowYieldPriorityTieBreaker() {
