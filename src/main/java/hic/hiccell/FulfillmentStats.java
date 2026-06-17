@@ -142,20 +142,7 @@ public class FulfillmentStats {
     }
 
     private String normalizeCellType(String cellType) {
-        if (cellType == null) {
-            return "";
-        }
-        String normalized = cellType.trim().replaceAll("\\s+", " ");
-        if (normalized.equalsIgnoreCase("CD4+ T")) {
-            return "CD4+";
-        }
-        if (normalized.equalsIgnoreCase("CD8+ T")) {
-            return "CD8+";
-        }
-        if (normalized.equalsIgnoreCase("Total T Cells")) {
-            return "Total T";
-        }
-        return normalized;
+        return FulfillmentStatsService.normalizeCellType(cellType);
     }
 
     public record StatLine(String orderedBy, String cellType, int fulfilled, int cancelled, boolean filledThisWeek) {

@@ -118,6 +118,11 @@ public class FulfillmentStatsService {
         if (normalized.equalsIgnoreCase("Total T Cells")) {
             return "Total T";
         }
+        if (normalized.equalsIgnoreCase("Unpurified")
+                || normalized.equalsIgnoreCase("Unpurified Apheresis Product")
+                || normalized.equalsIgnoreCase("Unpurified Apheresis Products")) {
+            return "Unpurified Apheresis";
+        }
         return normalized;
     }
 
