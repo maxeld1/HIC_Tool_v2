@@ -107,7 +107,7 @@ public class TXTFileParser implements FileParser {
                             nameBuilder.append(" ").append(tokens.get(i));
                         }
 
-                        String name = formatFirstLastName(nameBuilder.toString()); //put nameBuilder into string
+                        String name = normalizeName(nameBuilder.toString()); //put nameBuilder into string
 
                         // Get the cell type
                         String cellType = null;
@@ -185,10 +185,17 @@ public class TXTFileParser implements FileParser {
         String token = cleanToken(tokens.get(index));
         if (token.equalsIgnoreCase("CD4+") || token.equalsIgnoreCase("CD8+")
                 || token.equalsIgnoreCase("Monocytes") || token.equalsIgnoreCase("PBMC")
-                || token.equalsIgnoreCase("NK") || token.equalsIgnoreCase("B")
                 || token.equalsIgnoreCase("Unpurified") || token.equalsIgnoreCase("Top")
                 || token.equalsIgnoreCase("Bottom")) {
             return true;
+        }
+
+        if (token.equalsIgnoreCase("NK")) {
+            return isFollowedByToken(tokens, index, "Cells") || isFollowedByNumber(tokens, index);
+        }
+
+        if (token.equalsIgnoreCase("B")) {
+            return isFollowedByToken(tokens, index, "Cells") || isFollowedByNumber(tokens, index);
         }
 
         if (token.equalsIgnoreCase("Total")) {
@@ -198,23 +205,23 @@ public class TXTFileParser implements FileParser {
         return false;
     }
 
+    private boolean isFollowedByToken(List<String> tokens, int index, String expected) {
+        return index + 1 < tokens.size() && cleanToken(tokens.get(index + 1)).equalsIgnoreCase(expected);
+    }
+
+    private boolean isFollowedByNumber(List<String> tokens, int index) {
+        return index + 1 < tokens.size() && isNumeric(cleanToken(tokens.get(index + 1)));
+    }
+
     private String cleanToken(String token) {
         return token == null ? "" : token.replaceAll("[^A-Za-z0-9+]", "").trim();
     }
 
-    private String formatFirstLastName(String name) {
+    private String normalizeName(String name) {
         if (name == null) {
             return "";
         }
-        String normalized = name.trim().replaceAll("\\s+", " ");
-        if (normalized.isBlank()) {
-            return "";
-        }
-        String[] parts = normalized.split(" ");
-        if (parts.length <= 2) {
-            return normalized;
-        }
-        return parts[0] + " " + parts[parts.length - 1];
+        return name.trim().replaceAll("\\s+", " ");
     }
 
     /**
