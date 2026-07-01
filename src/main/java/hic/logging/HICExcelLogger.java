@@ -111,6 +111,10 @@ public class HICExcelLogger {
     }
 
     public void exportCD4CD8RequestList(List<HICData> hicData, String filePath) {
+        exportCD4CD8RequestList(hicData, filePath, "");
+    }
+
+    public void exportCD4CD8RequestList(List<HICData> hicData, String filePath, String donor) {
         Map<String, RequesterCellOrders> requesters = new LinkedHashMap<>();
 
         for (HICData data : hicData) {
@@ -151,6 +155,9 @@ public class HICExcelLogger {
             titleCell.setCellValue("CD4/CD8 Requester List");
             titleCell.setCellStyle(titleStyle);
 
+            Row dateDonorRow = sheet.createRow(rowNum++);
+            writeDateAndDonor(dateDonorRow, donor, 2, headerStyle);
+
             rowNum++;
             Row headerRow = sheet.createRow(rowNum++);
             String[] headers = {"Category", "Name", "CD4 Orders (Max/Min)", "CD8 Orders (Max/Min)"};
@@ -189,10 +196,15 @@ public class HICExcelLogger {
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath) {
-        exportLowYieldPriorityList(hicData, filePath, null);
+        exportLowYieldPriorityList(hicData, filePath, null, "");
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath, FulfillmentStats fulfillmentStats) {
+        exportLowYieldPriorityList(hicData, filePath, fulfillmentStats, "");
+    }
+
+    public void exportLowYieldPriorityList(List<HICData> hicData, String filePath,
+                                           FulfillmentStats fulfillmentStats, String donor) {
         List<String> cellTypeOrder = List.of(
                 "CD8+", "CD4+", "B Cells", "NK Cells", "Monocytes", "PBMC", "Total T",
                 "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"
@@ -250,7 +262,8 @@ public class HICExcelLogger {
                     headerStyle,
                     groupStyle,
                     cd4Cd8Headers,
-                    cd4Cd8OrderTypes
+                    cd4Cd8OrderTypes,
+                    donor
             );
 
             writeLowYieldPrioritySheet(
@@ -266,7 +279,8 @@ public class HICExcelLogger {
                     headerStyle,
                     groupStyle,
                     headers,
-                    null
+                    null,
+                    donor
             );
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
@@ -405,7 +419,8 @@ public class HICExcelLogger {
                                             CellStyle headerStyle,
                                             CellStyle groupStyle,
                                             String[] headers,
-                                            Map<String, RequesterCellOrders> cd4Cd8OrderTypes) {
+                                            Map<String, RequesterCellOrders> cd4Cd8OrderTypes,
+                                            String donor) {
         Sheet sheet = workbook.createSheet(sheetName);
         int rowNum = 0;
 
@@ -413,6 +428,9 @@ public class HICExcelLogger {
         Cell titleCell = titleRow.createCell(0);
         titleCell.setCellValue(title);
         titleCell.setCellStyle(titleStyle);
+
+        Row dateDonorRow = sheet.createRow(rowNum++);
+        writeDateAndDonor(dateDonorRow, donor, 2, headerStyle);
 
         rowNum++;
 
@@ -455,7 +473,17 @@ public class HICExcelLogger {
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
-        sheet.createFreezePane(0, 1);
+        sheet.createFreezePane(0, 2);
+    }
+
+    private void writeDateAndDonor(Row row, String donor, int donorColumn, CellStyle style) {
+        Cell dateCell = row.createCell(0);
+        dateCell.setCellValue("DATE: " + LocalDate.now());
+        dateCell.setCellStyle(style);
+
+        Cell donorCell = row.createCell(donorColumn);
+        donorCell.setCellValue("Donor #: " + (donor == null ? "" : donor.trim().toUpperCase()));
+        donorCell.setCellStyle(style);
     }
 
     private Map<String, RequesterCellOrders> buildCd4Cd8OrderTypes(List<HICData> hicData) {
@@ -623,7 +651,8 @@ public class HICExcelLogger {
 
                 for (XWPFTableCell cell : nonEmptyCells) {
                     if (state.dataIndex >= hicData.size()) {
-                        return wroteAnyLabelCell;
+                        replaceUnusedLabelFields(cell, donor);
+                        continue;
                     }
 
                     HICData data = hicData.get(state.dataIndex);
@@ -640,6 +669,26 @@ public class HICExcelLogger {
         }
 
         return wroteAnyLabelCell;
+    }
+
+    private void replaceUnusedLabelFields(XWPFTableCell cell, String donor) {
+        LocalDate currentDate = LocalDate.now();
+        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+            boolean donorDateLine = paragraph.getText().contains("<<Donor>>")
+                    || paragraph.getText().contains("<<Date>>");
+            for (XWPFRun run : paragraph.getRuns()) {
+                String text = run.getText(0);
+                if (text != null && !text.isEmpty()) {
+                    if (donorDateLine) {
+                        text = text.replace("<<Donor>>", donor == null ? "" : donor.trim().toUpperCase());
+                        text = text.replace("<<Date>>", currentDate.toString());
+                    } else {
+                        text = "";
+                    }
+                    run.setText(text, 0);
+                }
+            }
+        }
     }
 
     private List<XWPFTable> appendTemplatePage(XWPFDocument doc, List<CTTbl> templateTables) {
@@ -774,17 +823,8 @@ public class HICExcelLogger {
             Sheet incubatorSheet = workbook.getSheetAt(0); // Assuming the first sheet
             int startingRowIncubator = 4; // Start from the 5th row
 
-            // Iterate through the incubator list
+            writeStyledSignOutDateAndDonorRow(incubatorSheet, currentDate, donor);
             for (HICData data : incubatorList) {
-
-                Row dateDonorRow = incubatorSheet.createRow(2); //specify row for date and donor
-
-                //Create Date cell
-                dateDonorRow.createCell(0).setCellValue("DATE: " + currentDate.toString());
-
-                // Create donor number cell
-                dateDonorRow.createCell(4).setCellValue("Donor #: " + donor);
-
                 Row row = incubatorSheet.createRow(startingRowIncubator++);
                 row.createCell(0).setCellValue(data.getID()); //set ID number
                 row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
@@ -795,17 +835,8 @@ public class HICExcelLogger {
             Sheet deliFridgeSheet = workbook.getSheetAt(1); // Create a new sheet
             int startingRowDeli = 4; // Start from the 5th row
 
-            // Iterate through the deliFridgeList
+            writeStyledSignOutDateAndDonorRow(deliFridgeSheet, currentDate, donor);
             for (HICData data : deliFridgeList) {
-
-                Row dateDonorRow = deliFridgeSheet.createRow(2); //specify row for date and donor
-
-                //Create Date cell
-                dateDonorRow.createCell(0).setCellValue("DATE: " + currentDate.toString());
-
-                // Create donor number cell
-                dateDonorRow.createCell(4).setCellValue("Donor #: " + donor);
-
                 Row row = deliFridgeSheet.createRow(startingRowDeli++);
                 row.createCell(0).setCellValue(data.getID()); //set ID number
                 row.createCell(1).setCellValue(data.getOrderNumber()); //set order number
@@ -829,6 +860,34 @@ public class HICExcelLogger {
         }
     }
 
+    private void writeStyledSignOutDateAndDonorRow(Sheet sheet, LocalDate date, String donor) {
+        Workbook workbook = sheet.getWorkbook();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 18);
+
+        Row row = sheet.getRow(2);
+        if (row == null) {
+            row = sheet.createRow(2);
+        }
+        for (int column = 0; column < 5; column++) {
+            Cell cell = row.getCell(column);
+            if (cell == null) {
+                cell = row.createCell(column);
+            }
+            CellStyle style = workbook.createCellStyle();
+            style.cloneStyleFrom(cell.getCellStyle());
+            style.setFont(font);
+            style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            cell.setCellStyle(style);
+        }
+
+        row.getCell(0).setCellValue("DATE: " + date);
+        row.getCell(4).setCellValue("Donor #: " + donor);
+        row.setHeightInPoints(24);
+    }
+
     private void addBordersAndAdjustRowHeight(Sheet sheet) {
         // Set borders for columns A to E
         for (int i = 4; i < 80; i++) {
@@ -849,20 +908,6 @@ public class HICExcelLogger {
             sheet.setColumnWidth(3, 8000); // Set width for column D
             sheet.setColumnWidth(4, 8000); // Set width for column E
         }
-
-        Font boldFont = sheet.getWorkbook().createFont();
-        boldFont.setBold(true);
-        boldFont.setFontHeightInPoints((short) 24);
-
-        Font font24 = sheet.getWorkbook().createFont();
-        font24.setFontHeight((short) 24);
-
-        CellStyle bold24Font = sheet.getWorkbook().createCellStyle();
-        bold24Font.setFont(boldFont);
-
-        Row row2 = sheet.getRow(2);
-        row2.setRowStyle(bold24Font);
-
 
         // Set row height to 25
         for (int i = 4; i < 80; i++) {

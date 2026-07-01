@@ -2226,9 +2226,9 @@ public class DonorDataGUI extends JFrame {
 
             hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
             FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor);
             appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
             appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
             appendOutput("Exported low-yield order priority list to: " + priorityOutput);
@@ -2302,8 +2302,8 @@ public class DonorDataGUI extends JFrame {
 
             hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor);
             addGeneratedFile(cdOutput);
             addGeneratedFile(otherOutput);
             addGeneratedFile(cdRequestListOutput);
