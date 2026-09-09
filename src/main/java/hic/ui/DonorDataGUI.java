@@ -8,6 +8,8 @@ import hic.hiccell.FulfillmentStats;
 import hic.hiccell.FulfillmentStatsService;
 import hic.hiccell.HicCellMonthViewScraper;
 import hic.logging.HICExcelLogger;
+import hic.priority.GoogleSheetPrioritySignalService;
+import hic.priority.PrioritySheetSignals;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import hic.util.HICData;
@@ -72,12 +74,16 @@ public class DonorDataGUI extends JFrame {
     private static final String PREF_LABEL_TEMPLATE = "hic.template.label";
     private static final String PREF_SIGNOUT_TEMPLATE = "hic.template.signout";
     private static final String PREF_DONOR_HISTORY_SHEET_URL = "hic.donor.history.sheet.url";
+    private static final String PREF_LAB_MEMBERS_SHEET_URL = "hic.lab.members.sheet.url";
+    private static final String PREF_MISSED_PICKUPS_SHEET_URL = "hic.missed.pickups.sheet.url";
     private static final String PREF_SETUP_COMPLETE = "hic.setup.complete";
 
     private static final String DEFAULT_OUTPUT_DIR = "Output Files";
     private static final String DEFAULT_LABEL_TEMPLATE = "HIC_Program_Label_Template.docx";
     private static final String DEFAULT_SIGNOUT_TEMPLATE = "HIC_Signout_Template.xlsx";
     private static final String DEFAULT_DONOR_HISTORY_SHEET_URL = "";
+    private static final String DEFAULT_LAB_MEMBERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/12TNY-EjDbiv2ECnzkc-jbD0GLWJXLN5g_YdnNeWnz3c/edit?usp=sharing";
+    private static final String DEFAULT_MISSED_PICKUPS_SHEET_URL = "https://docs.google.com/spreadsheets/d/13uvPpxjfr2zhZ8osU3H6MtqNChNL7nEF4_ywVDNEq4o/edit?usp=sharing";
     private static final int REQUIRED_JAVA_MAJOR = 17;
     private static final String ORACLE_JDK_17_URL = "https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html";
 
@@ -123,6 +129,7 @@ public class DonorDataGUI extends JFrame {
     private final Processor processor;
     private final TXTFileParser txtFileParser;
     private final GoogleSheetDonorYieldService donorYieldService;
+    private final GoogleSheetPrioritySignalService prioritySignalService;
     private final FulfillmentStatsService fulfillmentStatsService;
     private final FulfillmentReportService fulfillmentReportService;
     private final Preferences preferences;
@@ -132,6 +139,7 @@ public class DonorDataGUI extends JFrame {
         this.processor = processor;
         this.txtFileParser = new TXTFileParser();
         this.donorYieldService = new GoogleSheetDonorYieldService();
+        this.prioritySignalService = new GoogleSheetPrioritySignalService();
         HicCellMonthViewScraper monthViewScraper = new HicCellMonthViewScraper();
         this.fulfillmentStatsService = new FulfillmentStatsService(monthViewScraper);
         this.fulfillmentReportService = new FulfillmentReportService(monthViewScraper);
@@ -2228,7 +2236,8 @@ public class DonorDataGUI extends JFrame {
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
             hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
             FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor);
+            PrioritySheetSignals prioritySignals = prioritySignalsForPriorityExport();
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
             appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
             appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
             appendOutput("Exported low-yield order priority list to: " + priorityOutput);
@@ -2292,6 +2301,7 @@ public class DonorDataGUI extends JFrame {
             String signOutTemplatePath = resolveSignoutTemplatePath();
 
             FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
+            PrioritySheetSignals prioritySignals = prioritySignalsForPriorityExport();
 
             hicExcelLogger.logHICData(data, unsortedOutput, false);
             addGeneratedFile(unsortedOutput);
@@ -2303,7 +2313,7 @@ public class DonorDataGUI extends JFrame {
             hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
             hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
             addGeneratedFile(cdOutput);
             addGeneratedFile(otherOutput);
             addGeneratedFile(cdRequestListOutput);
@@ -2352,6 +2362,31 @@ public class DonorDataGUI extends JFrame {
 
     private String donorHistorySheetUrl() {
         return preferences.get(PREF_DONOR_HISTORY_SHEET_URL, DEFAULT_DONOR_HISTORY_SHEET_URL);
+    }
+
+    private String labMembersSheetUrl() {
+        return preferences.get(PREF_LAB_MEMBERS_SHEET_URL, DEFAULT_LAB_MEMBERS_SHEET_URL);
+    }
+
+    private String missedPickupsSheetUrl() {
+        return preferences.get(PREF_MISSED_PICKUPS_SHEET_URL, DEFAULT_MISSED_PICKUPS_SHEET_URL);
+    }
+
+    private PrioritySheetSignals prioritySignalsForPriorityExport() {
+        try {
+            PrioritySheetSignals signals = prioritySignalService.fetchSignals(
+                    labMembersSheetUrl(),
+                    missedPickupsSheetUrl(),
+                    LocalDate.now()
+            );
+            if (signals.hasSignals()) {
+                appendOutputStatus("SUCCESS", "Loaded lab member and missed pickup signals for low-yield priority list.");
+            }
+            return signals;
+        } catch (IOException e) {
+            appendOutputStatus("ERROR", "Could not read lab member/missed pickup sheets; priority list will export without those signals.");
+            return PrioritySheetSignals.EMPTY;
+        }
     }
 
     private String resolveLabelTemplatePath() throws HICDataNotFoundException {
@@ -2591,10 +2626,14 @@ public class DonorDataGUI extends JFrame {
         JTextField labelTemplateField = new JTextField(preferences.get(PREF_LABEL_TEMPLATE, DEFAULT_LABEL_TEMPLATE));
         JTextField signOutTemplateField = new JTextField(preferences.get(PREF_SIGNOUT_TEMPLATE, DEFAULT_SIGNOUT_TEMPLATE));
         JTextField donorHistorySheetField = new JTextField(preferences.get(PREF_DONOR_HISTORY_SHEET_URL, DEFAULT_DONOR_HISTORY_SHEET_URL));
+        JTextField labMembersSheetField = new JTextField(labMembersSheetUrl());
+        JTextField missedPickupsSheetField = new JTextField(missedPickupsSheetUrl());
         outputDirField.setColumns(40);
         labelTemplateField.setColumns(40);
         signOutTemplateField.setColumns(40);
         donorHistorySheetField.setColumns(40);
+        labMembersSheetField.setColumns(40);
+        missedPickupsSheetField.setColumns(40);
 
         JButton browseOutput = new JButton("Browse...");
         browseOutput.addActionListener(e -> {
@@ -2623,7 +2662,9 @@ public class DonorDataGUI extends JFrame {
         addSettingsRow(fields, gbc, "Output Directory", outputDirField, browseOutput);
         addSettingsRow(fields, gbc, "Label Template File", labelTemplateField, browseLabel);
         addSettingsRow(fields, gbc, "Sign-Out Template File", signOutTemplateField, browseSignOut);
-        addSettingsRow(fields, gbc, "Google Sheet URL", donorHistorySheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Donor History Sheet URL", donorHistorySheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Lab Members Sheet URL", labMembersSheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Missed Pickups Sheet URL", missedPickupsSheetField, new JLabel(""));
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton setupWizard = new JButton("Run Setup Wizard");
@@ -2641,6 +2682,8 @@ public class DonorDataGUI extends JFrame {
                     labelTemplateField.getText().trim(),
                     signOutTemplateField.getText().trim(),
                     donorHistorySheetField.getText().trim(),
+                    labMembersSheetField.getText().trim(),
+                    missedPickupsSheetField.getText().trim(),
                     true
             );
             dialog.dispose();
@@ -2705,10 +2748,14 @@ public class DonorDataGUI extends JFrame {
         JTextField labelTemplateField = new JTextField(preferences.get(PREF_LABEL_TEMPLATE, DEFAULT_LABEL_TEMPLATE));
         JTextField signOutTemplateField = new JTextField(preferences.get(PREF_SIGNOUT_TEMPLATE, DEFAULT_SIGNOUT_TEMPLATE));
         JTextField donorHistorySheetField = new JTextField(preferences.get(PREF_DONOR_HISTORY_SHEET_URL, DEFAULT_DONOR_HISTORY_SHEET_URL));
+        JTextField labMembersSheetField = new JTextField(labMembersSheetUrl());
+        JTextField missedPickupsSheetField = new JTextField(missedPickupsSheetUrl());
         outputDirField.setColumns(42);
         labelTemplateField.setColumns(42);
         signOutTemplateField.setColumns(42);
         donorHistorySheetField.setColumns(42);
+        labMembersSheetField.setColumns(42);
+        missedPickupsSheetField.setColumns(42);
 
         JButton browseOutput = new JButton("Browse...");
         browseOutput.addActionListener(e -> {
@@ -2737,7 +2784,9 @@ public class DonorDataGUI extends JFrame {
         addSettingsRow(fields, gbc, "Output Directory", outputDirField, browseOutput);
         addSettingsRow(fields, gbc, "Label Template File", labelTemplateField, browseLabel);
         addSettingsRow(fields, gbc, "Sign-Out Template File", signOutTemplateField, browseSignOut);
-        addSettingsRow(fields, gbc, "Google Sheet URL", donorHistorySheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Donor History Sheet URL", donorHistorySheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Lab Members Sheet URL", labMembersSheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Missed Pickups Sheet URL", missedPickupsSheetField, new JLabel(""));
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton skip = new JButton(firstRun ? "Skip for Now" : "Cancel");
@@ -2757,6 +2806,8 @@ public class DonorDataGUI extends JFrame {
                     labelTemplateField.getText().trim(),
                     signOutTemplateField.getText().trim(),
                     donorHistorySheetField.getText().trim(),
+                    labMembersSheetField.getText().trim(),
+                    missedPickupsSheetField.getText().trim(),
                     true
             );
             appendOutput("Setup wizard completed.");
@@ -2778,13 +2829,17 @@ public class DonorDataGUI extends JFrame {
         dialog.setVisible(true);
     }
 
-    private void saveSettingsValues(String outputDir, String labelTemplate, String signOutTemplate, String donorHistorySheetUrl, boolean markSetupComplete) {
+    private void saveSettingsValues(String outputDir, String labelTemplate, String signOutTemplate,
+                                    String donorHistorySheetUrl, String labMembersSheetUrl,
+                                    String missedPickupsSheetUrl, boolean markSetupComplete) {
         preferences.put(PREF_OUTPUT_DIR, outputDir == null || outputDir.isBlank() ? DEFAULT_OUTPUT_DIR : outputDir);
         String normalizedLabelTemplate = normalizeConfiguredPath(labelTemplate);
         String normalizedSignOutTemplate = normalizeConfiguredPath(signOutTemplate);
         preferences.put(PREF_LABEL_TEMPLATE, normalizedLabelTemplate.isBlank() ? DEFAULT_LABEL_TEMPLATE : normalizedLabelTemplate);
         preferences.put(PREF_SIGNOUT_TEMPLATE, normalizedSignOutTemplate.isBlank() ? DEFAULT_SIGNOUT_TEMPLATE : normalizedSignOutTemplate);
         preferences.put(PREF_DONOR_HISTORY_SHEET_URL, donorHistorySheetUrl == null ? DEFAULT_DONOR_HISTORY_SHEET_URL : donorHistorySheetUrl);
+        preferences.put(PREF_LAB_MEMBERS_SHEET_URL, labMembersSheetUrl == null || labMembersSheetUrl.isBlank() ? DEFAULT_LAB_MEMBERS_SHEET_URL : labMembersSheetUrl);
+        preferences.put(PREF_MISSED_PICKUPS_SHEET_URL, missedPickupsSheetUrl == null || missedPickupsSheetUrl.isBlank() ? DEFAULT_MISSED_PICKUPS_SHEET_URL : missedPickupsSheetUrl);
         if (markSetupComplete) {
             preferences.putBoolean(PREF_SETUP_COMPLETE, true);
         }

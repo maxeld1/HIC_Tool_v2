@@ -6,6 +6,7 @@ import hic.datamanagement.FileReader;
 import hic.hiccell.CompleteFulfillmentReport;
 import hic.hiccell.FulfillmentReport;
 import hic.hiccell.FulfillmentStats;
+import hic.priority.PrioritySheetSignals;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import org.apache.poi.ss.usermodel.*;
@@ -196,15 +197,22 @@ public class HICExcelLogger {
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath) {
-        exportLowYieldPriorityList(hicData, filePath, null, "");
+        exportLowYieldPriorityList(hicData, filePath, null, "", PrioritySheetSignals.EMPTY);
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath, FulfillmentStats fulfillmentStats) {
-        exportLowYieldPriorityList(hicData, filePath, fulfillmentStats, "");
+        exportLowYieldPriorityList(hicData, filePath, fulfillmentStats, "", PrioritySheetSignals.EMPTY);
     }
 
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath,
                                            FulfillmentStats fulfillmentStats, String donor) {
+        exportLowYieldPriorityList(hicData, filePath, fulfillmentStats, donor, PrioritySheetSignals.EMPTY);
+    }
+
+    public void exportLowYieldPriorityList(List<HICData> hicData, String filePath,
+                                           FulfillmentStats fulfillmentStats, String donor,
+                                           PrioritySheetSignals prioritySignals) {
+        PrioritySheetSignals signals = prioritySignals == null ? PrioritySheetSignals.EMPTY : prioritySignals;
         List<String> cellTypeOrder = List.of(
                 "CD8+", "CD4+", "B Cells", "NK Cells", "Monocytes", "PBMC", "Total T",
                 "Unpurified Apheresis", "Top Layer Ficoll", "Bottom Layer Ficoll"
@@ -239,13 +247,17 @@ public class HICExcelLogger {
             groupFont.setFontHeightInPoints((short) 12);
             groupStyle.setFont(groupFont);
 
+            CellStyle labMemberStyle = workbook.createCellStyle();
+            labMemberStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+            labMemberStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             String[] headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
-                    "3-Week Fulfillment", "Filled this Week?"
+                    "3-Week Fulfillment", "Filled this Week?", "Missed Pickups"
             };
             String[] cd4Cd8Headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
-                    "3-Week Fulfillment", "Filled this Week?", "CD4/CD8 Order Type"
+                    "3-Week Fulfillment", "Filled this Week?", "CD4/CD8 Order Type", "Missed Pickups"
             };
             Map<String, RequesterCellOrders> cd4Cd8OrderTypes = buildCd4Cd8OrderTypes(hicData);
 
@@ -261,9 +273,11 @@ public class HICExcelLogger {
                     titleStyle,
                     headerStyle,
                     groupStyle,
+                    labMemberStyle,
                     cd4Cd8Headers,
                     cd4Cd8OrderTypes,
-                    donor
+                    donor,
+                    signals
             );
 
             writeLowYieldPrioritySheet(
@@ -278,9 +292,11 @@ public class HICExcelLogger {
                     titleStyle,
                     headerStyle,
                     groupStyle,
+                    labMemberStyle,
                     headers,
                     null,
-                    donor
+                    donor,
+                    signals
             );
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
@@ -418,9 +434,11 @@ public class HICExcelLogger {
                                             CellStyle titleStyle,
                                             CellStyle headerStyle,
                                             CellStyle groupStyle,
+                                            CellStyle labMemberStyle,
                                             String[] headers,
                                             Map<String, RequesterCellOrders> cd4Cd8OrderTypes,
-                                            String donor) {
+                                            String donor,
+                                            PrioritySheetSignals prioritySignals) {
         Sheet sheet = workbook.createSheet(sheetName);
         int rowNum = 0;
 
@@ -464,6 +482,16 @@ public class HICExcelLogger {
                 row.createCell(7).setCellValue(filledThisWeek(data, fulfillmentStats));
                 if (cd4Cd8OrderTypes != null) {
                     row.createCell(8).setCellValue(cd4Cd8OrderType(data, cd4Cd8OrderTypes));
+                }
+                row.createCell(headers.length - 1).setCellValue(missedPickupDisplay(data, prioritySignals));
+                if (prioritySignals != null && prioritySignals.isLabMember(data.getName())) {
+                    for (int column = 0; column < headers.length; column++) {
+                        Cell cell = row.getCell(column);
+                        if (cell == null) {
+                            cell = row.createCell(column);
+                        }
+                        cell.setCellStyle(labMemberStyle);
+                    }
                 }
             }
 
@@ -602,6 +630,17 @@ public class HICExcelLogger {
             return "N";
         }
         return fulfillmentStats.filledThisWeek(data.getName(), data.getCellType()) ? "Y" : "N";
+    }
+
+    private String missedPickupDisplay(HICData data, PrioritySheetSignals prioritySignals) {
+        if (prioritySignals == null) {
+            return "";
+        }
+        int count = prioritySignals.missedPickupCount(data.getName());
+        if (count <= 0) {
+            return "";
+        }
+        return "*".repeat(Math.min(count, 10));
     }
 
     /**
