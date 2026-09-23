@@ -37,6 +37,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
  */
 public class HICExcelLogger {
 
+    private static final String LAB_MEMBER_HIGHLIGHT_COLOR = "DCEEFF";
+
     private static HICExcelLogger instance;
 
     /**
@@ -112,10 +114,16 @@ public class HICExcelLogger {
     }
 
     public void exportCD4CD8RequestList(List<HICData> hicData, String filePath) {
-        exportCD4CD8RequestList(hicData, filePath, "");
+        exportCD4CD8RequestList(hicData, filePath, "", PrioritySheetSignals.EMPTY);
     }
 
     public void exportCD4CD8RequestList(List<HICData> hicData, String filePath, String donor) {
+        exportCD4CD8RequestList(hicData, filePath, donor, PrioritySheetSignals.EMPTY);
+    }
+
+    public void exportCD4CD8RequestList(List<HICData> hicData, String filePath, String donor,
+                                        PrioritySheetSignals prioritySignals) {
+        PrioritySheetSignals signals = prioritySignals == null ? PrioritySheetSignals.EMPTY : prioritySignals;
         Map<String, RequesterCellOrders> requesters = new LinkedHashMap<>();
 
         for (HICData data : hicData) {
@@ -150,6 +158,10 @@ public class HICExcelLogger {
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
 
+            CellStyle labMemberStyle = workbook.createCellStyle();
+            labMemberStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+            labMemberStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             int rowNum = 0;
             Row titleRow = sheet.createRow(rowNum++);
             Cell titleCell = titleRow.createCell(0);
@@ -170,15 +182,15 @@ public class HICExcelLogger {
 
             rowNum = writeRequesterGroupRows(sheet, rowNum, "CD4 & CD8", requesters.values().stream()
                     .filter(RequesterCellOrders::hasBoth)
-                    .toList());
+                    .toList(), signals, labMemberStyle);
             rowNum++;
             rowNum = writeRequesterGroupRows(sheet, rowNum, "Only CD4", requesters.values().stream()
                     .filter(RequesterCellOrders::hasOnlyCd4)
-                    .toList());
+                    .toList(), signals, labMemberStyle);
             rowNum++;
             writeRequesterGroupRows(sheet, rowNum, "Only CD8", requesters.values().stream()
                     .filter(RequesterCellOrders::hasOnlyCd8)
-                    .toList());
+                    .toList(), signals, labMemberStyle);
 
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
@@ -651,6 +663,13 @@ public class HICExcelLogger {
      * @param wordFilePath     to export to
      */
     public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath, String donor) throws IOException {
+        exportToWord(hicData, wordTemplatePath, wordFilePath, donor, PrioritySheetSignals.EMPTY);
+    }
+
+    public void exportToWord(List<HICData> hicData, String wordTemplatePath, String wordFilePath,
+                             String donor, PrioritySheetSignals prioritySignals) throws IOException {
+        PrioritySheetSignals signals = prioritySignals == null ? PrioritySheetSignals.EMPTY : prioritySignals;
+
         // Open the Word document template
         try (XWPFDocument doc = new XWPFDocument(new FileInputStream(wordTemplatePath))) {
             List<CTTbl> templateTables = doc.getTables().stream()
@@ -661,7 +680,7 @@ public class HICExcelLogger {
             List<XWPFTable> pageTables = new ArrayList<>(doc.getTables());
 
             while (state.dataIndex < hicData.size()) {
-                boolean wroteAnyLabelCell = populateLabelPage(pageTables, hicData, state, donor);
+                boolean wroteAnyLabelCell = populateLabelPage(pageTables, hicData, state, donor, signals);
                 if (!wroteAnyLabelCell) {
                     throw new IOException("The label template does not contain usable label cells.");
                 }
@@ -679,7 +698,8 @@ public class HICExcelLogger {
         }
     }
 
-    private boolean populateLabelPage(List<XWPFTable> tables, List<HICData> hicData, LabelExportState state, String donor) {
+    private boolean populateLabelPage(List<XWPFTable> tables, List<HICData> hicData, LabelExportState state,
+                                      String donor, PrioritySheetSignals prioritySignals) {
         boolean wroteAnyLabelCell = false;
 
         for (XWPFTable table : tables) {
@@ -700,6 +720,7 @@ public class HICExcelLogger {
                         state.currentCellType = data.getCellType();
                     } else {
                         replaceMergeFields(cell, data, donor);
+                        highlightLabMemberLabel(cell, data, prioritySignals);
                         state.dataIndex++;
                     }
                     wroteAnyLabelCell = true;
@@ -708,6 +729,12 @@ public class HICExcelLogger {
         }
 
         return wroteAnyLabelCell;
+    }
+
+    private void highlightLabMemberLabel(XWPFTableCell cell, HICData data, PrioritySheetSignals prioritySignals) {
+        if (prioritySignals != null && prioritySignals.isLabMember(data.getName())) {
+            cell.setColor(LAB_MEMBER_HIGHLIGHT_COLOR);
+        }
     }
 
     private void replaceUnusedLabelFields(XWPFTableCell cell, String donor) {
@@ -993,7 +1020,8 @@ public class HICExcelLogger {
         cell.setCellStyle(style);
     }
 
-    private int writeRequesterGroupRows(Sheet sheet, int rowNum, String category, List<RequesterCellOrders> requesters) {
+    private int writeRequesterGroupRows(Sheet sheet, int rowNum, String category, List<RequesterCellOrders> requesters,
+                                        PrioritySheetSignals prioritySignals, CellStyle labMemberStyle) {
         if (requesters.isEmpty()) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(category);
@@ -1007,6 +1035,11 @@ public class HICExcelLogger {
             row.createCell(1).setCellValue(requester.name);
             row.createCell(2).setCellValue(joinOrderRequests(requester.cd4Orders));
             row.createCell(3).setCellValue(joinOrderRequests(requester.cd8Orders));
+            if (prioritySignals != null && prioritySignals.isLabMember(requester.name)) {
+                for (int column = 0; column < 4; column++) {
+                    row.getCell(column).setCellStyle(labMemberStyle);
+                }
+            }
         }
         return rowNum;
     }

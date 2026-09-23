@@ -2232,11 +2232,11 @@ public class DonorDataGUI extends JFrame {
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
             String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
 
-            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
-            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
-            FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
             PrioritySheetSignals prioritySignals = prioritySignalsForPriorityExport();
+            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor, prioritySignals);
+            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor, prioritySignals);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor, prioritySignals);
+            FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
             hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
             appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
             appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
@@ -2310,9 +2310,9 @@ public class DonorDataGUI extends JFrame {
             hicExcelLogger.logHICData(data, sortedOutput, true);
             addGeneratedFile(sortedOutput);
 
-            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor);
-            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor);
-            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor);
+            hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor, prioritySignals);
+            hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor, prioritySignals);
+            hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor, prioritySignals);
             hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
             addGeneratedFile(cdOutput);
             addGeneratedFile(otherOutput);
