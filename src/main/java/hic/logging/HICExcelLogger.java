@@ -263,6 +263,10 @@ public class HICExcelLogger {
             labMemberStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
             labMemberStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
+            CellStyle todayRequestStyle = workbook.createCellStyle();
+            todayRequestStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+            todayRequestStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             String[] headers = {
                     "Rank", "Order #", "Name", "Request Date", "Max", "Min",
                     "3-Week Fulfillment", "Filled this Week?", "Missed Pickups"
@@ -286,6 +290,7 @@ public class HICExcelLogger {
                     headerStyle,
                     groupStyle,
                     labMemberStyle,
+                    todayRequestStyle,
                     cd4Cd8Headers,
                     cd4Cd8OrderTypes,
                     donor,
@@ -305,6 +310,7 @@ public class HICExcelLogger {
                     headerStyle,
                     groupStyle,
                     labMemberStyle,
+                    todayRequestStyle,
                     headers,
                     null,
                     donor,
@@ -447,6 +453,7 @@ public class HICExcelLogger {
                                             CellStyle headerStyle,
                                             CellStyle groupStyle,
                                             CellStyle labMemberStyle,
+                                            CellStyle todayRequestStyle,
                                             String[] headers,
                                             Map<String, RequesterCellOrders> cd4Cd8OrderTypes,
                                             String donor,
@@ -496,14 +503,10 @@ public class HICExcelLogger {
                     row.createCell(8).setCellValue(cd4Cd8OrderType(data, cd4Cd8OrderTypes));
                 }
                 row.createCell(headers.length - 1).setCellValue(missedPickupDisplay(data, prioritySignals));
-                if (prioritySignals != null && prioritySignals.isLabMember(data.getName())) {
-                    for (int column = 0; column < headers.length; column++) {
-                        Cell cell = row.getCell(column);
-                        if (cell == null) {
-                            cell = row.createCell(column);
-                        }
-                        cell.setCellStyle(labMemberStyle);
-                    }
+                if (prioritySignals != null && prioritySignals.isTodayRequest(data.getOrderNumber(), data.getName())) {
+                    applyRowStyle(row, headers.length, todayRequestStyle);
+                } else if (prioritySignals != null && prioritySignals.isLabMember(data.getName())) {
+                    applyRowStyle(row, headers.length, labMemberStyle);
                 }
             }
 
@@ -514,6 +517,16 @@ public class HICExcelLogger {
             sheet.autoSizeColumn(i);
         }
         sheet.createFreezePane(0, 2);
+    }
+
+    private void applyRowStyle(Row row, int columnCount, CellStyle style) {
+        for (int column = 0; column < columnCount; column++) {
+            Cell cell = row.getCell(column);
+            if (cell == null) {
+                cell = row.createCell(column);
+            }
+            cell.setCellStyle(style);
+        }
     }
 
     private void writeDateAndDonor(Row row, String donor, int donorColumn, CellStyle style) {

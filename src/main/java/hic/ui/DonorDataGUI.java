@@ -76,6 +76,7 @@ public class DonorDataGUI extends JFrame {
     private static final String PREF_DONOR_HISTORY_SHEET_URL = "hic.donor.history.sheet.url";
     private static final String PREF_LAB_MEMBERS_SHEET_URL = "hic.lab.members.sheet.url";
     private static final String PREF_MISSED_PICKUPS_SHEET_URL = "hic.missed.pickups.sheet.url";
+    private static final String PREF_TODAYS_REQUESTS_SHEET_URL = "hic.todays.requests.sheet.url";
     private static final String PREF_SETUP_COMPLETE = "hic.setup.complete";
 
     private static final String DEFAULT_OUTPUT_DIR = "Output Files";
@@ -84,6 +85,7 @@ public class DonorDataGUI extends JFrame {
     private static final String DEFAULT_DONOR_HISTORY_SHEET_URL = "";
     private static final String DEFAULT_LAB_MEMBERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/12TNY-EjDbiv2ECnzkc-jbD0GLWJXLN5g_YdnNeWnz3c/edit?usp=sharing";
     private static final String DEFAULT_MISSED_PICKUPS_SHEET_URL = "https://docs.google.com/spreadsheets/d/13uvPpxjfr2zhZ8osU3H6MtqNChNL7nEF4_ywVDNEq4o/edit?usp=sharing";
+    private static final String DEFAULT_TODAYS_REQUESTS_SHEET_URL = "";
     private static final int REQUIRED_JAVA_MAJOR = 17;
     private static final String ORACLE_JDK_17_URL = "https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html";
 
@@ -2372,19 +2374,31 @@ public class DonorDataGUI extends JFrame {
         return preferences.get(PREF_MISSED_PICKUPS_SHEET_URL, DEFAULT_MISSED_PICKUPS_SHEET_URL);
     }
 
+    private String todaysRequestsSheetUrl() {
+        return preferences.get(PREF_TODAYS_REQUESTS_SHEET_URL, DEFAULT_TODAYS_REQUESTS_SHEET_URL);
+    }
+
     private PrioritySheetSignals prioritySignalsForPriorityExport() {
         try {
             PrioritySheetSignals signals = prioritySignalService.fetchSignals(
                     labMembersSheetUrl(),
                     missedPickupsSheetUrl(),
+                    todaysRequestsSheetUrl(),
                     LocalDate.now()
             );
             if (signals.hasSignals()) {
-                appendOutputStatus("SUCCESS", "Loaded lab member and missed pickup signals for low-yield priority list.");
+                appendOutputStatus("SUCCESS", "Loaded priority highlight signals for low-yield priority list.");
+            }
+            if (!todaysRequestsSheetUrl().isBlank()) {
+                if (signals.todayRequestCount() > 0) {
+                    appendOutputStatus("SUCCESS", "Loaded " + signals.todayRequestCount() + " request(s) dated today from Today's Requests Sheet.");
+                } else {
+                    appendOutputStatus("INFO", "Today's Requests Sheet loaded, but no rows matched today's date: " + LocalDate.now() + ".");
+                }
             }
             return signals;
         } catch (IOException e) {
-            appendOutputStatus("ERROR", "Could not read lab member/missed pickup sheets; priority list will export without those signals.");
+            appendOutputStatus("ERROR", "Could not read priority signal sheets; priority list will export without those signals.");
             return PrioritySheetSignals.EMPTY;
         }
     }
@@ -2628,12 +2642,14 @@ public class DonorDataGUI extends JFrame {
         JTextField donorHistorySheetField = new JTextField(preferences.get(PREF_DONOR_HISTORY_SHEET_URL, DEFAULT_DONOR_HISTORY_SHEET_URL));
         JTextField labMembersSheetField = new JTextField(labMembersSheetUrl());
         JTextField missedPickupsSheetField = new JTextField(missedPickupsSheetUrl());
+        JTextField todaysRequestsSheetField = new JTextField(todaysRequestsSheetUrl());
         outputDirField.setColumns(40);
         labelTemplateField.setColumns(40);
         signOutTemplateField.setColumns(40);
         donorHistorySheetField.setColumns(40);
         labMembersSheetField.setColumns(40);
         missedPickupsSheetField.setColumns(40);
+        todaysRequestsSheetField.setColumns(40);
 
         JButton browseOutput = new JButton("Browse...");
         browseOutput.addActionListener(e -> {
@@ -2665,6 +2681,7 @@ public class DonorDataGUI extends JFrame {
         addSettingsRow(fields, gbc, "Donor History Sheet URL", donorHistorySheetField, new JLabel(""));
         addSettingsRow(fields, gbc, "Lab Members Sheet URL", labMembersSheetField, new JLabel(""));
         addSettingsRow(fields, gbc, "Missed Pickups Sheet URL", missedPickupsSheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Today's Requests Sheet URL", todaysRequestsSheetField, new JLabel(""));
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton setupWizard = new JButton("Run Setup Wizard");
@@ -2684,6 +2701,7 @@ public class DonorDataGUI extends JFrame {
                     donorHistorySheetField.getText().trim(),
                     labMembersSheetField.getText().trim(),
                     missedPickupsSheetField.getText().trim(),
+                    todaysRequestsSheetField.getText().trim(),
                     true
             );
             dialog.dispose();
@@ -2750,12 +2768,14 @@ public class DonorDataGUI extends JFrame {
         JTextField donorHistorySheetField = new JTextField(preferences.get(PREF_DONOR_HISTORY_SHEET_URL, DEFAULT_DONOR_HISTORY_SHEET_URL));
         JTextField labMembersSheetField = new JTextField(labMembersSheetUrl());
         JTextField missedPickupsSheetField = new JTextField(missedPickupsSheetUrl());
+        JTextField todaysRequestsSheetField = new JTextField(todaysRequestsSheetUrl());
         outputDirField.setColumns(42);
         labelTemplateField.setColumns(42);
         signOutTemplateField.setColumns(42);
         donorHistorySheetField.setColumns(42);
         labMembersSheetField.setColumns(42);
         missedPickupsSheetField.setColumns(42);
+        todaysRequestsSheetField.setColumns(42);
 
         JButton browseOutput = new JButton("Browse...");
         browseOutput.addActionListener(e -> {
@@ -2787,6 +2807,7 @@ public class DonorDataGUI extends JFrame {
         addSettingsRow(fields, gbc, "Donor History Sheet URL", donorHistorySheetField, new JLabel(""));
         addSettingsRow(fields, gbc, "Lab Members Sheet URL", labMembersSheetField, new JLabel(""));
         addSettingsRow(fields, gbc, "Missed Pickups Sheet URL", missedPickupsSheetField, new JLabel(""));
+        addSettingsRow(fields, gbc, "Today's Requests Sheet URL", todaysRequestsSheetField, new JLabel(""));
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton skip = new JButton(firstRun ? "Skip for Now" : "Cancel");
@@ -2808,6 +2829,7 @@ public class DonorDataGUI extends JFrame {
                     donorHistorySheetField.getText().trim(),
                     labMembersSheetField.getText().trim(),
                     missedPickupsSheetField.getText().trim(),
+                    todaysRequestsSheetField.getText().trim(),
                     true
             );
             appendOutput("Setup wizard completed.");
@@ -2831,7 +2853,8 @@ public class DonorDataGUI extends JFrame {
 
     private void saveSettingsValues(String outputDir, String labelTemplate, String signOutTemplate,
                                     String donorHistorySheetUrl, String labMembersSheetUrl,
-                                    String missedPickupsSheetUrl, boolean markSetupComplete) {
+                                    String missedPickupsSheetUrl, String todaysRequestsSheetUrl,
+                                    boolean markSetupComplete) {
         preferences.put(PREF_OUTPUT_DIR, outputDir == null || outputDir.isBlank() ? DEFAULT_OUTPUT_DIR : outputDir);
         String normalizedLabelTemplate = normalizeConfiguredPath(labelTemplate);
         String normalizedSignOutTemplate = normalizeConfiguredPath(signOutTemplate);
@@ -2840,6 +2863,7 @@ public class DonorDataGUI extends JFrame {
         preferences.put(PREF_DONOR_HISTORY_SHEET_URL, donorHistorySheetUrl == null ? DEFAULT_DONOR_HISTORY_SHEET_URL : donorHistorySheetUrl);
         preferences.put(PREF_LAB_MEMBERS_SHEET_URL, labMembersSheetUrl == null || labMembersSheetUrl.isBlank() ? DEFAULT_LAB_MEMBERS_SHEET_URL : labMembersSheetUrl);
         preferences.put(PREF_MISSED_PICKUPS_SHEET_URL, missedPickupsSheetUrl == null || missedPickupsSheetUrl.isBlank() ? DEFAULT_MISSED_PICKUPS_SHEET_URL : missedPickupsSheetUrl);
+        preferences.put(PREF_TODAYS_REQUESTS_SHEET_URL, todaysRequestsSheetUrl == null ? DEFAULT_TODAYS_REQUESTS_SHEET_URL : todaysRequestsSheetUrl);
         if (markSetupComplete) {
             preferences.putBoolean(PREF_SETUP_COMPLETE, true);
         }

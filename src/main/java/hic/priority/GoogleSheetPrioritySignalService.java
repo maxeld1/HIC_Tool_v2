@@ -40,10 +40,16 @@ public class GoogleSheetPrioritySignalService {
     };
 
     public PrioritySheetSignals fetchSignals(String labMembersSheetUrl, String missedPickupsSheetUrl, LocalDate endDate) throws IOException {
+        return fetchSignals(labMembersSheetUrl, missedPickupsSheetUrl, "", endDate);
+    }
+
+    public PrioritySheetSignals fetchSignals(String labMembersSheetUrl, String missedPickupsSheetUrl,
+                                             String todaysRequestsSheetUrl, LocalDate endDate) throws IOException {
         LocalDate startDate = endDate.minusDays(MISSED_PICKUP_LOOKBACK_DAYS);
         Set<String> labMembers = fetchLabMembers(labMembersSheetUrl);
         Map<String, Integer> missedPickups = fetchMissedPickups(missedPickupsSheetUrl, startDate, endDate);
-        return new PrioritySheetSignals(labMembers, missedPickups);
+        Set<String> todayRequests = fetchTodayRequests(todaysRequestsSheetUrl, endDate);
+        return new PrioritySheetSignals(labMembers, missedPickups, todayRequests);
     }
 
     private Set<String> fetchLabMembers(String sheetUrl) throws IOException {
@@ -101,6 +107,30 @@ public class GoogleSheetPrioritySignalService {
             }
         }
         return counts;
+    }
+
+    private Set<String> fetchTodayRequests(String sheetUrl, LocalDate today) throws IOException {
+        if (sheetUrl == null || sheetUrl.isBlank()) {
+            return Set.of();
+        }
+
+        List<Map<String, String>> rows = fetchRows(sheetUrl);
+        Set<String> requestKeys = new LinkedHashSet<>();
+        for (Map<String, String> row : rows) {
+            String requestId = firstPresent(row, "request id", "request_id", "requestid", "order", "order #", "order number");
+            LocalDate requestDate = parseDate(firstPresent(row, "request date", "request_date", "date"));
+            String name = firstPresent(row, "name", "ordered by", "ordered_by", "requester");
+
+            if (requestDate == null || !requestDate.equals(today)) {
+                continue;
+            }
+
+            String key = PrioritySheetSignals.requestKey(requestId, name);
+            if (!key.isBlank()) {
+                requestKeys.add(key);
+            }
+        }
+        return requestKeys;
     }
 
     private List<Map<String, String>> fetchRows(String sheetUrl) throws IOException {
