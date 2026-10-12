@@ -1842,6 +1842,7 @@ public class DonorDataGUI extends JFrame {
         try {
             List<HICData> data = prepareData(false);
             String output = outputPath("UnsortedHICList.xlsx");
+            appendBatchOutputFolder();
 
             hicExcelLogger.logHICData(data, output, false);
             appendOutput("Exported unsorted data to: " + output);
@@ -1860,6 +1861,7 @@ public class DonorDataGUI extends JFrame {
             List<HICData> data = prepareData(false);
             processor.sortByCellTypeAndDateTime(data);
             String output = outputPath("SortedHICList.xlsx");
+            appendBatchOutputFolder();
 
             hicExcelLogger.logHICData(data, output, true);
             appendOutput("Exported sorted data to: " + output);
@@ -1935,6 +1937,7 @@ public class DonorDataGUI extends JFrame {
 
             createOutputDirectoryIfNeeded();
             output = outputPath("Complete_Fulfillment_Report.xlsx");
+            appendBatchOutputFolder();
             setStatus("Scraping fulfillment rows...");
             previewArea.setText("Scraping fulfillment rows once...\n\nLog in if prompted. The Excel workbook will export when the scrape completes.");
             previewArea.setCaretPosition(0);
@@ -1990,6 +1993,7 @@ public class DonorDataGUI extends JFrame {
 
             createOutputDirectoryIfNeeded();
             output = outputPath("Fulfillment_Report_By_" + groupBy.label().replace(" ", "_") + ".xlsx");
+            appendBatchOutputFolder();
             setStatus("Scraping fulfillment rows...");
             previewArea.setText("Scraping fulfillment rows...\n\nLog in if prompted. The Excel report will export when the scrape completes.");
             previewArea.setCaretPosition(0);
@@ -2127,6 +2131,7 @@ public class DonorDataGUI extends JFrame {
             FulfillmentReport report = fulfillmentReportService.calculate(
                     dateRange.startDate(), dateRange.endDate(), groupBy, separateByCellType);
             String output = outputPath("Fulfillment_Report_By_" + groupBy.label().replace(" ", "_") + ".xlsx");
+            appendBatchOutputFolder();
             hicExcelLogger.exportFulfillmentReport(report, output);
 
             appendOutput("Exported fulfillment report to: " + output);
@@ -2233,6 +2238,7 @@ public class DonorDataGUI extends JFrame {
             String otherOutput = outputPath("OTHERCellTypes_Labels.docx");
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
             String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
+            appendBatchOutputFolder();
 
             PrioritySheetSignals prioritySignals = prioritySignalsForPriorityExport();
             hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor, prioritySignals);
@@ -2262,6 +2268,7 @@ public class DonorDataGUI extends JFrame {
             String donor = donorField.getText().trim();
             String signOutTemplatePath = resolveSignoutTemplatePath();
             String output = outputPath("HIC Sign-out Sheet.xlsx");
+            appendBatchOutputFolder();
 
             hicExcelLogger.exportToSignOutSheet(data, signOutTemplatePath, output, donor);
             appendOutput("Exported sign-out sheet to: " + output);
@@ -2299,6 +2306,7 @@ public class DonorDataGUI extends JFrame {
             String cdRequestListOutput = outputPath("CD4_CD8_Request_List.xlsx");
             String priorityOutput = outputPath("Low_Yield_Order_Priority.xlsx");
             String signOutOutput = outputPath("HIC Sign-out Sheet.xlsx");
+            appendBatchOutputFolder();
             String labelTemplatePath = resolveLabelTemplatePath();
             String signOutTemplatePath = resolveSignoutTemplatePath();
 
@@ -2347,7 +2355,13 @@ public class DonorDataGUI extends JFrame {
     }
 
     private String outputPath(String fileName) {
-        return Path.of(outputDirectory(), fileName).toAbsolutePath().normalize().toString();
+        Path batchDirectory = batchOutputDirectory();
+        try {
+            Files.createDirectories(batchDirectory);
+        } catch (IOException e) {
+            appendOutput("Warning: could not ensure batch output folder exists: " + e.getMessage());
+        }
+        return batchDirectory.resolve(fileName).toAbsolutePath().normalize().toString();
     }
 
     private void createOutputDirectoryIfNeeded() {
@@ -2360,6 +2374,30 @@ public class DonorDataGUI extends JFrame {
 
     private String outputDirectory() {
         return preferences.get(PREF_OUTPUT_DIR, DEFAULT_OUTPUT_DIR);
+    }
+
+    private Path batchOutputDirectory() {
+        return Path.of(outputDirectory(), batchOutputFolderName()).toAbsolutePath().normalize();
+    }
+
+    private String batchOutputFolderName() {
+        return sanitizedDonorForFolder() + "_" + LocalDate.now();
+    }
+
+    private String sanitizedDonorForFolder() {
+        String donor = donorField == null ? "" : donorField.getText().trim().toUpperCase();
+        if (donor.isBlank()) {
+            return "NO_DONOR";
+        }
+
+        String sanitized = donor.replaceAll("[^A-Z0-9._-]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+|_+$", "");
+        return sanitized.isBlank() ? "NO_DONOR" : sanitized;
+    }
+
+    private void appendBatchOutputFolder() {
+        appendOutput("Batch output folder: " + batchOutputDirectory());
     }
 
     private String donorHistorySheetUrl() {
