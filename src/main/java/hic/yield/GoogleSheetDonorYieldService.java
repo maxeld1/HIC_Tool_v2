@@ -98,12 +98,13 @@ public class GoogleSheetDonorYieldService {
                 String donorId = get(row, idx.get("donor_id"));
                 LocalDate date = parseDate(get(row, idx.get("date")));
                 String cellType = get(row, idx.get("cell_type"));
-                double requestedCells = parseDouble(get(row, idx.get("requested_cells")));
-                double actualYield = parseDouble(get(row, idx.get("actual_yield")));
-                double apheresisUsed = parseDouble(get(row, idx.get("apheresis_used")));
+                Double requestedCells = parseDouble(get(row, idx.get("requested_cells")));
+                Double actualYield = parseDouble(get(row, idx.get("actual_yield")));
+                Double apheresisUsed = parseDouble(get(row, idx.get("apheresis_used")));
                 String notes = get(row, idx.get("notes"));
 
-                if (donorId.isBlank() || date == null || cellType.isBlank()) {
+                if (donorId.isBlank() || date == null || cellType.isBlank()
+                        || requestedCells == null || actualYield == null || apheresisUsed == null) {
                     continue;
                 }
 
@@ -246,14 +247,15 @@ public class GoogleSheetDonorYieldService {
         return row.get(idx).trim();
     }
 
-    private double parseDouble(String value) {
+    private Double parseDouble(String value) {
         if (value == null || value.isBlank()) {
-            return 0.0;
+            return null;
         }
         try {
-            return Double.parseDouble(value.replace(",", ""));
+            double parsed = Double.parseDouble(value.replace(",", ""));
+            return Double.isFinite(parsed) ? parsed : null;
         } catch (NumberFormatException e) {
-            return 0.0;
+            return null;
         }
     }
 
