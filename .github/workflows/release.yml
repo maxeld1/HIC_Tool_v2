@@ -1,0 +1,106 @@
+name: Build release installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            platform: windows-x64
+            architecture: x64
+          - runner: macos-15-intel
+            platform: macos-x64
+            architecture: x64
+          - runner: macos-15
+            platform: macos-arm64
+            architecture: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          architecture: ${{ matrix.architecture }}
+          cache: maven
+      - name: Validate release version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must look like v1.2.3"
+            exit 1
+          fi
+          echo "APP_VERSION=$version" >> "$GITHUB_ENV"
+      - name: Install Windows packaging tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install wixtoolset imagemagick --no-progress -y
+          if ($LASTEXITCODE -ne 0) { throw "Packaging tool installation failed." }
+          $tools = Get-ChildItem "${env:ProgramFiles(x86)}" -Directory -Filter "WiX Toolset*"
+          if (-not $tools) { throw "WiX Toolset was not found." }
+          $tools | ForEach-Object { Join-Path $_.FullName "bin" } | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $imageMagick = Get-ChildItem "$env:ProgramFiles\ImageMagick*" -Directory
+          $imageMagick.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./build-windows.ps1 -AppVersion $env:APP_VERSION
+          $installers = @(Get-ChildItem dist -Filter *.msi)
+          if ($installers.Count -ne 1) { throw "Expected one MSI installer." }
+          Move-Item $installers[0].FullName "dist/HIC-Studio-$env:APP_VERSION-windows-x64.msi"
+      - name: Build Mac installer
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          bash build-mac.sh "$APP_VERSION"
+          installers=(dist/*.dmg)
+          [[ ${#installers[@]} -eq 1 ]]
+          mv "${installers[0]}" "dist/HIC-Studio-$APP_VERSION-$PLATFORM.dmg"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer-${{ matrix.platform }}
+          path: |
+            dist/HIC-Studio-*.msi
+            dist/HIC-Studio-*.dmg
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: installer-*
+          path: installers
+          merge-multiple: true
+      - name: Prepare draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --json isDraft --jq '.isDraft' > release-state.txt; then
+            if [[ "$(cat release-state.txt)" != true ]]; then
+              echo "This release is already published. Use a new version tag."
+              exit 1
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --draft --generate-notes --title "HIC Studio $GITHUB_REF_NAME"
+          fi
+          gh release upload "$GITHUB_REF_NAME" installers/* --clobber
