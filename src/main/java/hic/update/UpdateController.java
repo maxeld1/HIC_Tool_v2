@@ -14,7 +14,9 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import java.awt.Desktop;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 
 public final class UpdateController {
     private final JFrame window;
@@ -126,7 +128,7 @@ public final class UpdateController {
                                     + instructions + "\n\nInstall now?\nDownloaded installer: " + installer,
                             "Install Update", JOptionPane.YES_NO_OPTION);
                     if (choice == JOptionPane.YES_OPTION) {
-                        Desktop.getDesktop().open(installer.toFile());
+                        launchInstaller(installer);
                         window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
                     }
                 } catch (Exception exception) {
@@ -139,6 +141,26 @@ public final class UpdateController {
     private void showError(Exception exception) {
         JOptionPane.showMessageDialog(window, "Unable to update HIC Studio.\n" + message(exception),
                 "HIC Studio Updates", JOptionPane.WARNING_MESSAGE);
+    }
+
+    private static void launchInstaller(Path installer) throws IOException {
+        try {
+            if (System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("windows")) {
+                String windowsDirectory = System.getenv("SystemRoot");
+                if (windowsDirectory == null || windowsDirectory.isBlank()) {
+                    throw new IOException("The Windows system directory could not be located.");
+                }
+                Path executable = Path.of(windowsDirectory, "System32", "msiexec.exe");
+                new ProcessBuilder(executable.toString(), "/i", installer.toAbsolutePath().toString(),
+                        "/norestart").start();
+            } else {
+                Desktop.getDesktop().open(installer.toFile());
+            }
+        } catch (IOException | UnsupportedOperationException | SecurityException exception) {
+            throw new IOException("The installer could not be started: " + exception.getMessage()
+                    + "\n\nYour downloaded installer is saved at:\n" + installer
+                    + "\nClose HIC Studio and run this installer manually.");
+        }
     }
 
     private static String message(Exception exception) {
