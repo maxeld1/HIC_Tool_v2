@@ -35,8 +35,8 @@ if ! command -v jpackage >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ ! "$APP_VERSION" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
-  echo "Error: app version must be numeric like 1, 1.2, or 1.2.3 (got '$APP_VERSION')."
+if [[ ! "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Error: app version must use major.minor.patch, like 1.2.3 (got '$APP_VERSION')."
   exit 1
 fi
 
@@ -58,7 +58,7 @@ fi
 cd "$PROJECT_ROOT"
 
 echo "Building shaded JAR..."
-mvn clean package -DskipTests
+mvn clean package -DskipTests "-Dapp.version=$APP_VERSION"
 
 if [[ ! -f "$JAR_PATH" ]]; then
   echo "Error: $JAR_PATH not found after build."

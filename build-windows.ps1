@@ -32,8 +32,8 @@ if (-not $runningOnWindows) {
     throw "build-windows.ps1 must be run on Windows."
 }
 
-if ($AppVersion -notmatch '^[0-9]+(\.[0-9]+){0,2}$') {
-    throw "AppVersion must be numeric like 1, 1.2, or 1.2.3 (got '$AppVersion')."
+if ($AppVersion -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+    throw "AppVersion must use major.minor.patch, like 1.2.3 (got '$AppVersion')."
 }
 
 if (-not (Test-Path $iconPng)) {
@@ -59,7 +59,7 @@ if (-not (Get-Command jpackage -ErrorAction SilentlyContinue)) {
 Set-Location $projectRoot
 
 Write-Host "Building shaded JAR..."
-& mvn clean package -DskipTests
+& mvn clean package -DskipTests "-Dapp.version=$AppVersion"
 if ($LASTEXITCODE -ne 0) {
     throw "Maven build failed with exit code $LASTEXITCODE. Review the Maven error above."
 }
@@ -101,9 +101,14 @@ jpackage `
   --vendor "$vendor" `
   --icon "$iconIco" `
   --win-menu `
+  --win-upgrade-uuid "a05207ce-5929-4ed2-bf3a-62518673d75d" `
   --win-shortcut `
   --win-dir-chooser `
   --dest "$destDir"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "jpackage failed with exit code $LASTEXITCODE."
+}
 
 Remove-Item -Path $stagedInput -Recurse -Force
 
