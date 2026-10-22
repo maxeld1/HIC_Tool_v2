@@ -157,7 +157,7 @@ public class DonorDataGUI extends JFrame {
             System.err.println("Icon path not found.");
         }
 
-        setTitle("HIC Studio");
+        setTitle("HIC Studio | v1.0.4");
         setSize(1320, 870);
         setMinimumSize(new Dimension(1320, 870));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
