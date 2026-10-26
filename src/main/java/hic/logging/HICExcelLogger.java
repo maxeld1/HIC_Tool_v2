@@ -224,6 +224,12 @@ public class HICExcelLogger {
     public void exportLowYieldPriorityList(List<HICData> hicData, String filePath,
                                            FulfillmentStats fulfillmentStats, String donor,
                                            PrioritySheetSignals prioritySignals) {
+        exportLowYieldPriorityList(hicData, filePath, fulfillmentStats, donor, prioritySignals, false);
+    }
+
+    public void exportLowYieldPriorityList(List<HICData> hicData, String filePath,
+                                           FulfillmentStats fulfillmentStats, String donor,
+                                           PrioritySheetSignals prioritySignals, boolean protectionsVerified) {
         PrioritySheetSignals signals = prioritySignals == null ? PrioritySheetSignals.EMPTY : prioritySignals;
         List<String> cellTypeOrder = List.of(
                 "CD8+", "CD4+", "B Cells", "NK Cells", "Monocytes", "PBMC", "Total T",
@@ -317,15 +323,17 @@ public class HICExcelLogger {
                     signals
             );
 
+            hic.cancellation.DonorDecisionWorkbook.write(workbook, hicData, fulfillmentStats, signals,
+                    donor, LocalDate.now(), protectionsVerified);
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
                 applyPrintDefaults(workbook);
                 workbook.write(fileOut);
                 System.out.println("\nLow-yield priority list exported successfully.");
             } catch (IOException e) {
-                System.err.println("\nThe file could not be saved to that directory: " + e.getMessage());
+                throw new UncheckedIOException("Could not save the priority workbook: " + filePath, e);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException("Could not create the priority workbook: " + filePath, e);
         }
     }
 
@@ -578,69 +586,8 @@ public class HICExcelLogger {
         return rawRequesterName.isEmpty() ? "Unknown" : rawRequesterName;
     }
 
-    private Comparator<HICData> lowYieldPriorityTieBreaker() {
-        return Comparator
-                .comparing(HICData::getRequestDate)
-                .thenComparingInt(HICData::getOrderNumber);
-    }
-
     private int compareLowYieldPriority(HICData left, HICData right, FulfillmentStats fulfillmentStats) {
-        double leftRate = fulfillmentRateForPriority(left, fulfillmentStats);
-        double rightRate = fulfillmentRateForPriority(right, fulfillmentStats);
-        int byRate = Double.compare(leftRate, rightRate);
-        if (byRate != 0) {
-            return byRate;
-        }
-
-        if (leftRate >= 0 && leftRate <= 1 && rightRate >= 0 && rightRate <= 1) {
-            if (Double.compare(leftRate, 1.0) == 0) {
-                int byLowerVolume = Integer.compare(
-                        fulfillmentTotal(left, fulfillmentStats),
-                        fulfillmentTotal(right, fulfillmentStats)
-                );
-                if (byLowerVolume != 0) {
-                    return byLowerVolume;
-                }
-            } else {
-                int byMoreCancellations = Integer.compare(
-                        fulfillmentCancelled(right, fulfillmentStats),
-                        fulfillmentCancelled(left, fulfillmentStats)
-                );
-                if (byMoreCancellations != 0) {
-                    return byMoreCancellations;
-                }
-            }
-        }
-
-        return lowYieldPriorityTieBreaker().compare(left, right);
-    }
-
-    private double fulfillmentRateForPriority(HICData data, FulfillmentStats fulfillmentStats) {
-        double rate = fulfillmentRate(data, fulfillmentStats);
-        return rate < 0 ? 2.0 : rate;
-    }
-
-    private double fulfillmentRate(HICData data, FulfillmentStats fulfillmentStats) {
-        if (fulfillmentStats == null) {
-            return -1.0;
-        }
-        return fulfillmentStats.fulfillmentRate(data.getName(), data.getCellType());
-    }
-
-    private int fulfillmentTotal(HICData data, FulfillmentStats fulfillmentStats) {
-        if (fulfillmentStats == null) {
-            return 0;
-        }
-        FulfillmentStats.StatLine line = fulfillmentStats.findLine(data.getName(), data.getCellType());
-        return line == null ? 0 : line.fulfilled() + line.cancelled();
-    }
-
-    private int fulfillmentCancelled(HICData data, FulfillmentStats fulfillmentStats) {
-        if (fulfillmentStats == null) {
-            return 0;
-        }
-        FulfillmentStats.StatLine line = fulfillmentStats.findLine(data.getName(), data.getCellType());
-        return line == null ? 0 : line.cancelled();
+        return hic.priority.OrderPriority.compare(left, right, fulfillmentStats);
     }
 
     private String fulfillmentFraction(HICData data, FulfillmentStats fulfillmentStats) {

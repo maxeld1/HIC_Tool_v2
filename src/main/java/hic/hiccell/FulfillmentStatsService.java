@@ -28,8 +28,25 @@ public class FulfillmentStatsService {
 
     public FulfillmentStats calculateForTodayOrders(List<HICData> todayOrders) {
         LocalDate endDate = LocalDate.now(clock);
+        return calculateForOrders(todayOrders, endDate, endDate);
+    }
+
+    public FulfillmentStats calculateForOrdersOnDate(List<HICData> orders, LocalDate collectionDate) {
+        return calculateForOrders(orders, collectionDate, collectionDate);
+    }
+
+    public FulfillmentStats calculateForOrdersOnDate(List<HICData> orders, LocalDate collectionDate,
+                                                    HicCellMonthViewRows rows) {
+        return calculateForOrders(orders, collectionDate, collectionDate, rows);
+    }
+
+    private FulfillmentStats calculateForOrders(List<HICData> todayOrders, LocalDate endDate, LocalDate orderWeekAnchor) {
+        return calculateForOrders(todayOrders, endDate, orderWeekAnchor, scraper.fetchLiveCellsAndCancelled());
+    }
+
+    private FulfillmentStats calculateForOrders(List<HICData> todayOrders, LocalDate endDate,
+                                               LocalDate orderWeekAnchor, HicCellMonthViewRows monthViewRows) {
         LocalDate startDate = endDate.minusDays(21);
-        LocalDate orderWeekAnchor = latestOrderDate(todayOrders, endDate);
         LocalDate orderWeekStart = orderWeekAnchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate orderWeekEnd = orderWeekAnchor.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -42,7 +59,6 @@ public class FulfillmentStatsService {
             stats.putIfAbsent(key, new MutableStatLine(order.getName(), normalizedCellType));
         }
 
-        HicCellMonthViewRows monthViewRows = scraper.fetchLiveCellsAndCancelled();
         List<HicCellOrderRecord> fulfilled = monthViewRows.liveCells();
         List<HicCellOrderRecord> cancelled = monthViewRows.cancelled();
 
@@ -55,7 +71,16 @@ public class FulfillmentStatsService {
                     new FulfillmentStats.StatLine(line.orderedBy, line.cellType, line.fulfilled, line.cancelled, line.filledThisWeek));
         }
 
-        return new FulfillmentStats(startDate, endDate, output, fulfilled.size(), cancelled.size());
+        Set<String> weeklyRequesters = new HashSet<>();
+        for (HicCellOrderRecord row : fulfilled) {
+            if (row.collectionDate() != null && row.delivered() > 0
+                    && !row.collectionDate().isBefore(orderWeekStart)
+                    && !row.collectionDate().isAfter(orderWeekEnd)
+                    && !row.collectionDate().isAfter(endDate)) {
+                weeklyRequesters.add(hic.priority.PrioritySheetSignals.normalizePerson(row.orderedBy()));
+            }
+        }
+        return new FulfillmentStats(startDate, endDate, output, fulfilled.size(), cancelled.size(), weeklyRequesters);
     }
 
     private void countRows(Map<String, MutableStatLine> stats, Set<String> requestedKeys,
@@ -90,21 +115,7 @@ public class FulfillmentStatsService {
         }
     }
 
-    private LocalDate latestOrderDate(List<HICData> todayOrders, LocalDate fallback) {
-        LocalDate latest = null;
-        for (HICData order : todayOrders) {
-            if (order.getRequestDate() == null) {
-                continue;
-            }
-            LocalDate date = order.getRequestDate().toLocalDate();
-            if (latest == null || date.isAfter(latest)) {
-                latest = date;
-            }
-        }
-        return latest == null ? fallback : latest;
-    }
-
-    static String normalizeCellType(String cellType) {
+    public static String normalizeCellType(String cellType) {
         if (cellType == null) {
             return "";
         }

@@ -1,6 +1,8 @@
 package hic.ui;
 
 import hic.datamanagement.TXTFileParser;
+import hic.cancellation.CancellationDecisionDialog;
+import hic.cancellation.DonorDecisionWorkbook;
 import hic.hiccell.CompleteFulfillmentReport;
 import hic.hiccell.FulfillmentReport;
 import hic.hiccell.FulfillmentReportService;
@@ -126,6 +128,8 @@ public class DonorDataGUI extends JFrame {
     private int rawLogMaxLineLength = 0;
     private String lastDonorSpecificReportText = "Donor-specific report will appear here.";
     private FulfillmentStats lastFulfillmentStats;
+    private boolean cancellationDecisionLoading;
+    private boolean lastPrioritySignalsVerified;
 
     private final HICExcelLogger hicExcelLogger;
     private final Processor processor;
@@ -344,6 +348,11 @@ public class DonorDataGUI extends JFrame {
 
         strip.add(buttons, BorderLayout.CENTER);
         strip.add(controls, BorderLayout.EAST);
+        JPanel decisions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
+        decisions.setOpaque(false);
+        decisions.add(createActionButton("Cancellation Decision", PRIMARY_COLOR, PRIMARY_HOVER,
+                event -> openCancellationDecision()));
+        strip.add(decisions, BorderLayout.SOUTH);
         return strip;
     }
 
@@ -440,6 +449,8 @@ public class DonorDataGUI extends JFrame {
         grid.add(orderedByFulfillmentButton);
         grid.add(performAllButton);
         grid.add(clearOutputButton);
+        grid.add(createActionButton("Cancellation Decision", PRIMARY_COLOR, PRIMARY_HOVER,
+                event -> openCancellationDecision()));
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         controls.setOpaque(false);
@@ -464,7 +475,7 @@ public class DonorDataGUI extends JFrame {
         JPanel card = createCard("Parsed Preview (Editable)", javax.swing.border.TitledBorder.CENTER);
         card.setLayout(new BorderLayout(0, 10));
 
-        previewModel = new DefaultTableModel(new Object[]{"Row", "Order #", "Request Date", "Name", "Cell Type", "Max", "Min", "Cancellations"}, 0) {
+        previewModel = new DefaultTableModel(new Object[]{"Row", "Order #", "Request Date", "Name", "Cell Type", "Max", "Min", "Cancellations", "Request Type", "Requester Comment"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column != 0;
@@ -1528,7 +1539,9 @@ public class DonorDataGUI extends JFrame {
                         record.getCellType(),
                         record.getMaxRequest(),
                         record.getMinRequest(),
-                        record.getRecentlyCancelledRequests()
+                        record.getRecentlyCancelledRequests(),
+                        record.getRequestType(),
+                        record.getRequesterComment()
                 });
             }
 
@@ -1589,7 +1602,10 @@ public class DonorDataGUI extends JFrame {
                     throw new HICDataNotFoundException("Row " + (row + 1) + " has an empty name.");
                 }
 
-                data.add(new HICData(row + 1, orderNumber, requestDate, name, cellType, max, min, cancellations));
+                String requestType = java.util.Objects.toString(previewModel.getValueAt(row, 8), "").trim();
+                String requesterComment = java.util.Objects.toString(previewModel.getValueAt(row, 9), "").trim();
+                data.add(new HICData(row + 1, orderNumber, requestDate, name, cellType, max, min,
+                        cancellations, requestType, requesterComment));
             } catch (NumberFormatException | DateTimeParseException e) {
                 throw new HICDataNotFoundException("Row " + (row + 1) + " contains invalid numeric/date values. Use yyyy-MM-dd HH:mm:ss for Request Date.");
             }
@@ -1760,6 +1776,88 @@ public class DonorDataGUI extends JFrame {
 
     private boolean isNumeric(String value) {
         return value != null && value.matches("-?\\d+(\\.\\d+)?");
+    }
+
+    private void openCancellationDecision() {
+        if (cancellationDecisionLoading) {
+            return;
+        }
+        try {
+            Path directory = chooseCancellationDonorFolder();
+            if (directory == null) return;
+            cancellationDecisionLoading = true;
+            setStatus("Reading saved donor priority workbook...");
+            new SwingWorker<DonorDecisionWorkbook.Snapshot, Void>() {
+                @Override
+                protected DonorDecisionWorkbook.Snapshot doInBackground() throws Exception {
+                    return DonorDecisionWorkbook.read(directory);
+                }
+
+                @Override
+                protected void done() {
+                    cancellationDecisionLoading = false;
+                    try {
+                        DonorDecisionWorkbook.Snapshot snapshot = get();
+                        int choice = JOptionPane.showConfirmDialog(DonorDataGUI.this,
+                                "Use saved priority data for donor " + snapshot.donor() + "?\nCollection date: " + snapshot.date()
+                                        + "\nOrders: " + snapshot.orders().size() + "\nGenerated: " + snapshot.generatedAt()
+                                        + "\n\nThis planner works offline. Confirm actual PBMC cancellations manually after dispensing.",
+                                "Confirm Saved Donor Data", JOptionPane.YES_NO_OPTION);
+                        if (choice != JOptionPane.YES_OPTION) {
+                            setStatus("Cancellation decision cancelled.");
+                            return;
+                        }
+                        setStatus("Cancellation decision ready.");
+                        new CancellationDecisionDialog(DonorDataGUI.this, snapshot.orders(), snapshot.signals(), snapshot.stats(),
+                                directory, snapshot.donor(), snapshot.date()).setVisible(true);
+                    } catch (Exception exception) {
+                        Throwable cause = exception.getCause() == null ? exception : exception.getCause();
+                        setStatus("Cancellation decision unavailable.");
+                        JOptionPane.showMessageDialog(DonorDataGUI.this,
+                                "Could not load cancellation decision data. No recommendation was generated.\n" + cause.getMessage(),
+                                "Cancellation Decision", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            }.execute();
+        } catch (Exception exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Cancellation Decision", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private Path chooseCancellationDonorFolder() throws IOException {
+        Path root = Path.of(outputDirectory()).toAbsolutePath().normalize();
+        List<Path> recent = new ArrayList<>();
+        if (Files.isDirectory(root)) {
+            try (var folders = Files.list(root)) {
+                recent.addAll(folders.filter(Files::isDirectory)
+                        .filter(folder -> Files.isRegularFile(folder.resolve("Low_Yield_Order_Priority.xlsx")))
+                        .sorted(java.util.Comparator.comparing((Path folder) -> folder.getFileName().toString()
+                                .replaceFirst("^.*_(\\d{4}-\\d{2}-\\d{2})$", "$1")).reversed())
+                        .limit(12).toList());
+            }
+        }
+        if (!recent.isEmpty()) {
+            JComboBox<String> choices = new JComboBox<>(recent.stream().map(path -> path.getFileName().toString()).toArray(String[]::new));
+            Path current = batchOutputDirectory().toAbsolutePath().normalize();
+            for (int index = 0; index < recent.size(); index++) {
+                if (recent.get(index).equals(current)) choices.setSelectedIndex(index);
+            }
+            JPanel panel = new JPanel(new BorderLayout(8, 12));
+            panel.add(new JLabel("<html><b>Choose a donor to continue</b><br>Recent saved donor folders, newest collection dates first.<br>Priority data loads locally; PBMC outcomes are confirmed manually.</html>"), BorderLayout.NORTH);
+            panel.add(choices, BorderLayout.CENTER);
+            int choice = JOptionPane.showOptionDialog(this, panel, "Cancellation Decision — Select Donor",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null,
+                    new String[]{"Open Selected Donor", "Browse Other Folder…", "Cancel"}, "Open Selected Donor");
+            if (choice == 0) return recent.get(choices.getSelectedIndex());
+            if (choice != 1) return null;
+        }
+        JFileChooser chooser = new JFileChooser(root.toFile());
+        chooser.setDialogTitle("Select donor folder (NDXXX_YYYY-MM-DD)");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+        if (Files.isDirectory(batchOutputDirectory())) chooser.setSelectedFile(batchOutputDirectory().toFile());
+        return chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION
+                ? chooser.getSelectedFile().toPath().toAbsolutePath().normalize() : null;
     }
 
     private FulfillmentStats refreshFulfillmentStats(List<HICData> data) {
@@ -2245,7 +2343,7 @@ public class DonorDataGUI extends JFrame {
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor, prioritySignals);
             hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor, prioritySignals);
             FulfillmentStats fulfillmentStats = fulfillmentStatsForPriorityExport(data);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals, lastPrioritySignalsVerified);
             appendOutput("Created labels:\n- " + cdOutput + "\n- " + otherOutput);
             appendOutput("Exported CD4/CD8 requester list to: " + cdRequestListOutput);
             appendOutput("Exported low-yield order priority list to: " + priorityOutput);
@@ -2323,7 +2421,7 @@ public class DonorDataGUI extends JFrame {
             hicExcelLogger.exportToWord(processor.getCD4CD8CellRecords(data), labelTemplatePath, cdOutput, donor, prioritySignals);
             hicExcelLogger.exportToWord(processor.getOtherCellTypeRecords(data), labelTemplatePath, otherOutput, donor, prioritySignals);
             hicExcelLogger.exportCD4CD8RequestList(data, cdRequestListOutput, donor, prioritySignals);
-            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals);
+            hicExcelLogger.exportLowYieldPriorityList(data, priorityOutput, fulfillmentStats, donor, prioritySignals, lastPrioritySignalsVerified);
             addGeneratedFile(cdOutput);
             addGeneratedFile(otherOutput);
             addGeneratedFile(cdRequestListOutput);
@@ -2417,13 +2515,13 @@ public class DonorDataGUI extends JFrame {
     }
 
     private PrioritySheetSignals prioritySignalsForPriorityExport() {
+        lastPrioritySignalsVerified = false;
         try {
-            PrioritySheetSignals signals = prioritySignalService.fetchSignals(
-                    labMembersSheetUrl(),
-                    missedPickupsSheetUrl(),
-                    todaysRequestsSheetUrl(),
-                    LocalDate.now()
-            );
+            boolean configured = !labMembersSheetUrl().isBlank() && !todaysRequestsSheetUrl().isBlank();
+            PrioritySheetSignals signals = configured
+                    ? prioritySignalService.fetchDecisionSignals(labMembersSheetUrl(), missedPickupsSheetUrl(), todaysRequestsSheetUrl(), LocalDate.now())
+                    : prioritySignalService.fetchSignals(labMembersSheetUrl(), missedPickupsSheetUrl(), todaysRequestsSheetUrl(), LocalDate.now());
+            lastPrioritySignalsVerified = configured;
             if (signals.hasSignals()) {
                 appendOutputStatus("SUCCESS", "Loaded priority highlight signals for low-yield priority list.");
             }

@@ -34,6 +34,14 @@ public class HICData {
 
     }
 
+    public HICData(int ID, int orderNumber, LocalDateTime requestDate, String name, String cellType,
+                   double maxRequest, double minRequest, String recentlyCancelledRequests,
+                   String requestType, String requesterComment) {
+        this(ID, orderNumber, requestDate, name, cellType, maxRequest, minRequest, recentlyCancelledRequests);
+        this.requestType = requestType == null ? "" : requestType;
+        this.requesterComment = requesterComment == null ? "" : requesterComment;
+    }
+
     // Getters
 
     public int getID() {

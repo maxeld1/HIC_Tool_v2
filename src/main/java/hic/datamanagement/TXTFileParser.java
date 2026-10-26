@@ -155,7 +155,22 @@ public class TXTFileParser implements FileParser {
                         }
 
 
-                            HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType, maxRequest, minRequest); //use constructor to create HIC info
+                            String requestType = "";
+                            String requesterComment = "";
+                            String[] columns = line.split("\t", -1);
+                            if (columns.length >= 8) {
+                                requestType = columns[6].trim();
+                                requesterComment = columns[7].trim();
+                            } else {
+                                java.util.regex.Matcher metadata = java.util.regex.Pattern
+                                        .compile("\\s+(I|E_A|E_C)(?:\\s+(.*))?$").matcher(line);
+                                if (metadata.find()) {
+                                    requestType = metadata.group(1);
+                                    requesterComment = metadata.group(2) == null ? "" : metadata.group(2).trim();
+                                }
+                            }
+                            HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType,
+                                    maxRequest, minRequest, "", requestType, requesterComment);
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
                             lastRecord = hicDataItem;
                             //System.out.println(hicDataItem);

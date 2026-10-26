@@ -40,6 +40,10 @@ public class HicCellMonthViewScraper {
     }
 
     public HicCellMonthViewRows fetchLiveCellsAndCancelled() {
+        return fetchMonthViewRows(null);
+    }
+
+    protected HicCellMonthViewRows fetchMonthViewRows(LocalDate pbmcDate) {
         try (Playwright playwright = Playwright.create()) {
             clearStaleChromeSingletonLocks();
             BrowserContext context = playwright.chromium().launchPersistentContext(
@@ -59,18 +63,136 @@ public class HicCellMonthViewScraper {
                 clickTab(page, "Live Cells");
                 page.waitForLoadState();
                 waitForVisibleTableRows(page);
+                if (pbmcDate != null) applyPbmcDateFilter(page, pbmcDate);
                 List<HicCellOrderRecord> liveCells = readAllPages(page, false);
+                if (pbmcDate != null) clearSavedTableFilters(page);
 
                 clickTab(page, "Cancelled");
                 page.waitForLoadState();
                 waitForVisibleTableRows(page);
+                if (pbmcDate != null) applyPbmcDateFilter(page, pbmcDate);
                 List<HicCellOrderRecord> cancelled = readAllPages(page, true);
+                if (pbmcDate != null) clearSavedTableFilters(page);
 
                 return new HicCellMonthViewRows(liveCells, cancelled);
             } finally {
+                if (pbmcDate != null) {
+                    for (Page page : context.pages()) {
+                        try {
+                            if (!page.isClosed()) clearSavedTableFilters(page);
+                        } catch (RuntimeException ignored) {
+                        }
+                    }
+                }
                 context.close();
             }
         }
+    }
+
+    public HicCellMonthViewRows fetchPbmcOutcomesOnDate(LocalDate date) {
+        HicCellMonthViewRows rows = fetchMonthViewRows(date);
+        return new HicCellMonthViewRows(
+                rows.liveCells().stream().filter(row -> isPbmcForDate(row, date)).toList(),
+                rows.cancelled().stream().filter(row -> isPbmcForDate(row, date)).toList());
+    }
+
+    private static boolean isPbmcForDate(HicCellOrderRecord row, LocalDate date) {
+        return date.equals(row.collectionDate()) && row.cellType() != null
+                && row.cellType().trim().equalsIgnoreCase("PBMC");
+    }
+
+    protected void applyPbmcDateFilter(Page page, LocalDate date) {
+        try {
+            Object located = page.evaluate("""
+                    () => {
+                      if (!window.jQuery || !jQuery.fn.DataTable) throw new Error('Month View DataTables is not available');
+                      const visible = el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+                      const table = Array.from(document.querySelectorAll('table')).find(el => visible(el) && jQuery.fn.DataTable.isDataTable(el));
+                      if (!table) throw new Error('No active Month View table');
+                      const api = jQuery(table).DataTable();
+                      const rows = Array.from(table.querySelectorAll('thead tr, tfoot tr'));
+                      const normalize = text => text.toLowerCase().replace(/[^a-z]/g, '');
+                      const column = name => {
+                        for (const row of rows) {
+                          const index = Array.from(row.children).findIndex(cell => normalize(cell.textContent || '') === name);
+                          if (index >= 0) return index;
+                        }
+                        return api.columns().header().toArray().findIndex(cell => normalize(cell.textContent || '') === name);
+                      };
+                      const dateColumn = column('collectiondate');
+                      const cellColumn = column('celltype');
+                      if (dateColumn < 0 || cellColumn < 0) throw new Error('Collection Date or Cell Type header not found');
+                      const select = rows.map(row => row.children[dateColumn]?.querySelector('select')).find(Boolean);
+                      if (!select) throw new Error('Collection Date dropdown not found');
+                      document.querySelectorAll('table[data-hic-pbmc-table]').forEach(el => el.removeAttribute('data-hic-pbmc-table'));
+                      table.setAttribute('data-hic-pbmc-table', 'active');
+                      return {selectIndex: Array.from(table.querySelectorAll('select')).indexOf(select), dateColumn, cellColumn};
+                    }
+                    """);
+            if (!(located instanceof java.util.Map<?, ?> columns)) {
+                throw new IllegalStateException("Could not locate Month View filters.");
+            }
+            Locator select = page.locator("table[data-hic-pbmc-table='active'] select")
+                    .nth(((Number) columns.get("selectIndex")).intValue());
+            String option = (String) select.evaluate("""
+                    (select, date) => {
+                      let option = Array.from(select.options).find(option => option.value === date || option.textContent.trim() === date);
+                      if (!option) {
+                        option = new Option(date, date);
+                        select.add(option);
+                      }
+                      return option.value;
+                    }
+                    """, date.toString());
+            select.selectOption(option);
+            page.evaluate("""
+                    args => {
+                      const table = document.querySelector('table[data-hic-pbmc-table="active"]');
+                      if (!table || !jQuery.fn.DataTable.isDataTable(table)) throw new Error('Month View table changed while filtering');
+                      const api = jQuery(table).DataTable();
+                      const dateColumn = args.dateColumn;
+                      const cellColumn = args.cellColumn;
+                      table.querySelectorAll('thead tr, tfoot tr').forEach(row => {
+                        Array.from(row.children).forEach((cell, index) => {
+                          if (index === dateColumn) return;
+                          cell.querySelectorAll('input').forEach(input => input.value = index === cellColumn ? 'PBMC' : '');
+                          cell.querySelectorAll('select').forEach(select => {
+                            const value = index === cellColumn ? 'PBMC' : '';
+                            let option = Array.from(select.options).find(option => option.value.toUpperCase() === value || option.textContent.trim().toUpperCase() === value);
+                            if (!option) { option = new Option(value, value); select.add(option); }
+                            select.value = option.value;
+                          });
+                        });
+                      });
+                      table.closest('.dataTables_wrapper')?.querySelectorAll('.dataTables_filter input').forEach(input => input.value = '');
+                      window.__hicPbmcFilterReady = false;
+                      jQuery(table).one('draw.dt.hicPbmc', () => window.__hicPbmcFilterReady = true);
+                      api.search('');
+                      api.columns().search('');
+                      api.column(dateColumn).search('^' + args.date + '$', true, false);
+                      api.column(cellColumn).search('^PBMC$', true, false);
+                      api.draw();
+                    }
+                    """, java.util.Map.of("date", date.toString(), "dateColumn", columns.get("dateColumn"),
+                    "cellColumn", columns.get("cellColumn")));
+            page.waitForFunction("() => window.__hicPbmcFilterReady === true",
+                    null, new Page.WaitForFunctionOptions().setTimeout(30_000));
+        } catch (RuntimeException exception) {
+            throw new IllegalStateException("Could not apply the Month View PBMC/date filter for " + date
+                    + ". No unfiltered fallback was used.", exception);
+        }
+    }
+
+    private void clearSavedTableFilters(Page page) {
+        page.evaluate("""
+                () => {
+                  const table = document.querySelector('table[data-hic-pbmc-table="active"]');
+                  if (table && window.jQuery && jQuery.fn.DataTable.isDataTable(table)) {
+                    const api = jQuery(table).DataTable();
+                    if (api.state && api.state.clear) api.state.clear();
+                  }
+                }
+                """);
     }
 
     private List<HicCellOrderRecord> fetchTab(String tabName, boolean cancelled) {

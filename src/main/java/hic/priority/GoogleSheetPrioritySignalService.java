@@ -52,12 +52,44 @@ public class GoogleSheetPrioritySignalService {
         return new PrioritySheetSignals(labMembers, missedPickups, todayRequests);
     }
 
+    public PrioritySheetSignals fetchDecisionSignals(String labMembersSheetUrl, String missedPickupsSheetUrl,
+                                                     String todaysRequestsSheetUrl, LocalDate date) throws IOException {
+        CsvTable members = fetchTable(labMembersSheetUrl);
+        CsvTable today = fetchTable(todaysRequestsSheetUrl);
+        if (!hasAnyHeader(members.headers(), "name", "names", "member", "members", "lab member",
+                "lab members", "lab_member", "lab_members")) {
+            throw new IOException("Cancellation decisions require a recognized name header in the Lab Members sheet.");
+        }
+        if (!hasAnyHeader(today.headers(), "request id", "request_id", "requestid", "order", "order #", "order number")
+                || !hasAnyHeader(today.headers(), "request date", "request_date", "date")
+                || !hasAnyHeader(today.headers(), "name", "ordered by", "ordered_by", "requester")) {
+            throw new IOException("Today's Requests sheet must contain request ID, date, and requester name headers.");
+        }
+        for (Map<String, String> row : today.rows()) {
+            if (row.values().stream().allMatch(String::isBlank)) {
+                continue;
+            }
+            String requestId = firstPresent(row, "request id", "request_id", "requestid", "order", "order #", "order number");
+            String name = firstPresent(row, "name", "ordered by", "ordered_by", "requester");
+            if (requestId.isBlank() || name.isBlank()
+                    || parseDate(firstPresent(row, "request date", "request_date", "date")) == null) {
+                throw new IOException("Today's Requests sheet has an incomplete or invalid row. Correct it before planning cancellations.");
+            }
+        }
+        return new PrioritySheetSignals(fetchLabMembers(members),
+                fetchMissedPickups(missedPickupsSheetUrl, date.minusDays(MISSED_PICKUP_LOOKBACK_DAYS), date),
+                fetchTodayRequests(today, date));
+    }
+
     private Set<String> fetchLabMembers(String sheetUrl) throws IOException {
         if (sheetUrl == null || sheetUrl.isBlank()) {
             return Set.of();
         }
 
-        CsvTable table = fetchTable(sheetUrl);
+        return fetchLabMembers(fetchTable(sheetUrl));
+    }
+
+    private Set<String> fetchLabMembers(CsvTable table) {
         Set<String> members = new LinkedHashSet<>();
         boolean hasNameHeader = hasAnyHeader(table.headers(),
                 "name", "names", "member", "members", "lab member", "lab members", "lab_member", "lab_members");
@@ -114,7 +146,11 @@ public class GoogleSheetPrioritySignalService {
             return Set.of();
         }
 
-        List<Map<String, String>> rows = fetchRows(sheetUrl);
+        return fetchTodayRequests(fetchTable(sheetUrl), today);
+    }
+
+    private Set<String> fetchTodayRequests(CsvTable table, LocalDate today) {
+        List<Map<String, String>> rows = table.rows();
         Set<String> requestKeys = new LinkedHashSet<>();
         for (Map<String, String> row : rows) {
             String requestId = firstPresent(row, "request id", "request_id", "requestid", "order", "order #", "order number");
@@ -296,7 +332,7 @@ public class GoogleSheetPrioritySignalService {
         if (header == null) {
             return "";
         }
-        return header.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
+        return header.replace("\uFEFF", "").trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
     }
 
     private List<String> parseCsvRow(String row) {

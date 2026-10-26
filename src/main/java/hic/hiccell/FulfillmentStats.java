@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class FulfillmentStats {
 
@@ -14,14 +15,29 @@ public class FulfillmentStats {
     private final Map<String, StatLine> lines;
     private final int scrapedFulfilledRows;
     private final int scrapedCancelledRows;
+    private final Set<String> weeklyRequesterKeys;
 
     public FulfillmentStats(LocalDate startDate, LocalDate endDate, Map<String, StatLine> lines,
                             int scrapedFulfilledRows, int scrapedCancelledRows) {
+        this(startDate, endDate, lines, scrapedFulfilledRows, scrapedCancelledRows, null);
+    }
+
+    public FulfillmentStats(LocalDate startDate, LocalDate endDate, Map<String, StatLine> lines,
+                            int scrapedFulfilledRows, int scrapedCancelledRows, Set<String> weeklyRequesterKeys) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.lines = new LinkedHashMap<>(lines);
         this.scrapedFulfilledRows = scrapedFulfilledRows;
         this.scrapedCancelledRows = scrapedCancelledRows;
+        this.weeklyRequesterKeys = weeklyRequesterKeys == null ? null : Set.copyOf(weeklyRequesterKeys);
+    }
+
+    public boolean requesterFilledThisWeek(String name) {
+        if (weeklyRequesterKeys != null) {
+            return weeklyRequesterKeys.contains(hic.priority.PrioritySheetSignals.normalizePerson(name));
+        }
+        return lines.values().stream().anyMatch(line -> line.filledThisWeek()
+                && normalizePerson(line.orderedBy()).equals(normalizePerson(name)));
     }
 
     public String toDisplayText() {
