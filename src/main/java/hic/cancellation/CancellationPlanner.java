@@ -2,6 +2,7 @@ package hic.cancellation;
 
 import hic.hiccell.FulfillmentStats;
 import hic.priority.OrderPriority;
+import hic.priority.PrioritySheetSignals;
 import hic.util.HICData;
 
 import java.util.ArrayList;
@@ -30,6 +31,11 @@ public final class CancellationPlanner {
 
     public Plan plan(List<Order> orders, Map<String, Double> totalYields, FulfillmentStats stats,
                      boolean minimumFirst) {
+        return plan(orders, totalYields, stats, minimumFirst, PrioritySheetSignals.EMPTY);
+    }
+
+    public Plan plan(List<Order> orders, Map<String, Double> totalYields, FulfillmentStats stats,
+                     boolean minimumFirst, PrioritySheetSignals signals) {
         Set<String> served = orders.stream()
                 .filter(order -> order.filledThisWeek() || order.status() == Status.FULFILLED)
                 .map(order -> personKey(order.request().getName())).collect(java.util.stream.Collectors.toSet());
@@ -72,7 +78,7 @@ public final class CancellationPlanner {
         List<List<Order>> active = new ArrayList<>();
         Comparator<Order> priority = Comparator.comparing(Order::filledThisWeek)
                 .thenComparing(Order::donorSpecific, Comparator.reverseOrder())
-                .thenComparing((left, right) -> OrderPriority.compare(left.request(), right.request(), stats));
+                .thenComparing((left, right) -> OrderPriority.compare(left.request(), right.request(), stats, signals));
         Comparator<List<Order>> groupPriority = (left, right) -> priority.compare(
                 left.stream().min(priority).orElseThrow(), right.stream().min(priority).orElseThrow());
 
@@ -192,6 +198,12 @@ public final class CancellationPlanner {
                             : order.protectedOrder() ? "Protected lab member or today's priority request."
                             : !order.filledThisWeek() ? "No fulfillment recorded this week; priority preserved."
                             : "Kept according to priority and available yield.";
+                }
+                int missed = signals.missedPickupCount(order.request().getName());
+                if (order.status() == Status.PENDING && missed > 0) {
+                    reason += " Missed pickups: " + missed + " (" + "*".repeat(missed)
+                            + "); considered only after weekly access, donor specificity, and fulfillment-history factors."
+                            + " This is a late tie-breaker, not an automatic cancellation.";
                 }
                 results.put(order, new Decision(order, action, allocation, reason));
             }

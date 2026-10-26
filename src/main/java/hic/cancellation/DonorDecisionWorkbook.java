@@ -37,7 +37,7 @@ public final class DonorDecisionWorkbook {
         Sheet sheet = workbook.createSheet(SHEET_NAME);
         Row metadata = sheet.createRow(0);
         metadata.createCell(0).setCellValue("HIC cancellation inputs");
-        metadata.createCell(1).setCellValue(1);
+        metadata.createCell(1).setCellValue(2);
         metadata.createCell(2).setCellValue(donor.trim().toUpperCase(Locale.ROOT));
         metadata.createCell(3).setCellValue(date.toString());
         metadata.createCell(4).setCellValue(LocalDateTime.now().toString());
@@ -46,7 +46,7 @@ public final class DonorDecisionWorkbook {
         Row header = sheet.createRow(1);
         String[] headers = {"ID", "Order #", "Request Date", "Name", "Cell Type", "Max", "Min",
                 "Recently Cancelled", "Request Type", "Requester Comment", "Lab Member", "Today Request",
-                "Fulfilled", "Cancelled", "Cell Filled This Week", "Requester Filled This Week", "Has Stats"};
+                "Fulfilled", "Cancelled", "Cell Filled This Week", "Requester Filled This Week", "Has Stats", "Missed Pickup Count"};
         for (int index = 0; index < headers.length; index++) {
             header.createCell(index).setCellValue(headers[index]);
         }
@@ -71,6 +71,7 @@ public final class DonorDecisionWorkbook {
             row.createCell(14).setCellValue(line != null && line.filledThisWeek());
             row.createCell(15).setCellValue(stats != null && stats.requesterFilledThisWeek(order.getName()));
             row.createCell(16).setCellValue(line != null);
+            row.createCell(17).setCellValue(signals.missedPickupCount(order.getName()));
         }
         workbook.setSheetVisibility(workbook.getSheetIndex(sheet), SheetVisibility.VERY_HIDDEN);
     }
@@ -86,7 +87,8 @@ public final class DonorDecisionWorkbook {
                 throw new IOException("This priority workbook predates saved cancellation inputs. Run Perform All Actions or Make Labels once with the updated program, then select the new donor folder.");
             }
             Row metadata = sheet.getRow(0);
-            if (!"HIC cancellation inputs".equals(text(metadata, 0)) || integer(metadata, 1) != 1) {
+            int version = integer(metadata, 1);
+            if (!"HIC cancellation inputs".equals(text(metadata, 0)) || (version != 1 && version != 2)) {
                 throw new IOException("Unsupported cancellation input format. Regenerate the priority workbook.");
             }
             String donor = requiredText(metadata, 2);
@@ -102,6 +104,7 @@ public final class DonorDecisionWorkbook {
             Set<String> todayRequests = new LinkedHashSet<>();
             Set<String> weeklyRequesters = new LinkedHashSet<>();
             Map<String, FulfillmentStats.StatLine> lines = new LinkedHashMap<>();
+            Map<String, Integer> missedPickups = version == 1 ? readLegacyMissedPickups(workbook) : new LinkedHashMap<>();
             for (int index = 2; index <= sheet.getLastRowNum(); index++) {
                 Row row = sheet.getRow(index);
                 if (row == null) {
@@ -119,6 +122,13 @@ public final class DonorDecisionWorkbook {
                 }
                 orders.add(order);
                 String person = PrioritySheetSignals.normalizePerson(order.getName());
+                if (version == 2) {
+                    int missed = integer(row, 17);
+                    Integer previous = missedPickups.putIfAbsent(person, missed);
+                    if (previous != null && previous != missed) {
+                        throw new IOException("Conflicting saved missed-pickup counts for " + order.getName());
+                    }
+                }
                 if (flag(row, 10)) {
                     members.add(person);
                 }
@@ -145,10 +155,35 @@ public final class DonorDecisionWorkbook {
             FulfillmentStats stats = historyAvailable
                     ? new FulfillmentStats(date.minusDays(21), date, lines, 0, 0, weeklyRequesters) : null;
             return new Snapshot(donor, date, generatedAt, List.copyOf(orders),
-                    new PrioritySheetSignals(members, Map.of(), todayRequests), stats);
+                    new PrioritySheetSignals(members, missedPickups, todayRequests), stats);
         } catch (RuntimeException exception) {
             throw new IOException("Could not read saved cancellation inputs from " + file + ". Regenerate the workbook if it was edited or damaged.", exception);
         }
+    }
+
+    private static Map<String, Integer> readLegacyMissedPickups(Workbook workbook) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String name : List.of("CD4 CD8 Requests", "Other Requests")) {
+            Sheet sheet = workbook.getSheet(name);
+            if (sheet == null) continue;
+            int nameColumn = -1;
+            int missedColumn = -1;
+            for (Row row : sheet) {
+                for (Cell cell : row) {
+                    if (cell.getCellType() != CellType.STRING) continue;
+                    if (cell.getStringCellValue().equals("Name")) nameColumn = cell.getColumnIndex();
+                    if (cell.getStringCellValue().equals("Missed Pickups")) missedColumn = cell.getColumnIndex();
+                }
+                if (nameColumn < 0 || missedColumn < 0) continue;
+                Cell requester = row.getCell(nameColumn);
+                Cell missed = row.getCell(missedColumn);
+                if (requester == null || missed == null || requester.getCellType() != CellType.STRING
+                        || missed.getCellType() != CellType.STRING) continue;
+                int stars = (int) missed.getStringCellValue().chars().filter(character -> character == '*').count();
+                if (stars > 0) counts.merge(PrioritySheetSignals.normalizePerson(requester.getStringCellValue()), stars, Math::max);
+            }
+        }
+        return counts;
     }
 
     private static String text(Row row, int column) throws IOException {

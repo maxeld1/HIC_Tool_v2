@@ -59,7 +59,7 @@ public final class CancellationDecisionDialog extends JDialog {
     private final JCheckBox minimumFirst = new JCheckBox("Reserve minimums first; distribute surplus toward maximums", true);
     private final JTextArea result = new JTextArea();
     private final DefaultTableModel cancellationRows = new DefaultTableModel(
-            new Object[]{"Cell Type", "Order #", "Requester", "Minimum", "Maximum", "Why Cancel", "Requester Comment", "Will Cancel"}, 0) {
+            new Object[]{"Cell Type", "Order #", "Requester", "Minimum", "Maximum", "Why Cancel", "Requester Comment", "Will Cancel", "Missed Pickups"}, 0) {
         @Override
         public boolean isCellEditable(int row, int column) { return column == 7; }
         @Override
@@ -95,7 +95,7 @@ public final class CancellationDecisionDialog extends JDialog {
             throw new IllegalArgumentException("Duplicate requester/order/cell rows must be resolved in the preview before planning.");
         }
         orders = new DefaultTableModel(new Object[]{"Order #", "Requester", "Cell Type", "Min", "Max",
-                "Protected", "Linked Group", "Donor Specific", "Filled This Week", "Recorded Status", "Delivered", "Comment"}, 0) {
+                "Protected", "Linked Group", "Donor Specific", "Filled This Week", "Recorded Status", "Delivered", "Comment", "Missed Pickups"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column >= 6 && column <= 10;
@@ -571,7 +571,8 @@ public final class CancellationDecisionDialog extends JDialog {
             orders.addRow(new Object[]{request.getOrderNumber(), request.getName(), request.getCellType(),
                     request.getMinRequest(), request.getMaxRequest(), protectedOrder(request) ? "YES" : "",
                     group, donorSpecific(request.getRequesterComment()), weekly,
-                    CancellationPlanner.Status.PENDING, 0.0, request.getRequesterComment()});
+                    CancellationPlanner.Status.PENDING, 0.0, request.getRequesterComment(),
+                    "*".repeat(signals.missedPickupCount(request.getName()))});
         }
     }
 
@@ -652,10 +653,11 @@ public final class CancellationDecisionDialog extends JDialog {
             if (yields.isEmpty()) {
                 throw new IllegalArgumentException("Enter at least one actual yield.");
             }
-            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected());
+            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected(), signals);
             StringBuilder text = new StringBuilder("Cancellation Decision — donor " + donor + " — " + date + "\n\n");
             text.append("RECOMMENDATION ONLY. Recorded outcomes are not changed.\n")
                     .append("Priority-first heuristic: weekly access, donor specificity, then existing priority ranking.\n")
+                    .append("Missed pickups: more stars lower priority only after fulfillment-history factors, before request date/order-number tie-breakers. Protections and linked commitments are never overridden.\n")
                     .append("Not a guarantee of the global maximum number of orders or weekly fulfillment.\n")
                     .append("Blank yields are unknown. HOLD allocations are provisional, not approval to distribute.\n")
                     .append("Allocation basis: ").append(minimumFirst.isSelected() ? "minimum first, surplus toward maximum" : "maximum requested").append("\n\n");
@@ -719,11 +721,12 @@ public final class CancellationDecisionDialog extends JDialog {
         HICData request = requests.get(sourceRow);
         cancellationOrderRows.add(sourceRow);
         cancellationRows.addRow(new Object[]{request.getCellType(), request.getOrderNumber(), request.getName(),
-                request.getMinRequest(), request.getMaxRequest(), reason, request.getRequesterComment(), selected});
+                request.getMinRequest(), request.getMaxRequest(), reason, request.getRequesterComment(), selected,
+                "*".repeat(signals.missedPickupCount(request.getName()))});
     }
 
     private DefaultTableModel otherOrderRows() {
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Select", "Order #", "Requester", "Cell Type", "Protected", "Requester Comment"}, 0) {
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Select", "Order #", "Requester", "Cell Type", "Protected", "Requester Comment", "Missed Pickups"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return column == 0; }
             @Override
@@ -732,7 +735,8 @@ public final class CancellationDecisionDialog extends JDialog {
         for (int sourceRow : otherOrderSourceRows()) {
             HICData request = requests.get(sourceRow);
             model.addRow(new Object[]{false, request.getOrderNumber(), request.getName(), request.getCellType(),
-                    protectedOrder(request) ? "YES — protected" : "", request.getRequesterComment()});
+                    protectedOrder(request) ? "YES — protected" : "", request.getRequesterComment(),
+                    "*".repeat(signals.missedPickupCount(request.getName()))});
         }
         return model;
     }
@@ -816,7 +820,7 @@ public final class CancellationDecisionDialog extends JDialog {
     }
 
     private void recordCancellations(List<Integer> selected) throws IOException {
-        new CancellationPlanner().plan(readOrders(), Map.of(), stats, minimumFirst.isSelected());
+        new CancellationPlanner().plan(readOrders(), Map.of(), stats, minimumFirst.isSelected(), signals);
         for (int row : selected) {
             if (!String.valueOf(orders.getValueAt(row, 9)).equals("PENDING")) {
                 throw new IllegalArgumentException("Only pending orders can be newly confirmed as cancelled.");
@@ -833,7 +837,7 @@ public final class CancellationDecisionDialog extends JDialog {
     private void saveRecordedOutcomes() {
         try {
             List<CancellationPlanner.Order> records = readOrders();
-            new CancellationPlanner().plan(records, Map.of(), stats, minimumFirst.isSelected());
+            new CancellationPlanner().plan(records, Map.of(), stats, minimumFirst.isSelected(), signals);
             int choice = JOptionPane.showConfirmDialog(this,
                     "Save the recorded FULFILLED/CANCELLED statuses and delivered quantities for this donor/date?\n"
                             + "Recommendations are not actual outcomes. Only record distributions or cancellations that happened.",

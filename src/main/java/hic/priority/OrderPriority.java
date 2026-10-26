@@ -10,6 +10,10 @@ public final class OrderPriority {
     }
 
     public static int compare(HICData left, HICData right, FulfillmentStats stats) {
+        return compare(left, right, stats, PrioritySheetSignals.EMPTY);
+    }
+
+    public static int compare(HICData left, HICData right, FulfillmentStats stats, PrioritySheetSignals signals) {
         double leftRate = rate(left, stats);
         double rightRate = rate(right, stats);
         int comparison = Double.compare(leftRate, rightRate);
@@ -25,6 +29,10 @@ public final class OrderPriority {
             if (comparison != 0) {
                 return comparison;
             }
+        }
+        comparison = Integer.compare(signals.missedPickupCount(left.getName()), signals.missedPickupCount(right.getName()));
+        if (comparison != 0) {
+            return comparison;
         }
         return Comparator.comparing(HICData::getRequestDate)
                 .thenComparingInt(HICData::getOrderNumber).compare(left, right);

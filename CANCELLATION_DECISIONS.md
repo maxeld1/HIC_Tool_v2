@@ -181,6 +181,17 @@ exactly once. Do not enter only remaining inventory.
   the existing low-yield priority-sheet comparator: fulfillment rate, its existing
   volume/cancellation tie-breakers, request date, and order number. A linked group
   inherits its highest-priority member's ranking.
+- Missed-pickup stars are a late tie-breaker: after weekly access, donor specificity,
+  and fulfillment-history comparisons, fewer stars are favored before request
+  date and order number. More stars do not automatically blacklist or cancel an
+  order, override a stronger priority, or remove lab/Today's Requests protection
+  or an already fulfilled linked commitment. A pending order's reason states its
+  missed-pickup count when nonzero, without claiming it was the decisive factor.
+  Counts are visible in the review, Who to Cancel, and Select Other Orders tables.
+  New donor workbooks save counts in their input snapshot; older snapshots read
+  the stars from the existing visible Missed Pickups columns, without visiting
+  Google Sheets. Missing stars in an older workbook are treated as zero; regenerate
+  the morning workbook if those data were absent or have changed.
 - Before removing a group, the planner favors preserving a first weekly allocation
   for each requester over additional allocations to the same requester. It then
   removes the lowest-priority eligible group contributing to a shortage.

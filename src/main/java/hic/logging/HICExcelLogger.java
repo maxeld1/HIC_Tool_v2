@@ -481,7 +481,7 @@ public class HICExcelLogger {
 
         for (String cellType : orderedCellTypes) {
             List<HICData> ranked = byCellType.get(cellType).stream()
-                    .sorted((left, right) -> compareLowYieldPriority(left, right, fulfillmentStats))
+                    .sorted((left, right) -> hic.priority.OrderPriority.compare(left, right, fulfillmentStats, prioritySignals))
                     .toList();
 
             Row groupRow = sheet.createRow(rowNum++);
@@ -584,10 +584,6 @@ public class HICExcelLogger {
     private String normalizedRequesterName(String name) {
         String rawRequesterName = name == null ? "" : name.trim();
         return rawRequesterName.isEmpty() ? "Unknown" : rawRequesterName;
-    }
-
-    private int compareLowYieldPriority(HICData left, HICData right, FulfillmentStats fulfillmentStats) {
-        return hic.priority.OrderPriority.compare(left, right, fulfillmentStats);
     }
 
     private String fulfillmentFraction(HICData data, FulfillmentStats fulfillmentStats) {
