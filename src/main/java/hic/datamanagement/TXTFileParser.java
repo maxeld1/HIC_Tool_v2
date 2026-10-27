@@ -1,6 +1,7 @@
 package hic.datamanagement;
 
 import hic.util.HICData;
+import hic.util.RequestIdentityOrder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +38,6 @@ public class TXTFileParser implements FileParser {
 
         StringBuilder currentRecord = new StringBuilder(); //create currentRecord stringbuilder
 
-        int IDCounter = 0;
         HICData lastRecord = null;
 
         // Iterate over the lines of the file
@@ -92,7 +92,6 @@ public class TXTFileParser implements FileParser {
                     try {
                         // Get the request ID
                         int requestID = Integer.parseInt(tokens.get(0).trim());
-                        IDCounter++;
 
                         // Get the date and time
                         LocalDateTime requestDate = LocalDateTime.parse(tokens.get(1) + " " + tokens.get(2), dateTimeFormatter);
@@ -169,7 +168,7 @@ public class TXTFileParser implements FileParser {
                                     requesterComment = metadata.group(2) == null ? "" : metadata.group(2).trim();
                                 }
                             }
-                            HICData hicDataItem = new HICData(IDCounter, requestID, requestDate, name, cellType,
+                            HICData hicDataItem = new HICData(0, requestID, requestDate, name, cellType,
                                     maxRequest, minRequest, "", requestType, requesterComment);
                             hicData.add(hicDataItem); //add hicDataItem to HIC data arraylist
                             lastRecord = hicDataItem;
@@ -180,6 +179,7 @@ public class TXTFileParser implements FileParser {
                 }
             }
         }
+        hicData = RequestIdentityOrder.sortAndAssignIds(hicData);
     }
 
 

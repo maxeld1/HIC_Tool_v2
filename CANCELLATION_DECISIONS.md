@@ -6,6 +6,19 @@ submits cancellations to HIC Cell or changes label/sign-out exports.
 
 ## Daily workflow
 
+Before assigning the program's sequential unique IDs, pasted requests are sorted
+by numeric website request ID (ascending), then within each request ID by:
+Total T, CD4, CD8, Monocytes, NK Cells, PBMC, Unpurified Apheresis Product,
+Top layer of Ficoll, Bottom pellet of Ficoll. Unlisted types, including B Cells,
+follow those types alphabetically. Existing internal cell-type names are retained.
+The same set of valid requests therefore receives the same unique IDs regardless
+of its pasted order. Adding/removing requests can shift sequential IDs. Preview
+edits to request IDs or cell types are normalized again before generating outputs;
+the preview is refreshed to match. Other output-specific sorts preserve these IDs.
+When adopting this ordering, regenerate related labels/sheets together; do not mix
+older generated IDs with newly generated ones. Keep each request's comment and
+continuation/history lines attached when copying the source.
+
 The planner is organized into three numbered steps with Back / Next navigation:
 **Yields → Review Dependencies → Decisions & Outcomes**.
 You can revisit any step. Changing inputs clears stale recommendations.

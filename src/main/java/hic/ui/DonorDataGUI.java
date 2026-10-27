@@ -15,6 +15,7 @@ import hic.priority.PrioritySheetSignals;
 import hic.processor.HICDataNotFoundException;
 import hic.processor.Processor;
 import hic.util.HICData;
+import hic.util.RequestIdentityOrder;
 import hic.yield.DonorYieldRecord;
 import hic.yield.GoogleSheetDonorYieldService;
 
@@ -161,7 +162,7 @@ public class DonorDataGUI extends JFrame {
             System.err.println("Icon path not found.");
         }
 
-        setTitle("HIC Studio | v1.1.2");
+        setTitle("HIC Studio | v1.1.3");
         setSize(1320, 870);
         setMinimumSize(new Dimension(1320, 870));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -1528,22 +1529,7 @@ public class DonorDataGUI extends JFrame {
                 throw new HICDataNotFoundException("No records parsed. Confirm the input format and try again.");
             }
 
-            previewModel.setRowCount(0);
-            for (int i = 0; i < parsed.size(); i++) {
-                HICData record = parsed.get(i);
-                previewModel.addRow(new Object[]{
-                        i + 1,
-                        record.getOrderNumber(),
-                        DATE_TIME_FORMATTER.format(record.getRequestDate()),
-                        record.getName(),
-                        record.getCellType(),
-                        record.getMaxRequest(),
-                        record.getMinRequest(),
-                        record.getRecentlyCancelledRequests(),
-                        record.getRequestType(),
-                        record.getRequesterComment()
-                });
-            }
+            populateRequestPreview(parsed);
 
             recordsLabel.setText("Parsed records: " + parsed.size());
             lastParsedInputHash = hashText(input);
@@ -1579,8 +1565,19 @@ public class DonorDataGUI extends JFrame {
             throw new HICDataNotFoundException("Validation errors found. Review the Validation tab before running actions.");
         }
 
+        populateRequestPreview(data);
         createOutputDirectoryIfNeeded();
         return data;
+    }
+
+    private void populateRequestPreview(List<HICData> data) {
+        previewModel.setRowCount(0);
+        for (HICData record : data) {
+            previewModel.addRow(new Object[]{record.getID(), record.getOrderNumber(),
+                    DATE_TIME_FORMATTER.format(record.getRequestDate()), record.getName(), record.getCellType(),
+                    record.getMaxRequest(), record.getMinRequest(), record.getRecentlyCancelledRequests(),
+                    record.getRequestType(), record.getRequesterComment()});
+        }
     }
 
     private List<HICData> collectDataFromPreviewTable() throws HICDataNotFoundException {
@@ -1610,7 +1607,7 @@ public class DonorDataGUI extends JFrame {
                 throw new HICDataNotFoundException("Row " + (row + 1) + " contains invalid numeric/date values. Use yyyy-MM-dd HH:mm:ss for Request Date.");
             }
         }
-        return data;
+        return RequestIdentityOrder.sortAndAssignIds(data);
     }
 
     private ValidationResult validateData(String rawInput, List<HICData> data) {
