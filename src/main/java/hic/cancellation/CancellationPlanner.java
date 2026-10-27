@@ -36,13 +36,26 @@ public final class CancellationPlanner {
 
     public Plan plan(List<Order> orders, Map<String, Double> totalYields, FulfillmentStats stats,
                      boolean minimumFirst, PrioritySheetSignals signals) {
+        return plan(orders, totalYields, stats, minimumFirst, signals, Set.of());
+    }
+
+    public Plan plan(List<Order> orders, Map<String, Double> totalYields, FulfillmentStats stats,
+                     boolean minimumFirst, PrioritySheetSignals signals, Set<String> notIsolated) {
+        Map<String, Double> effectiveYields = new LinkedHashMap<>(totalYields);
+        for (String cell : notIsolated) {
+            if (orders.stream().anyMatch(order -> order.request().getCellType().equals(cell)
+                    && order.status() == Status.FULFILLED && order.delivered() > 0)) {
+                throw new IllegalArgumentException(cell + " already has recorded deliveries. Use Ready and enter its total usable yield instead of Not isolating today.");
+            }
+            effectiveYields.put(cell, 0.0);
+        }
         Set<String> served = orders.stream()
                 .filter(order -> order.filledThisWeek() || order.status() == Status.FULFILLED)
                 .map(order -> personKey(order.request().getName())).collect(java.util.stream.Collectors.toSet());
         orders = orders.stream().map(order -> new Order(order.request(), order.group(), order.protectedOrder(),
                 order.donorSpecific(), served.contains(personKey(order.request().getName())), order.status(), order.delivered())).toList();
         Map<String, Double> available = new LinkedHashMap<>();
-        totalYields.forEach((cell, amount) -> {
+        effectiveYields.forEach((cell, amount) -> {
             requireQuantity(amount, "Yield for " + cell);
             available.put(cell, amount);
         });
@@ -154,11 +167,11 @@ public final class CancellationPlanner {
         Map<Order, Double> allocations = new LinkedHashMap<>();
         for (List<Order> group : active) {
             boolean unknown = group.stream().anyMatch(order -> order.status() == Status.PENDING
-                    && !totalYields.containsKey(order.request().getCellType()));
+                    && !effectiveYields.containsKey(order.request().getCellType()));
             boolean shortage = group.stream().anyMatch(order ->
                     remaining.getOrDefault(order.request().getCellType(), 0.0) < -EPSILON);
             for (Order order : group) {
-                if (order.status() != Status.PENDING || !totalYields.containsKey(order.request().getCellType())) {
+                if (order.status() != Status.PENDING || !effectiveYields.containsKey(order.request().getCellType())) {
                     continue;
                 }
                 String cell = order.request().getCellType();
@@ -174,7 +187,9 @@ public final class CancellationPlanner {
         }
         for (List<Order> group : groups.values()) {
             boolean pendingYield = group.stream().anyMatch(order -> order.status() == Status.PENDING
-                    && !totalYields.containsKey(order.request().getCellType()));
+                    && !effectiveYields.containsKey(order.request().getCellType()));
+            List<String> unavailableCells = group.stream().filter(order -> order.status() == Status.PENDING)
+                    .map(order -> order.request().getCellType()).filter(notIsolated::contains).distinct().sorted().toList();
             for (Order order : group) {
                 String action;
                 double allocation = 0;
@@ -198,6 +213,10 @@ public final class CancellationPlanner {
                             : order.protectedOrder() ? "Protected lab member or today's priority request."
                             : !order.filledThisWeek() ? "No fulfillment recorded this week; priority preserved."
                             : "Kept according to priority and available yield.";
+                }
+                if (order.status() == Status.PENDING && !unavailableCells.isEmpty()) {
+                    reason += " Not isolating today: " + String.join(", ", unavailableCells)
+                            + ". This all-or-none group cannot be fulfilled; protections or existing commitments require manual review rather than automatic cancellation.";
                 }
                 int missed = signals.missedPickupCount(order.request().getName());
                 if (order.status() == Status.PENDING && missed > 0) {

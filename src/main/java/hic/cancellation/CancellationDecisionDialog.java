@@ -40,8 +40,9 @@ public final class CancellationDecisionDialog extends JDialog {
     private final JTable orderTable;
     private final JTable outcomeTable;
     private final Map<String, JTextField> yieldFields = new LinkedHashMap<>();
-    private final JPanel yieldPanel = new JPanel(new GridLayout(0, 3, 12, 10));
+    private final JPanel yieldPanel = new JPanel(new GridLayout(0, 4, 12, 10));
     private final Map<String, JCheckBox> yieldReady = new LinkedHashMap<>();
+    private final Map<String, JCheckBox> notIsolating = new LinkedHashMap<>();
     private final JPanel reviewChecklist = new JPanel(new GridLayout(0, 1, 4, 6));
     private final Map<String, JCheckBox> reviewChecks = new LinkedHashMap<>();
     private final JTabbedPane steps = new JTabbedPane();
@@ -150,7 +151,7 @@ public final class CancellationDecisionDialog extends JDialog {
         }
         JPanel yieldCard = new JPanel(new BorderLayout(12, 12));
         yieldCard.setBorder(BorderFactory.createTitledBorder("Which yields are ready?"));
-        yieldCard.add(new JLabel("<html>Enter TOTAL usable yield, including amounts already distributed.<br>Use request units. Not ready = unknown; Ready with 0 = no cells.</html>"), BorderLayout.NORTH);
+        yieldCard.add(new JLabel("<html>Enter TOTAL usable yield, including amounts already distributed, in request units.<br>Ready = enter a yield. Neither checked = unknown. Not isolating today = known zero availability, including linked requests.</html>"), BorderLayout.NORTH);
         yieldCard.add(yieldPanel, BorderLayout.CENTER);
         inputs.add(yieldCard, BorderLayout.NORTH);
         JPanel options = new JPanel(new GridLayout(0, 1));
@@ -396,9 +397,13 @@ public final class CancellationDecisionDialog extends JDialog {
             return;
         }
         yieldPanel.add(new JLabel(cell + " total yield"));
-        JCheckBox ready = new JCheckBox("Ready (otherwise unknown)");
+        JCheckBox ready = new JCheckBox("Yield ready");
         yieldReady.put(cell, ready);
         yieldPanel.add(ready);
+        JCheckBox unavailable = new JCheckBox("Not isolating today");
+        unavailable.setToolTipText("Known zero availability: requests for this cell type and their all-or-none partners cannot be fulfilled. Protected or committed groups require review.");
+        notIsolating.put(cell, unavailable);
+        yieldPanel.add(unavailable);
         JTextField amount = new JTextField();
         amount.setEnabled(false);
         amount.setToolTipText("Total usable yield in request units, including previously delivered amounts. Zero is a known zero yield.");
@@ -407,6 +412,12 @@ public final class CancellationDecisionDialog extends JDialog {
         ready.addActionListener(event -> {
             amount.setEnabled(ready.isSelected());
             if (ready.isSelected()) amount.requestFocusInWindow();
+            invalidateRecommendation();
+        });
+        unavailable.addActionListener(event -> {
+            if (unavailable.isSelected()) ready.setSelected(false);
+            ready.setEnabled(!unavailable.isSelected());
+            amount.setEnabled(ready.isSelected() && !unavailable.isSelected());
             invalidateRecommendation();
         });
         amount.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -627,6 +638,19 @@ public final class CancellationDecisionDialog extends JDialog {
         return result;
     }
 
+    private Map<String, Double> readYields() {
+        Map<String, Double> yields = new LinkedHashMap<>();
+        yieldFields.forEach((cell, field) -> {
+            if (notIsolating.get(cell).isSelected()) {
+                yields.put(cell, 0.0);
+            } else if (yieldReady.get(cell).isSelected()) {
+                if (field.getText().isBlank()) throw new IllegalArgumentException("Enter a yield for " + cell + " or mark it Not ready.");
+                yields.put(cell, number(field.getText()));
+            }
+        });
+        return yields;
+    }
+
     private boolean calculate() {
         if (workbookGenerating) {
             error(new IOException("Wait for the cancellation workbook to finish saving before calculating again."));
@@ -643,17 +667,13 @@ public final class CancellationDecisionDialog extends JDialog {
                 steps.setSelectedIndex(1);
                 throw new IllegalArgumentException("Review each flagged dependency / history item in step 2 and check its acknowledgement.");
             }
-            Map<String, Double> yields = new LinkedHashMap<>();
-            yieldFields.forEach((cell, field) -> {
-                if (yieldReady.get(cell).isSelected()) {
-                    if (field.getText().isBlank()) throw new IllegalArgumentException("Enter a yield for " + cell + " or mark it Not ready.");
-                    yields.put(cell, number(field.getText()));
-                }
-            });
+            Map<String, Double> yields = readYields();
+            Set<String> unavailable = notIsolating.entrySet().stream().filter(entry -> entry.getValue().isSelected())
+                    .map(Map.Entry::getKey).collect(Collectors.toSet());
             if (yields.isEmpty()) {
-                throw new IllegalArgumentException("Enter at least one actual yield.");
+                throw new IllegalArgumentException("Enter at least one actual yield or mark a cell type Not isolating today.");
             }
-            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected(), signals);
+            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected(), signals, unavailable);
             StringBuilder text = new StringBuilder("Cancellation Decision — donor " + donor + " — " + date + "\n\n");
             text.append("RECOMMENDATION ONLY. Recorded outcomes are not changed.\n")
                     .append("Priority-first heuristic: weekly access, donor specificity, then existing priority ranking.\n")
@@ -666,6 +686,8 @@ public final class CancellationDecisionDialog extends JDialog {
                     : "Priority and fulfillment history loaded from the donor workbook; weekly flags include reviewed local outcomes.\n");
             text.append("\nPBMC outcomes: manually confirmed local records; no website check. Pending is not assumed fulfilled.\n");
             yields.forEach((cell, amount) -> text.append(cell).append(" total yield: ").append(CancellationPlanner.format(amount)).append("\n"));
+            if (!unavailable.isEmpty()) text.append("Not isolating today (known zero availability): ")
+                    .append(String.join(", ", unavailable.stream().sorted().toList())).append("\n");
             if (!plan.issues().isEmpty()) {
                 text.append("\nUNRESOLVED — manual review required before acting:\n");
                 plan.issues().forEach(issue -> text.append("- ").append(issue).append("\n"));

@@ -47,6 +47,19 @@ output directory (newest collection date first), with a Browse option for others
    millions). Not ready means unknown; zero means no yield. Product volumes
    must remain in their own request units; the planner does not convert volumes
    into cell yields or model shared upstream apheresis consumption.
+   If a cell type will not be isolated at all, check **Not isolating today** instead.
+   This disables Ready/yield entry and supplies known zero availability, not an
+   unknown yield. Its orders and linked all-or-none partners cannot be recommended
+   for fulfillment, even if the other cell yields are sufficient. Cancellable
+   groups receive CANCEL; protected or already committed groups require REVIEW.
+   Reasons and exported notes identify the unavailable cell type. Cell types
+   marked Not isolating today count as entered zero yields in Who to Cancel and
+   the workbook; unentered linked partners remain review-only until their yields
+   are entered. Unlinked orders for other cell types remain eligible.
+   If this cell type already has recorded deliveries, use Ready with total usable
+   yield instead; the contradictory Not isolating setting is rejected.
+   Unchecking Not isolating returns the type to unknown until Ready is selected.
+   These availability choices, like yield inputs, must be set again after reopening.
 5. In **2 Review Dependencies**, review every comment and its suggested **Linked Group**. Give all orders that
    must be fulfilled together the same group value. CD4/CD8 requests from the same
    requester are linked and cannot be split in the planner. Conditional comments
