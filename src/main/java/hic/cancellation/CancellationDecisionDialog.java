@@ -57,7 +57,6 @@ public final class CancellationDecisionDialog extends JDialog {
     private final List<Integer> cancellationOrderRows = new ArrayList<>();
     private final JTable cancellationTable;
     private final JCheckBox reviewed = new JCheckBox("I verified the donor and reviewed comments, linked groups, weekly history, and recorded outcomes.");
-    private final JCheckBox minimumFirst = new JCheckBox("Reserve minimums first; distribute surplus toward maximums", true);
     private final JTextArea result = new JTextArea();
     private final DefaultTableModel cancellationRows = new DefaultTableModel(
             new Object[]{"Cell Type", "Order #", "Requester", "Minimum", "Maximum", "Why Cancel", "Requester Comment", "Will Cancel", "Missed Pickups"}, 0) {
@@ -155,7 +154,7 @@ public final class CancellationDecisionDialog extends JDialog {
         yieldCard.add(yieldPanel, BorderLayout.CENTER);
         inputs.add(yieldCard, BorderLayout.NORTH);
         JPanel options = new JPanel(new GridLayout(0, 1));
-        options.add(minimumFirst);
+        options.add(new JLabel("Minimums first for every cell type. Maximums only after all pending minimums and linked dependencies for that type are satisfied."));
         options.add(new JLabel(stats == null
                 ? "Weekly history unavailable: verify Filled This Week manually before calculating."
                 : "Weekly history loaded from the saved priority workbook. Confirmed local outcomes supplement it."));
@@ -385,7 +384,6 @@ public final class CancellationDecisionDialog extends JDialog {
             updateOutcomeSummary();
             invalidateRecommendation();
         });
-        minimumFirst.addActionListener(event -> invalidateRecommendation());
         reviewed.addActionListener(event -> invalidateRecommendation());
         rebuildReviewChecklist();
         updateOutcomeSummary();
@@ -676,15 +674,15 @@ public final class CancellationDecisionDialog extends JDialog {
             if (yields.isEmpty()) {
                 throw new IllegalArgumentException("Enter at least one actual yield or mark a cell type Not isolating today.");
             }
-            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected(), signals, unavailable);
+            CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, true, signals, unavailable);
             StringBuilder text = new StringBuilder("Cancellation Decision — donor " + donor + " — " + date + "\n\n");
             text.append("RECOMMENDATION ONLY. Recorded outcomes are not changed.\n")
                     .append("Priority-first heuristic: weekly access, fulfillment history, donor-specific tie-breaker, missed pickups, then request timing.\n")
                     .append("Missed pickups: more stars lower priority only after fulfillment-history factors, before request date/order-number tie-breakers. Protections and linked commitments are never overridden.\n")
                     .append("Not a guarantee of the global maximum number of orders or weekly fulfillment.\n")
                     .append("Blank yields are unknown. HOLD allocations are provisional, not approval to distribute.\n")
-                    .append("Allocation basis: ").append(minimumFirst.isSelected() ? "minimum first, surplus toward maximum" : "maximum requested").append("\n\n");
-            text.append("A zero minimum uses the maximum requested amount.\n");
+                    .append("Allocation basis: mandatory minimum-first. No maximum top-ups while pending minimums or linked dependencies for that cell type remain cancelled, unknown, or unresolved.\n\n");
+            text.append("A zero minimum reserves zero; a zero allocation is HOLD, not fulfillment.\n");
             text.append(stats == null ? "Saved fulfillment history unavailable; weekly flags were reviewed manually and/or loaded locally.\n"
                     : "Priority and fulfillment history loaded from the donor workbook; weekly flags include reviewed local outcomes.\n");
             text.append("\nPBMC outcomes: manually confirmed local records; no website check. Pending is not assumed fulfilled.\n");
@@ -865,7 +863,7 @@ public final class CancellationDecisionDialog extends JDialog {
     }
 
     private void recordCancellations(List<Integer> selected) throws IOException {
-        new CancellationPlanner().plan(readOrders(), Map.of(), stats, minimumFirst.isSelected(), signals);
+        new CancellationPlanner().plan(readOrders(), Map.of(), stats, true, signals);
         for (int row : selected) {
             if (!String.valueOf(orders.getValueAt(row, 9)).equals("PENDING")) {
                 throw new IllegalArgumentException("Only pending orders can be newly confirmed as cancelled.");
@@ -882,7 +880,7 @@ public final class CancellationDecisionDialog extends JDialog {
     private void saveRecordedOutcomes() {
         try {
             List<CancellationPlanner.Order> records = readOrders();
-            new CancellationPlanner().plan(records, Map.of(), stats, minimumFirst.isSelected(), signals);
+            new CancellationPlanner().plan(records, Map.of(), stats, true, signals);
             int choice = JOptionPane.showConfirmDialog(this,
                     "Save the recorded FULFILLED/CANCELLED statuses and delivered quantities for this donor/date?\n"
                             + "Recommendations are not actual outcomes. Only record distributions or cancellations that happened.",

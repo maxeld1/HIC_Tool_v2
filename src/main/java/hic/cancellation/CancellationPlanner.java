@@ -41,6 +41,9 @@ public final class CancellationPlanner {
 
     public Plan plan(List<Order> orders, Map<String, Double> totalYields, FulfillmentStats stats,
                      boolean minimumFirst, PrioritySheetSignals signals, Set<String> notIsolated) {
+        if (!minimumFirst) {
+            throw new IllegalArgumentException("Minimum-first allocation is mandatory; maximum-first planning is no longer supported.");
+        }
         Map<String, Double> effectiveYields = new LinkedHashMap<>(totalYields);
         for (String cell : notIsolated) {
             if (orders.stream().anyMatch(order -> order.request().getCellType().equals(cell)
@@ -166,16 +169,19 @@ public final class CancellationPlanner {
             });
             List<Order> group = reconsider.remove(0);
             active.add(group);
-            if (shortages(active, available, minimumFirst).isEmpty()) {
+            Set<String> blockersForGroup = shortages(active, available, minimumFirst).stream()
+                    .filter(cell -> groupDemand(group, cell, minimumFirst) > EPSILON)
+                    .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+            if (blockersForGroup.isEmpty()) {
                 removed.remove(group);
                 removalReasons.remove(group);
             } else {
-                String blockers = shortages(active, available, minimumFirst).stream().sorted()
+                String blockers = blockersForGroup.stream().sorted()
                         .map(cell -> cell + " demand " + format(demand(active, cell, minimumFirst))
                                 + ", available " + format(available.get(cell))).collect(java.util.stream.Collectors.joining("; "));
                 removalReasons.computeIfPresent(group, (key, reason) -> reason
                         + " Reconsidered but not restored: the resulting plan still exceeds supply (" + blockers
-                        + "). These blockers can include unresolved shortages in other cell types.");
+                        + "). Only cell types needed by this group's pending minimum requests block restoration.");
                 active.remove(group);
             }
         }
@@ -187,6 +193,16 @@ public final class CancellationPlanner {
                     remaining.computeIfPresent(order.request().getCellType(),
                             (cell, amount) -> amount - required(order, minimumFirst));
                 }
+            }
+        }
+        Set<String> blockedSurplus = new LinkedHashSet<>();
+        for (List<Order> group : groups.values()) {
+            boolean unresolved = removed.contains(group) || group.stream().anyMatch(order -> order.status() == Status.PENDING
+                    && (!effectiveYields.containsKey(order.request().getCellType())
+                    || remaining.getOrDefault(order.request().getCellType(), 0.0) < -EPSILON));
+            if (unresolved) {
+                group.stream().filter(order -> order.status() == Status.PENDING)
+                        .map(order -> order.request().getCellType()).forEach(blockedSurplus::add);
             }
         }
         Map<Order, Double> allocations = new LinkedHashMap<>();
@@ -201,7 +217,7 @@ public final class CancellationPlanner {
                 }
                 String cell = order.request().getCellType();
                 double allocation = required(order, minimumFirst);
-                if (minimumFirst && !unknown && !shortage) {
+                if (!blockedSurplus.contains(cell) && !unknown && !shortage) {
                     double extra = Math.min(Math.max(0, remaining.getOrDefault(cell, 0.0)),
                             order.request().getMaxRequest() - allocation);
                     allocation += extra;
@@ -237,13 +253,22 @@ public final class CancellationPlanner {
                 } else {
                     boolean groupShortage = group.stream().anyMatch(partner ->
                             remaining.getOrDefault(partner.request().getCellType(), 0.0) < -EPSILON);
-                    action = groupShortage ? "REVIEW" : pendingYield ? "HOLD" : "FULFILL";
+                    boolean zeroAllocation = group.stream().anyMatch(partner -> partner.status() == Status.PENDING
+                            && effectiveYields.containsKey(partner.request().getCellType())
+                            && allocations.getOrDefault(partner, 0.0) <= EPSILON);
+                    action = groupShortage ? "REVIEW" : pendingYield || zeroAllocation ? "HOLD" : "FULFILL";
                     allocation = allocations.getOrDefault(order, 0.0);
                     reason = groupShortage ? "Insufficient yield for protected or committed linked orders."
                             : pendingYield ? "Provisional reservation only: a linked cell yield is not entered."
+                            : zeroAllocation ? "No positive allocation for a pending member of this group. A zero minimum reserves no cells; it is not a completed fulfillment."
                             : order.protectedOrder() ? "Protected lab member or today's priority request."
                             : !order.filledThisWeek() ? "No fulfillment recorded this week; priority preserved."
                             : "Kept according to priority and available yield.";
+                }
+                if (order.status() == Status.PENDING && !removed.contains(group)
+                        && blockedSurplus.contains(order.request().getCellType())) {
+                    reason += " Minimum-only allocation: surplus toward maximums is withheld while a pending minimum request"
+                            + " or linked dependency for this cell type remains cancelled, unknown, or unresolved.";
                 }
                 if (order.status() == Status.PENDING && !unavailableCells.isEmpty() && !removed.contains(group)) {
                     reason += " Not isolating today: " + String.join(", ", unavailableCells)
@@ -299,7 +324,7 @@ public final class CancellationPlanner {
             double required = groupDemand(group, cell, minimumFirst);
             if (required > available.get(cell) + EPSILON) {
                 return "Deciding factor: insufficient yield to fit this group. " + cell + " needs " + format(required)
-                        + " (" + (minimumFirst ? "minimum-first" : "maximum-first") + "), but only " + format(available.get(cell))
+                        + " (minimum-first), but only " + format(available.get(cell))
                         + " is available after recorded deliveries, even before allocating other requests.";
             }
         }
@@ -379,6 +404,7 @@ public final class CancellationPlanner {
                                                        Map<String, Double> demandAfterRemoval) {
         for (Order order : alternative) {
             if (order.status() != Status.PENDING) continue;
+            if (order.request().getMinRequest() <= EPSILON) return false;
             String cell = order.request().getCellType();
             Double supply = available.get(cell);
             if (supply == null) return false;
@@ -388,8 +414,7 @@ public final class CancellationPlanner {
     }
 
     private static double required(Order order, boolean minimumFirst) {
-        return minimumFirst && order.request().getMinRequest() > 0
-                ? order.request().getMinRequest() : order.request().getMaxRequest();
+        return order.request().getMinRequest();
     }
 
     private static String personKey(String name) {

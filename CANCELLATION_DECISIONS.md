@@ -245,9 +245,21 @@ exactly once. Do not enter only remaining inventory.
   fulfillment still count as already served. For example, Kara's unmeasured monocyte
   request no longer lowers the weekly-access importance of her PBMC request.
   Removed groups are reconsidered if they can fit after other cancellations.
-- By default, kept groups reserve minimum quantities; if minimum is zero, maximum
-  is used instead. Surplus is allocated toward maximums in priority order. Uncheck
-  this option to reserve maximums throughout.
+- Minimum-first is mandatory for every cell type; there is no maximum-first switch.
+  Cancellation, weekly-access feasibility, restoration, and initial reservations
+  use the actual minimum quantities. A zero minimum reserves zero, not maximum;
+  an order with no positive allocation is HOLD rather than FULFILL and is not
+  counted as an alternative weekly fulfillment.
+- Removed requests are reconsidered at minimum quantities before any maximum
+  top-ups. Only known cell types consumed by that group's pending minimum requests
+  can block its restoration; an unrelated CD8 shortage cannot block an independent
+  CD4-only request that fits.
+- For each cell type, surplus goes toward maximums only when every still-pending
+  request for that type and its linked dependencies can be satisfied at minimum.
+  Pending cancelled, unknown/HOLD, or unresolved/REVIEW requests block top-ups for
+  that type. Other independent cell types are evaluated separately. The planner
+  may therefore leave yield unallocated rather than exceed some people's minima
+  while others remain unfilled. Confirmed actual cancellations are no longer pending.
 - This is a priority-first heuristic, not an exact global count optimizer. Strict
   priority can keep one large request instead of several smaller lower-priority
   requests. Weekly access and zero waste cannot be guaranteed with insufficient
