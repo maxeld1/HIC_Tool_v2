@@ -207,10 +207,22 @@ exactly once. Do not enter only remaining inventory.
   protected/committed group produces an unresolved shortage and manual-review
   result, rather than overriding the protection.
 - Among cancellable groups, people not yet served during the collection week's
-  Monday-to-Sunday period are favored, followed by donor-specific requests, then
-  the existing low-yield priority-sheet comparator: fulfillment rate, its existing
-  volume/cancellation tie-breakers, request date, and order number. A linked group
-  inherits its highest-priority member's ranking.
+  Monday-to-Sunday period are favored, followed by fulfillment rate and its existing
+  historical request-count/cancellation-count tie-breakers. Only when weekly access
+  and those history factors tie is the reviewed donor-specific flag considered.
+  Donor/HLA wording no longer overrides a stronger fulfillment-history priority.
+  Missed pickups, request date, and order number break subsequent ties. A linked
+  group inherits its highest-priority member's ranking.
+- Each algorithmic cancellation reason starts with **Deciding factor**: unavailable
+  isolation, a group too large for the yield, protection/commitment constraints,
+  weekly access, or the first differing priority factor. Reasons include shortage
+  demand versus supply, compared request identities and factor values where applicable,
+  linked consequences, and any failed restoration checks. Comparisons describe the
+  removal step, not a promise that the comparison request is ultimately fulfilled.
+  These same explanations appear in Who to Cancel, Full Details, highlighted sheets,
+  text exports, and new Decision History iterations. Previous iterations are unchanged.
+  Select a Who to Cancel row and click **View Selected Explanation…** to read the
+  full rationale in a scrollable window instead of relying on a truncated cell/tooltip.
 - Missed-pickup stars are a late tie-breaker: after weekly access, donor specificity,
   and fulfillment-history comparisons, fewer stars are favored before request
   date and order number. More stars do not automatically blacklist or cancel an

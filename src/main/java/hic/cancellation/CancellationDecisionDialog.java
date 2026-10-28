@@ -320,6 +320,9 @@ public final class CancellationDecisionDialog extends JDialog {
         cancellationActions.add(selectRecommended);
         cancellationActions.add(selectOther);
         cancellationActions.add(saveCancellations);
+        JButton explanation = new JButton("View Selected Explanation…");
+        explanation.addActionListener(event -> showSelectedCancellationExplanation());
+        cancellationActions.add(explanation);
         cancellationFooter.add(cancellationActions, BorderLayout.CENTER);
         cancellationFooter.add(new JLabel("Checking a box selects intent; confirm only after cancellation actually happens. Recalculating clears selections."), BorderLayout.SOUTH);
         cancellations.add(cancellationFooter, BorderLayout.SOUTH);
@@ -676,7 +679,7 @@ public final class CancellationDecisionDialog extends JDialog {
             CancellationPlanner.Plan plan = new CancellationPlanner().plan(currentOrders, yields, stats, minimumFirst.isSelected(), signals, unavailable);
             StringBuilder text = new StringBuilder("Cancellation Decision — donor " + donor + " — " + date + "\n\n");
             text.append("RECOMMENDATION ONLY. Recorded outcomes are not changed.\n")
-                    .append("Priority-first heuristic: weekly access, donor specificity, then existing priority ranking.\n")
+                    .append("Priority-first heuristic: weekly access, fulfillment history, donor-specific tie-breaker, missed pickups, then request timing.\n")
                     .append("Missed pickups: more stars lower priority only after fulfillment-history factors, before request date/order-number tie-breakers. Protections and linked commitments are never overridden.\n")
                     .append("Not a guarantee of the global maximum number of orders or weekly fulfillment.\n")
                     .append("Blank yields are unknown. HOLD allocations are provisional, not approval to distribute.\n")
@@ -731,6 +734,26 @@ public final class CancellationDecisionDialog extends JDialog {
         }
     }
 
+
+    private void showSelectedCancellationExplanation() {
+        int selected = cancellationTable.getSelectedRow();
+        if (selected < 0) {
+            JOptionPane.showMessageDialog(this, "Select an order in Who to Cancel first.");
+            return;
+        }
+        int row = cancellationTable.convertRowIndexToModel(selected);
+        JTextArea explanation = new JTextArea("#" + cancellationRows.getValueAt(row, 1) + " — "
+                + cancellationRows.getValueAt(row, 2) + " — " + cancellationRows.getValueAt(row, 0)
+                + "\n\n" + cancellationRows.getValueAt(row, 5) + "\n\nRequester comment:\n" + cancellationRows.getValueAt(row, 6));
+        explanation.setEditable(false);
+        explanation.setLineWrap(true);
+        explanation.setWrapStyleWord(true);
+        explanation.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 14));
+        explanation.setCaretPosition(0);
+        JScrollPane scroll = new JScrollPane(explanation);
+        scroll.setPreferredSize(new Dimension(Math.min(850, getWidth() - 100), Math.min(500, getHeight() - 160)));
+        JOptionPane.showMessageDialog(this, scroll, "Cancellation Explanation", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     private void selectAllVerification() {
         reviewChecks.values().forEach(check -> check.setSelected(true));
