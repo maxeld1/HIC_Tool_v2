@@ -120,7 +120,7 @@ public final class CancellationPlanner {
                 List<Order> group = active.get(index);
                 if (!locked(group) && group.stream().anyMatch(order -> order.status() == Status.PENDING
                         && shortages.contains(order.request().getCellType()) && required(order, minimumFirst) > 0)) {
-                    int weeklyLoss = weeklyCoverageLoss(group, active);
+                    int weeklyLoss = weeklyCoverageLoss(group, active, available, minimumFirst);
                     if (weeklyLoss < lowestWeeklyLoss) {
                         candidate = group;
                         lowestWeeklyLoss = weeklyLoss;
@@ -143,7 +143,8 @@ public final class CancellationPlanner {
                 .toList());
         while (!reconsider.isEmpty()) {
             reconsider.sort((left, right) -> {
-                int byCoverage = Integer.compare(weeklyCoverageLoss(right, active), weeklyCoverageLoss(left, active));
+                int byCoverage = Integer.compare(weeklyCoverageLoss(right, active, available, minimumFirst),
+                        weeklyCoverageLoss(left, active, available, minimumFirst));
                 return byCoverage == 0 ? groupPriority.compare(left, right) : byCoverage;
             });
             List<Order> group = reconsider.remove(0);
@@ -234,17 +235,34 @@ public final class CancellationPlanner {
         return group.stream().anyMatch(order -> order.protectedOrder() || order.status() == Status.FULFILLED);
     }
 
-    private static int weeklyCoverageLoss(List<Order> group, List<List<Order>> active) {
+    private static int weeklyCoverageLoss(List<Order> group, List<List<Order>> active,
+                                          Map<String, Double> available, boolean minimumFirst) {
         Set<String> requesters = group.stream().filter(order -> !order.filledThisWeek()
                         && order.status() == Status.PENDING)
                 .map(order -> personKey(order.request().getName())).collect(java.util.stream.Collectors.toSet());
+        Map<String, Double> demandAfterRemoval = new LinkedHashMap<>();
+        active.stream().filter(other -> other != group).flatMap(List::stream)
+                .filter(order -> order.status() == Status.PENDING)
+                .forEach(order -> demandAfterRemoval.merge(order.request().getCellType(), required(order, minimumFirst), Double::sum));
         for (List<Order> other : active) {
-            if (other != group) {
+            if (other != group && providesKnownWeeklyCoverage(other, available, demandAfterRemoval)) {
                 other.stream().filter(order -> order.status() == Status.PENDING)
                         .map(order -> personKey(order.request().getName())).forEach(requesters::remove);
             }
         }
         return requesters.size();
+    }
+
+    private static boolean providesKnownWeeklyCoverage(List<Order> alternative, Map<String, Double> available,
+                                                       Map<String, Double> demandAfterRemoval) {
+        for (Order order : alternative) {
+            if (order.status() != Status.PENDING) continue;
+            String cell = order.request().getCellType();
+            Double supply = available.get(cell);
+            if (supply == null) return false;
+            if (demandAfterRemoval.getOrDefault(cell, 0.0) > supply + EPSILON) return false;
+        }
+        return true;
     }
 
     private static double required(Order order, boolean minimumFirst) {

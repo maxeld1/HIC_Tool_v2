@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>HIC Studio User Guide</title></head>
+<body>
+<h2 id="welcome">01. How to use this guide</h2>
+<p>This booklet explains HIC Studio's daily processing, priority sheets, and cancellation decisions. It is bundled with the application and works offline. Open it from <b>Help &gt; User Guide</b> or press <b>F1</b>. You can leave this window open while using the main program. Escape closes the guide.</p>
+<ul><li>Select a topic in the left-hand <b>Topic Index</b>.</li><li>Search matches the full instructions, not just titles. Multiple words must all occur in a topic. Matching text is highlighted.</li><li>Try <b>saved cancellations</b>, <b>unique IDs</b>, <b>not isolating</b>, <b>missed pickups</b>, or an exact button name.</li><li>Use Clear Search to restore the full index. Previous Topic and Next Topic follow the booklet's original order. Blue links jump to related topics.</li></ul>
+<p><b>Important:</b> cancellation recommendations are decision support, not website actions. Review the donor, quantities, comments, dependencies, and unresolved issues before acting. A recommendation is not evidence that an order was actually cancelled or fulfilled.</p>
+<p>New users should start with <a href="#quick-start">Daily quick start</a>. For problems, see <a href="#troubleshooting-input">Input problems</a>, <a href="#troubleshooting-exports">Export problems</a>, or <a href="#troubleshooting-decisions">Decision problems</a>.</p>
+
+<h2 id="quick-start">02. Daily quick start</h2>
+<ol><li>Open Settings and verify your output directory, template files, and Google Sheet URLs. See <a href="#settings">Setup and settings</a>.</li><li>Copy the day's complete orders from the website's Print view. Paste into Data Input and enter the donor number.</li><li>Click <b>Parse &amp; Preview</b>. Inspect request IDs, names, cell types, quantities, request types, comments, and cancellation history. Resolve errors in the Validation tab.</li><li>Leave <b>Use Fulfillment Stats</b> enabled when you want website history included in the morning priority workbook. Internet access and a working website session may be needed.</li><li>Click <b>Perform All Actions</b>. This generates the summary, apheresis calculations, labels, request lists, priority workbook, and sign-out sheet. Check the Output tab and Generated Files list for completion; review warnings before using the results.</li><li>Later, open the red <b>Cancellation Decision</b> button in the blue header. Choose the saved donor/date folder. You do not need to paste the same requests again.</li><li>Enter known yields, review dependencies, calculate, and review the suggested actions. Confirm only cancellations or deliveries that actually happened.</li></ol>
+<p>Keep the donor folder and its sibling CancellationDecisionState folder together. Use a copy of the output directory for experiments or test runs so you do not overwrite real outcomes.</p>
+
+<h2 id="settings">03. Setup and settings</h2>
+<p>Open <b>Settings</b> beside the workflow controls. The setup wizard can also be launched from Settings. Save your changes before generating files.</p>
+<table><tr><th>Setting</th><th>Purpose</th></tr>
+<tr><td>Output Directory</td><td>Parent location for donor/date folders, generated files, local outcomes, and audit history. Use a writable folder outside the application's installation directory.</td></tr>
+<tr><td>Label Template File</td><td>The Word template used to produce labels.</td></tr>
+<tr><td>Sign-Out Template File</td><td>The Excel template used for the sign-out sheet.</td></tr>
+<tr><td>Donor History Sheet URL</td><td>Historical yield data used in donor-specific apheresis calculations.</td></tr>
+<tr><td>Lab Members Sheet URL</td><td>Recognizes protected lab-member requests.</td></tr>
+<tr><td>Missed Pickups Sheet URL</td><td>Supplies the missed-pickup counts displayed as stars and used as a late ranking tie-breaker.</td></tr>
+<tr><td>Today's Requests Sheet URL</td><td>Identifies dated priority requests that must be protected from automatic cancellation recommendations.</td></tr></table>
+<p>The Lab Members sheet needs a recognized name header. Today's Requests needs request ID, request date, and requester/name headers, with complete valid rows. Sheets must be accessible to the program. An ordinary browser being able to open a private sheet does not by itself guarantee that its data is accessible to the application's sheet reader.</p>
+<p>Settings and local outcome files are not automatically synchronized between computers. Keep backups of templates and output/state folders before changing computers or testing releases.</p>
+
+<h2 id="copy-orders">04. Copying orders from the website</h2>
+<ol><li>Go to the dispensation page and display the correct day's orders.</li><li>Scroll to the bottom and click <b>Print</b>.</li><li>Copy everything from the first request ID onward, including complete request rows and their associated comments/history.</li><li>Paste into the large Data Input text box, replacing previous input when starting a different batch.</li></ol>
+<p>The copied list may be sorted or unsorted. HIC Studio normalizes its order before assigning its own unique IDs. Preserve the fields within each row and keep continuation/history lines attached to their request; do not sort individual text lines by hand.</p>
+<p>The gray instructions in an empty input box are placeholder text, not order data. They disappear when you type or paste and return when the box is cleared.</p>
+<p>Do not copy only a subset of cell types if you need the planner to understand complete linked orders. A missing PBMC or partner request cannot safely be inferred later. See <a href="#preview">Preview and validation</a>.</p>
+
+<h2 id="preview">05. Preview, validation, and edits</h2>
+<p><b>Parse &amp; Preview</b> converts the pasted text into the editable preview table. The Validation tab reports problems. Verify the request ID, date/time, requester, cell type, maximum, minimum, request type, and requester comment before processing.</p>
+<ul><li>Request dates use <b>yyyy-MM-dd HH:mm:ss</b>.</li><li>Quantities must be valid numbers; minimum must not exceed maximum. Use the same units throughout each cell type.</li><li>The first Row/unique ID column is assigned by the program rather than edited manually.</li><li>You can correct editable cells in the preview. Changes to website request IDs or cell types are normalized again before generating outputs, and the preview refreshes to match.</li><li><b>Re-Parse from Input</b> rebuilds the preview from the pasted text and replaces manual preview corrections. Changing the original pasted text causes it to be parsed again when required.</li><li>Clearing the preview is not the same as clearing the pasted input; check both before starting a new donor.</li></ul>
+<p>Fix the source/preview and regenerate the donor workbook when requests, comments, quantities, or protections change. Editing visible priority-sheet rows in Excel does not update the hidden cancellation-input snapshot.</p>
+
+<h2 id="unique-ids">06. Request IDs and unique IDs</h2>
+<p>The website's <b>request ID</b> may be shared by several cell-type rows from one requester. HIC Studio also assigns a sequential <b>unique ID</b> to each individual row, starting at 1.</p>
+<p>Before assigning unique IDs, it sorts by numeric request ID ascending, then within that request ID by:</p>
+<ol><li>Total T</li><li>CD4</li><li>CD8</li><li>Monocytes</li><li>NK Cells</li><li>PBMC</li><li>Unpurified Apheresis Product</li><li>Top layer of Ficoll</li><li>Bottom pellet of Ficoll</li></ol>
+<p>Unlisted types, including B Cells, follow these types alphabetically. Internal names such as CD4+ and Top Layer Ficoll remain unchanged.</p>
+<p><b>The same set of valid requests gets the same unique IDs regardless of paste order.</b> Adding, removing, or changing requests can shift sequential IDs. Output-specific sorts change row positions, not the IDs attached to those requests.</p>
+<p>Generate labels and related sheets from the same batch. Do not mix old printed IDs with a newly regenerated request set.</p>
+
+<h2 id="toolbar">07. Workflow buttons and More Options</h2>
+<p>The main action strip shows <b>Perform All Actions</b>, <b>More Options</b>, and <b>Clear Output</b>. The red Cancellation Decision button is in the blue header, between HIC Studio and Hide Instructions.</p>
+<ul><li><b>Perform All Actions:</b> runs the complete export workflow for the current donor and requests.</li><li><b>More Options:</b> expands individual actions: Get HIC Summary, Calculate Apheresis, Make Labels, and Export Sign-Out Sheet. Fewer Options collapses them again.</li><li><b>Get HIC Summary:</b> summarizes requests by cell type.</li><li><b>Calculate Apheresis:</b> calculates requirements and provides the donor-specific report when usable history is available.</li><li><b>Make Labels:</b> generates labels plus the CD4/CD8 request list and low-yield priority workbook.</li><li><b>Export Sign-Out Sheet:</b> generates the sign-out workbook using the configured template.</li><li><b>Clear Output:</b> clears the displayed output/run summary; it does not delete previously generated files or erase confirmed cancellation outcomes.</li><li><b>Hide Instructions:</b> hides the quick-start banner, not this full user guide.</li></ul>
+<p>Parse &amp; Preview remains available beside the donor input. More Options hides individual export actions, not the parsing step.</p>
+
+<h2 id="files">08. Generated files and output tabs</h2>
+<p>Files are grouped under a donor/date folder such as <b>ND365_2026-10-28</b> inside the configured output directory.</p>
+<table><tr><th>File</th><th>Purpose</th></tr>
+<tr><td>UnsortedHICList.xlsx</td><td>The working request list before output-specific cell/date sorting; initial IDs have already been normalized.</td></tr>
+<tr><td>SortedHICList.xlsx</td><td>Requests grouped using the output's cell-type order, then request date/time.</td></tr>
+<tr><td>CD4CD8_Labels.docx / OTHERCellTypes_Labels.docx</td><td>Word label exports.</td></tr>
+<tr><td>CD4_CD8_Request_List.xlsx</td><td>CD4/CD8 request list.</td></tr>
+<tr><td>Low_Yield_Order_Priority.xlsx</td><td>Morning priority ranking and hidden input snapshot for the cancellation planner.</td></tr>
+<tr><td>HIC Sign-out Sheet.xlsx</td><td>The donor's sign-out sheet.</td></tr>
+<tr><td>Cancellation_Priority_DONOR_DATE.xlsx</td><td>The latest cancellation recommendation and cumulative calculation history.</td></tr></table>
+<p>In the main window, <b>Output</b> shows run status, completed steps, and generated file paths. <b>Summary</b> shows processing details; <b>Fulfillment</b> shows downloaded history; <b>Donor Specific Apheresis</b> shows donor-history calculations; <b>Validation</b> shows input problems; <b>History</b> shows the application's run/audit information.</p>
+<p>Repeated morning exports for the same donor/day may replace those morning files. Cancellation calculations instead append iterations to the same cancellation workbook. Keep backup copies when you need to preserve earlier source batches.</p>
+
+<h2 id="apheresis">09. Apheresis and donor history</h2>
+<p>The summary and apheresis tools estimate requirements from the current requests. The Donor Specific Apheresis report additionally uses the configured donor-history sheet when suitable data is present.</p>
+<p>Historical rows need valid donor ID, date, cell type, <b>requested_cells</b>, <b>actual_yield</b>, and <b>apheresis_used</b>. Incomplete rows are skipped; selection uses the most recent qualifying history rather than a newer incomplete record. Check the report's source details and warnings before relying on an estimate.</p>
+<p>Use consistent units and verify the selected donor. A historical estimate is not an actual measured yield for today's cancellation planning. The cancellation planner does not convert product volumes into cell yields or model shared upstream apheresis consumption.</p>
+<p>If a report is missing history, check the URL, access, headers, donor naming, dates, and numeric values. Do not fill missing scientific measurements with arbitrary zeros just to satisfy the parser.</p>
+
+<h2 id="priority-sheet">10. Morning priority and fulfillment</h2>
+<p>Use Fulfillment Stats controls whether the morning label/full-workflow export fetches recent website fulfillment history. The low-yield priority sheets group requests by cell type and show rank, request details, a three-week fulfillment fraction, weekly flags, and missed-pickup stars.</p>
+<p>The historical fraction represents fulfilled requests out of fulfilled plus counted cancellations. A lower fulfillment percentage is normally favored. Duplicate/retracted/requester-withdrawn cancellations are excluded from these ranking counts. A cancellation reason of <b>-</b> is not excluded merely because it is a dash.</p>
+<p>Weekly tracking uses the collection/current week rather than the original request-submission week. The cancellation planner also considers whether a person has received any cell type, not just the type being ranked.</p>
+<p><b>A sheet rank of #1 is not an absolute promise of fulfillment.</b> Cancellation decisions add protections, weekly-access considerations, donor specificity, linked requirements, and feasibility. See <a href="#decision-priority">The full cancellation hierarchy</a>.</p>
+<p>Missing history is explicitly reported. Verify weekly flags manually if necessary. Lab/Today's Requests protection data must be verified for a usable cancellation snapshot; a failed protection lookup is not treated as proof nobody is protected.</p>
+
+<h2 id="open-planner">11. Opening Cancellation Decision</h2>
+<ol><li>Generate the morning donor folder with Perform All Actions or Make Labels.</li><li>Click the red <b>Cancellation Decision</b> button in the main header.</li><li>Select a recent donor folder or browse to another. Choose the folder containing Low_Yield_Order_Priority.xlsx, not just an arbitrary cancellation export.</li><li>Confirm the saved donor, collection date, order count, and generation time.</li><li>Work through Yields, Review Dependencies, and Decisions &amp; Outcomes.</li></ol>
+<p>The planner loads the morning workbook's saved input snapshot and local outcomes. It does not re-scrape the website or refresh Google Sheets. This keeps later planning quick, but also means source changes after the morning run require regeneration.</p>
+<p>Folders created before saved cancellation inputs were supported must be regenerated once. Keep the correct donor/date even when opening a folder on a later day; the selected snapshot determines the collection date.</p>
+
+<h2 id="yield-inputs">12. Yields and Not isolating today</h2>
+<table><tr><th>Setting in 1 Yields</th><th>Meaning</th></tr>
+<tr><td>Yield ready</td><td>Enter a measured total usable yield. Zero means a known zero yield.</td></tr>
+<tr><td>Neither option checked</td><td>The yield is unknown. Retained text in a disabled field is ignored.</td></tr>
+<tr><td>Not isolating today</td><td>Known zero availability. Yield entry is disabled and linked all-or-none groups cannot be approved for fulfillment.</td></tr></table>
+<p>Enter <b>total usable yield, including amounts already distributed</b>, in the same units as request quantities. Recorded delivered amounts are subtracted exactly once. Do not enter remaining inventory if previous deliveries are also recorded.</p>
+<p>With minimum-first enabled, the planner reserves each kept request's minimum and distributes surplus toward maxima. If minimum is zero, maximum is used. Turning minimum-first off requires maximum quantities instead.</p>
+<p>Not isolating today can produce cancellation recommendations for cancellable groups, or REVIEW for protected/already committed groups. If that cell type already has recorded positive deliveries, the setting is rejected: use Yield ready with the total actual yield instead.</p>
+<p>Unchecking Not isolating returns the type to unknown until Yield ready is selected. Yield values, ready controls, and availability choices currently reset when the planner is reopened. See <a href="#resume">Closing and resuming</a>.</p>
+
+<h2 id="dependencies">13. Comments and linked orders</h2>
+<p>In Review Dependencies, read every requester comment and check the <b>Linked Group</b>, <b>Donor Specific</b>, and <b>Filled This Week</b> fields.</p>
+<ul><li>CD4/CD8 requests from the same requester are linked automatically and cannot be split in the planner.</li><li>Conditional comments containing wording such as both, together, all-or-none, or cancel-if can suggest a broader group for that requester's orders.</li><li>Use the same Linked Group value for requests that must be fulfilled together. Narrow or expand suggested groups to match the actual experiment.</li><li>Donor-specific, critical-donor, or HLA language can set Donor Specific. Generic urgency such as need cells does not automatically raise priority.</li><li>Confirm each flagged item individually, or use Select All after reviewing all current items and donor/date/outcomes. It is a shortcut, not automatic verification.</li></ul>
+<p>Comment interpretation is heuristic, not complete language understanding. Unrecognized wording still matters and must be reviewed manually. A dash comment does not create an all-or-none link.</p>
+<p>An unknown linked yield produces HOLD/provisional reservations, not permission to dispense the known cell type. A known cancelled partner normally cancels pending linked requests. An already fulfilled partner commits the group; impossible commitments require manual review.</p>
+
+<h2 id="decision-priority">14. Keep/cancel priority hierarchy</h2>
+<p>The planner is a priority-first heuristic, not an exact optimizer. It removes eligible groups contributing to shortages, preserving stronger priorities where feasible, and reconsiders removed groups that can fit.</p>
+<ol><li><b>Hard protections and actual commitments:</b> lab members, matching Today's Requests, and groups containing an already fulfilled member are not automatically recommended for cancellation. Conflicts require REVIEW.</li><li><b>Weekly access:</b> prefer preserving a person's first weekly fulfillment over additional allocations to someone already served or with another genuinely fillable allocation.</li><li><b>Donor specificity:</b> favor reviewed donor-specific/HLA requirements over ordinary historical ranking when weekly-access considerations are equal.</li><li><b>Fulfillment history:</b> favor lower historical fulfillment percentage. At tied percentages below 100%, favor more historical cancellations. At 100%, favor fewer total historical requests. Unknown history sorts behind known history at this stage.</li><li><b>Missed pickups:</b> fewer stars are favored as a late tie-breaker. Stars never automatically blacklist someone or override stronger protections/priorities.</li><li><b>Request timing:</b> earlier request date/time, then lower request number, break remaining ties.</li></ol>
+<p>A linked group inherits its highest-priority member's ranking. Physical feasibility still matters: a 10-cell minimum cannot fit into a 5-cell yield. Minimum-first versus maximum-first changes that feasibility.</p>
+<p>The planner cannot guarantee every person is served, the global maximum number of orders is filled, or zero yield is wasted. See <a href="#weekly-access">Weekly access details</a> and <a href="#examples">Examples of surprising decisions</a>.</p>
+
+<h2 id="weekly-access">15. What counts as weekly access?</h2>
+<p>Weekly access means trying to give each requester at least one fulfillment during the collection week's Monday-to-Sunday period. A fulfillment of another cell type can count. Reviewed historical flags and saved actual positive deliveries supplement the morning snapshot.</p>
+<p>Another pending order counts as alternative weekly coverage only when <b>all pending cell types in its linked group have known yields</b> and the remaining demand for those types fits available supply after the proposed cancellation.</p>
+<p>An unmeasured monocyte request is therefore not a reason to sacrifice someone's high-priority, currently fillable PBMC request. An unresolved or HOLD group is not assumed to provide a real alternative fulfillment.</p>
+<p>If a requester will receive known, feasible CD8 cells, their independent NK request may be cancelled to preserve NK for someone who would otherwise receive nothing. This does not make CD8 and NK an all-or-none pair.</p>
+<p>Local outcomes contribute only when saved and accessible in the same state-folder location. Planned allocations, checked Will Cancel boxes, and unchecked orders are not proof of actual fulfillment.</p>
+
+<h2 id="review-results">16. Understanding decision results</h2>
+<p>Decisions &amp; Outcomes starts with total yield, already delivered, planned/reserved, and remaining quantities. Negative remaining quantities or unresolved notices require review.</p>
+<table><tr><th>Result</th><th>Interpretation</th></tr>
+<tr><td>FULFILL</td><td>The request fits the current plan. This is not an actual recorded delivery.</td></tr>
+<tr><td>CANCEL / SHOULD CANCEL</td><td>A pending cancellation recommendation. It is not submitted to the website or automatically recorded as actual.</td></tr>
+<tr><td>HOLD</td><td>A linked yield is unknown. Reservations are provisional; do not distribute based on HOLD alone.</td></tr>
+<tr><td>REVIEW</td><td>A protection, commitment, conflicting outcome, or shortage prevents a clean automatic decision.</td></tr>
+<tr><td>RECORDED FULFILLED / CANCELLED</td><td>A previously entered actual outcome, not changed by this recommendation.</td></tr>
+<tr><td>NO YIELD ENTERED / LINKED — NO YIELD ENTERED</td><td>The cell type is outside the actionable cancellation list; inspect linked consequences before handling it.</td></tr></table>
+<p><b>Allocations &amp; Linked Groups:</b> select a row to inspect its entire group and comments below. <b>Needs Your Decision:</b> unresolved issues and linked unknowns. <b>Changes Since Last Calculation:</b> compares decisions/allocations within this open session. <b>Full Details:</b> the complete report, including unmet weekly-access targets.</p>
+<p>Changing inputs clears the old displayed recommendation. Calculate again before relying on an earlier result.</p>
+
+<h2 id="select-cancellations">17. Selecting and confirming cancellations</h2>
+<ol><li>Calculate, then open Who to Cancel. Its initial recommendations include only pending orders for cell types with known entered yields, including Not isolating today.</li><li>Read Why Cancel and Requester Comment. Hover to see long text; scroll horizontally if necessary.</li><li>Check <b>Will Cancel</b> for orders you choose to cancel. Recommendations start unchecked. Select All Listed checks the current list.</li><li>Use <b>Select Other Orders</b> to add other pending requests, including nonrecommended orders or types without entered yields. They are labelled MANUAL SELECTION. Protected orders are identified; manual selection is not a program recommendation.</li><li>After those cancellations actually happen, click the green <b>Confirm &amp; Save Selected Cancellations</b> button. Review the donor/date and named selections, then confirm.</li></ol>
+<p>Confirmation records CANCELLED with zero delivered and saves the donor/day outcomes plus current reviewed flags. It does not cancel anything on HIC Cell. Unchecked orders remain unchanged, not automatically fulfilled.</p>
+<p>Checkboxes represent temporary intent only. Changing inputs or recalculating clears selections. Closing warns about unconfirmed selected cancellations. Cancelling the confirmation leaves recorded outcomes unchanged.</p>
+<p>Saving actual cancellations clears the old recommendation. Review dependencies and recalculate before acting on the next plan.</p>
+
+<h2 id="record-outcomes">18. Deliveries and saved cancellations</h2>
+<p>Within Decisions &amp; Outcomes, open <b>Recorded Outcomes &amp; Deliveries</b>. This is the place to review already confirmed cancellations from earlier calculations or sessions for the same donor/day.</p>
+<ul><li><b>PENDING:</b> not yet recorded as completed; delivered amount must be zero.</li><li><b>FULFILLED:</b> an actual completed delivery; enter a positive actual delivered amount.</li><li><b>CANCELLED:</b> an actual completed cancellation; delivered amount must be zero.</li></ul>
+<p>Look for Recorded Status = CANCELLED to find previously confirmed cancellations. These are excluded from new Who to Cancel recommendations. The view shows cumulative fulfilled/cancelled/pending counts and whether there are unsaved changes.</p>
+<p>Use <b>Save Recorded Outcomes</b> after entering deliveries or correcting previous statuses. Saving asks for confirmation. Merely calculating or checking a cancellation box does not record an outcome.</p>
+<p>The saved state reflects current statuses, not an immutable audit trail of later corrections. The workbook's Decision History is a history of calculations, not proof that recommended cancellations actually occurred.</p>
+
+<h2 id="pbmc-workflow">19. PBMCs before later cell types</h2>
+<ol><li>At the early PBMC stage, mark PBMC Yield ready, enter total usable PBMC yield, and leave later yields unknown unless a type definitely will not be isolated.</li><li>Review comments and all-or-none dependencies, then calculate. HOLD is not approval to distribute a PBMC request that still depends on an unknown later yield.</li><li>Complete actual website dispensing/cancellations using your normal process. In Who to Cancel, confirm the cancellations that actually happened; Select Other Orders allows exceptions to recommendations.</li><li>Record actual PBMC fulfillments and delivered amounts in Recorded Outcomes &amp; Deliveries, then save. Unchecked PBMCs are not automatically assumed fulfilled.</li><li>Later, enter isolated-cell yields, review dependencies again, and calculate. Saved PBMC cancellations propagate to linked pending requests; saved PBMC deliveries commit linked partners against automatic cancellation.</li></ol>
+<p>The cancellation planner does <b>not</b> check Month View for PBMC outcomes. Enter real outcomes manually. Morning historical-priority scraping is a separate process.</p>
+<p>When re-entering PBMC yield after reopening, enter the original total usable yield, not the remainder after the deliveries you have already recorded.</p>
+
+<h2 id="resume">20. Closing, resuming, and backups</h2>
+<p><b>Remembered after saving:</b> actual fulfilled/cancelled statuses, delivered quantities, reviewed linked groups, donor-specific flags, and weekly flags for that donor/day.</p>
+<p><b>Not restored:</b> yield values, Yield ready/Not isolating choices, verification checkmarks, temporary Will Cancel selections, and the prior live recommendation display. Re-enter yields/availability, review, and recalculate.</p>
+<p>Open the same donor/date folder to resume. Outcomes are stored separately under <b>CancellationDecisionState</b>, beside the donor folders in the output parent directory. The app uses donor/date identity internally; do not manually rename or edit its JSON state files to move outcomes between donors.</p>
+<p>Keep the donor folder and its sibling state folder when backing up or moving to another computer. State is not automatically synced between machines. Coordinate one active editor if using shared/copied directories.</p>
+<p>Adding/removing requests or changing quantities can require reconciliation. The program rejects saved quantity mismatches rather than silently applying outcomes to changed requests. Back up before corrections and inspect the stated donor/order.</p>
+
+<h2 id="decision-workbook">21. Cancellation workbook and history</h2>
+<p>Each calculation saves one <b>Cancellation_Priority_DONOR_DATE.xlsx</b> in the selected donor folder. Later calculations append numbered iterations to its Decision History instead of creating a new workbook each time.</p>
+<ul><li><b>Cancellation Summary:</b> current scoped cancellation recommendations, yields, and warnings.</li><li><b>Highlighted priority tabs:</b> original ranking plus decision, planned allocation, reason, and requester comment. Pink SHOULD CANCEL identifies current actionable recommendations. Read the decision text; original priority highlighting remains.</li><li><b>Decision History:</b> previous calculations, entered yields, decisions, allocations, comments, groups, protections, and unresolved issues.</li></ul>
+<p>The original Low_Yield_Order_Priority.xlsx is preserved. Older randomly named cancellation exports remain archives and are not merged automatically.</p>
+<p>Saving runs in the background. Open Highlighted Priority Sheet enables when the current save completes. Export Detailed Notes saves the full text report.</p>
+<p><b>Close the cancellation workbook in Excel before recalculating, then reopen it.</b> Windows can block replacement while it is open; other systems may keep displaying the older opened version. Failed replacement preserves earlier history rather than silently discarding it.</p>
+<p>Current cancelled outcomes are reviewed in <a href="#record-outcomes">Recorded Outcomes &amp; Deliveries</a>, not inferred from historical SHOULD CANCEL entries.</p>
+
+<h2 id="examples">22. Why a high-ranked order can cancel</h2>
+<h3>Only 5 NK cells, but a request needs at least 10</h3>
+<p>Even rank #1 cannot fit an unmet 10-cell minimum into a 5-cell supply. Another requester with a 5-cell minimum may be feasible. Protected requests instead produce an unresolved review requirement.</p>
+<h3>One requester wants CD8 and NK; another only NK</h3>
+<p>If the first requester can genuinely receive their independent CD8 request, preserving NK for the second can serve both people once. Without an all-or-none requirement, CD8 and NK do not have to be fulfilled together.</p>
+<h3>A donor-specific monocyte request outranks historical rank #1</h3>
+<p>When weekly-access considerations are equal, reviewed donor specificity comes before historical fulfillment ranking. If the losing requester requires both monocytes and Total T, losing monocytes also prevents filling that linked T request, even with enough T cells.</p>
+<h3>A requester also has an unknown monocyte yield</h3>
+<p>The unknown monocyte order does not count as a real alternative weekly allocation. It should not by itself justify cancelling their currently fillable high-priority PBMC request.</p>
+<h3>Several missed-pickup stars</h3>
+<p>More stars lower priority only after weekly access, donor specificity, and fulfillment-history factors are equal. They are not an automatic cancellation rule.</p>
+<p>Inspect Allocations &amp; Linked Groups, flags, recorded outcomes, and yield settings to explain an individual result. The visible sheet rank alone is not the full cancellation hierarchy.</p>
+
+<h2 id="troubleshooting-input">23. Input and parsing problems</h2>
+<h3>No records parsed, missing rows, or wrong names/cell types</h3>
+<p>Copy again from the website's Print view, starting at the first request ID. Include full rows and preserve columns and attached continuation lines. Check the original text as well as the preview. Avoid pasting just a formatted summary or a screenshot.</p>
+<h3>Invalid numeric/date values</h3>
+<p>Use numeric request amounts and a request timestamp in yyyy-MM-dd HH:mm:ss form. Confirm maximum/minimum columns were not shifted. Correct source or preview and parse/validate again.</p>
+<h3>Missing requester comments or all-or-none partners</h3>
+<p>Ensure the copied data includes request type and requester comment fields and all cell types. Comment detection is heuristic: manually review and correct linked groups even when no warning was generated.</p>
+<h3>Unique IDs differ from older printouts</h3>
+<p>Check whether the request set changed or the printouts were generated before canonical ID ordering. Regenerate the whole related batch instead of mixing identifiers. Sorting current pasted requests alone should not change IDs for an unchanged valid set.</p>
+
+<h2 id="troubleshooting-exports">24. Export, settings, and network problems</h2>
+<h3>Cannot write a file or replace the cancellation workbook</h3>
+<p>Close the affected Excel/Word file, check the configured output path and folder permissions, and retry. Keep backups. Existing cancellation history is preserved if replacement fails. Reopen the workbook after a successful new save.</p>
+<h3>Missing template or labels/sign-out failure</h3>
+<p>Check Settings for the Word label template and Excel sign-out template. Verify the files exist and can be read. Run Setup Wizard if configuration is incomplete; do not store working output inside a replaced application bundle.</p>
+<h3>Website history or Google Sheet access failed</h3>
+<p>Inspect Fulfillment, Validation, and the processing output. Verify the URLs, internet connection, access permissions, and any website login/browser prompts. Re-run the morning export after fixing the source. A failed lookup does not imply zero history or no protected requests.</p>
+<h3>Output looks unchanged</h3>
+<p>Verify the selected donor/date/output directory and the latest generated file path. Close/reopen Excel. Confirm the action completed successfully instead of relying on a previous open file or old recommendation.</p>
+
+<h2 id="troubleshooting-decisions">25. Cancellation-planner problems</h2>
+<h3>Folder cannot load, or saved inputs are missing</h3>
+<p>Select the donor folder containing Low_Yield_Order_Priority.xlsx. Regenerate older folders with Perform All Actions or Make Labels. An arbitrary cancellation workbook alone is not the expected source folder.</p>
+<h3>Protections not verified</h3>
+<p>Fix Lab Members/Today's Requests URLs, access, headers, and invalid rows, then regenerate the morning snapshot. The planner does not silently assume unverified protections are absent.</p>
+<h3>Calculation asks for review</h3>
+<p>Review the flagged dependencies and donor/date/outcomes in step 2, then select their checks or Select All. Edits reset acknowledgements. Yield ready also requires a valid number; unknown and zero are different.</p>
+<h3>HOLD, REVIEW, negative remaining yield, or unresolved shortages</h3>
+<p>Check unknown linked yields, Not isolating settings, protected/committed demand, and actual deliveries. Do not treat provisional reservations as permission to distribute. Correct inputs or resolve the conflict manually; protections are not removed automatically to make totals fit.</p>
+<h3>Saved cancellation disappeared or an order still looks pending</h3>
+<p>Verify you confirmed and saved, rather than only checking Will Cancel. Open the same donor/day with its sibling state folder intact, then inspect Recorded Outcomes &amp; Deliveries. Check whether a different computer/output parent directory was used.</p>
+<h3>PBMC balance is too small after reopening</h3>
+<p>Enter total usable yield including recorded deliveries. Entering only the remaining inventory causes the recorded amount to be subtracted again.</p>
+<h3>A new decision disagrees with an old workbook</h3>
+<p>Compare iteration timestamps, entered yields, availability settings, actual statuses, linked groups, flags, and snapshot age. The live comparison is session-only; use Decision History across sessions. A manually selected cancellation is not an algorithm recommendation.</p>
+
+<h2 id="updates">26. Updates, testing, and safety limits</h2>
+<p>Use <b>Help &gt; Check for Updates</b> to request an update check. The packaged app also checks shortly after startup. An internet connection is needed for updates, not for reading this guide.</p>
+<p>A compatible published normal release with a higher version can prompt for download. Downloading and verification do not install anything without your confirmation. Finish work and save actual outcomes before accepting installation.</p>
+<ul><li><b>Windows:</b> the application closes and opens the MSI installer. Follow its prompts, then reopen HIC Studio.</li><li><b>Mac:</b> the application closes and opens the DMG. Replace the app in Applications as instructed, then reopen.</li><li>Draft releases and prereleases are not offered by the normal updater. Download a test installer manually when testing an unpublished build.</li><li>The standard Windows MSI upgrades the existing app; it is not a separate test installation. Use a copied output/state directory for test data and keep backups.</li></ul>
+<p><b>Limits:</b> outcomes are local, not automatically synchronized; a request row has one complete recorded status, not partial fulfillment; comment interpretation needs human review; allocation is not a mathematical guarantee of maximum orders or zero waste; no cancellation-planner action changes orders on the website.</p>
+<p>If a result still cannot be explained, preserve the donor workbook and note the application version, donor/date, entered yields/availability, recorded outcomes, and exact warning. Use test copies when investigating, not live outcome records.</p>
+</body>
+</html>

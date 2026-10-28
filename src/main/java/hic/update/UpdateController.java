@@ -1,5 +1,6 @@
 package hic.update;
 
+import hic.ui.UserGuideDialog;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JDialog;
@@ -34,6 +35,11 @@ public final class UpdateController {
             window.setJMenuBar(menuBar);
         }
         JMenu help = new JMenu("Help");
+        JMenuItem guide = new JMenuItem("User Guide…");
+        guide.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+        guide.addActionListener(event -> UserGuideDialog.open(window));
+        help.add(guide);
+        help.addSeparator();
         JMenuItem check = new JMenuItem("Check for Updates…");
         check.addActionListener(event -> controller.check(true));
         help.add(check);

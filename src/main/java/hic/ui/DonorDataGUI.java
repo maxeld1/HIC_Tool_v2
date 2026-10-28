@@ -162,7 +162,7 @@ public class DonorDataGUI extends JFrame {
             System.err.println("Icon path not found.");
         }
 
-        setTitle("HIC Studio | v1.1.4");
+        setTitle("HIC Studio | v1.1.5");
         setSize(1320, 870);
         setMinimumSize(new Dimension(1320, 870));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -229,7 +229,14 @@ public class DonorDataGUI extends JFrame {
         instructionToggleButton.addActionListener(e -> toggleInstructionsVisibility());
         controls.add(instructionToggleButton);
 
+        JPanel decisions = new JPanel(new GridBagLayout());
+        decisions.setOpaque(false);
+        JButton cancellationButton = createActionButton("Cancellation Decision", DANGER_COLOR, DANGER_HOVER,
+                event -> openCancellationDecision());
+        cancellationButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        decisions.add(cancellationButton);
         header.add(textPanel, BorderLayout.WEST);
+        header.add(decisions, BorderLayout.CENTER);
         header.add(controls, BorderLayout.EAST);
         return header;
     }
@@ -253,8 +260,8 @@ public class DonorDataGUI extends JFrame {
 
         JLabel text = new JLabel(
                 "<html><div style='font-family:Avenir Next; font-size:13px; color:#33465A;'>" +
-                        "<b>Quick Start:</b> Paste input and donor number, click <b>Parse & Preview</b>, " +
-                        "fix validation issues, then run one action or <b>Perform All Actions</b>. " +
+                        "<b>Quick Start:</b> Paste input and donor number, " +
+                        "then run one action or <b>Perform All Actions</b>. " +
                         "Toggle <b>Use Fulfillment Stats</b> to control whether the scraper runs for the low-yield priority list." +
                         "</div></html>"
         );
@@ -309,7 +316,7 @@ public class DonorDataGUI extends JFrame {
                 new EmptyBorder(8, 8, 8, 8)
         ));
 
-        JPanel buttons = new JPanel(new GridLayout(1, 6, 8, 0));
+        JPanel buttons = new JPanel(new GridLayout(1, 3, 8, 0));
         buttons.setOpaque(false);
 
         JButton summaryButton = createActionButton("Get HIC Summary", PRIMARY_COLOR, PRIMARY_HOVER, e -> runAction("Get HIC Summary", "Generated HIC summary", this::getHICSummary));
@@ -328,11 +335,25 @@ public class DonorDataGUI extends JFrame {
             setStatus("Output cleared.");
         });
 
-        buttons.add(summaryButton);
-        buttons.add(apheresisButton);
-        buttons.add(labelButton);
-        buttons.add(signOutButton);
+        JPanel moreOptions = new JPanel(new GridLayout(1, 4, 8, 0));
+        moreOptions.setOpaque(false);
+        moreOptions.setBorder(new EmptyBorder(8, 0, 0, 0));
+        moreOptions.add(summaryButton);
+        moreOptions.add(apheresisButton);
+        moreOptions.add(labelButton);
+        moreOptions.add(signOutButton);
+        moreOptions.setVisible(false);
+
+        JButton moreOptionsButton = createActionButton("More Options ▾", PRIMARY_COLOR, PRIMARY_HOVER, event -> {
+            boolean expanded = !moreOptions.isVisible();
+            moreOptions.setVisible(expanded);
+            ((JButton) event.getSource()).setText(expanded ? "Fewer Options ▴" : "More Options ▾");
+            strip.revalidate();
+            strip.repaint();
+        });
+        moreOptionsButton.setToolTipText("Show or hide individual summary, apheresis, label, and sign-out actions.");
         buttons.add(performAllButton);
+        buttons.add(moreOptionsButton);
         buttons.add(clearOutputButton);
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -349,11 +370,7 @@ public class DonorDataGUI extends JFrame {
 
         strip.add(buttons, BorderLayout.CENTER);
         strip.add(controls, BorderLayout.EAST);
-        JPanel decisions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
-        decisions.setOpaque(false);
-        decisions.add(createActionButton("Cancellation Decision", PRIMARY_COLOR, PRIMARY_HOVER,
-                event -> openCancellationDecision()));
-        strip.add(decisions, BorderLayout.SOUTH);
+        strip.add(moreOptions, BorderLayout.SOUTH);
         return strip;
     }
 
@@ -384,7 +401,7 @@ public class DonorDataGUI extends JFrame {
         topRow.add(donorPanel, BorderLayout.WEST);
         topRow.add(parseButton, BorderLayout.EAST);
 
-        dataArea = new JTextArea();
+        dataArea = new PlaceholderTextArea("Paste order information here by scrolling to the bottom of the dispensation page, clicking \"Print,\" and copying everything from the first request ID onward. Can now be sorted or unsorted before copying.");
         dataArea.setFont(MONO_FONT);
         dataArea.setLineWrap(true);
         dataArea.setWrapStyleWord(true);
@@ -450,8 +467,6 @@ public class DonorDataGUI extends JFrame {
         grid.add(orderedByFulfillmentButton);
         grid.add(performAllButton);
         grid.add(clearOutputButton);
-        grid.add(createActionButton("Cancellation Decision", PRIMARY_COLOR, PRIMARY_HOVER,
-                event -> openCancellationDecision()));
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         controls.setOpaque(false);
@@ -3119,6 +3134,40 @@ public class DonorDataGUI extends JFrame {
             return chooser.getSelectedFile().getAbsolutePath();
         }
         return null;
+    }
+
+    private static final class PlaceholderTextArea extends JTextArea {
+        private final JTextArea placeholder;
+
+        private PlaceholderTextArea(String text) {
+            placeholder = new JTextArea(text);
+            placeholder.setOpaque(false);
+            placeholder.setEditable(false);
+            placeholder.setLineWrap(true);
+            placeholder.setWrapStyleWord(true);
+            placeholder.setForeground(new Color(112, 124, 138));
+            getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent event) { repaint(); }
+                @Override
+                public void removeUpdate(DocumentEvent event) { repaint(); }
+                @Override
+                public void changedUpdate(DocumentEvent event) { repaint(); }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            super.paintComponent(graphics);
+            if (getDocument().getLength() == 0) {
+                placeholder.setFont(getFont());
+                placeholder.setBorder(getBorder());
+                placeholder.setSize(getSize());
+                Graphics overlay = graphics.create();
+                placeholder.paint(overlay);
+                overlay.dispose();
+            }
+        }
     }
 
     private static class ValidationResult {

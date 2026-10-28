@@ -4,6 +4,10 @@ The **Cancellation Decision** button opens a modal planner from a saved donor fo
 It produces a reviewable recommendation and an optional text export. It never
 submits cancellations to HIC Cell or changes label/sign-out exports.
 
+For the full offline, searchable instruction booklet, open **Help → User Guide**
+or press **F1**. Its topic index includes the daily workflow, settings, unique IDs,
+priority rules, linked requests, saved outcomes, workbook history, and troubleshooting.
+
 ## Daily workflow
 
 Before assigning the program's sequential unique IDs, pasted requests are sorted
@@ -221,6 +225,13 @@ exactly once. Do not enter only remaining inventory.
 - Before removing a group, the planner favors preserving a first weekly allocation
   for each requester over additional allocations to the same requester. It then
   removes the lowest-priority eligible group contributing to a shortage.
+  Another pending order counts as alternative weekly coverage only if every pending
+  cell type in its linked group has a known yield and the remaining active demand
+  for each of those types fits the available supply after the proposed removal.
+  Unknown-yield/HOLD groups and unresolved shortages do not justify sacrificing
+  a currently fillable request. Confirmed deliveries and reviewed historical weekly
+  fulfillment still count as already served. For example, Kara's unmeasured monocyte
+  request no longer lowers the weekly-access importance of her PBMC request.
   Removed groups are reconsidered if they can fit after other cancellations.
 - By default, kept groups reserve minimum quantities; if minimum is zero, maximum
   is used instead. Surplus is allocated toward maximums in priority order. Uncheck
