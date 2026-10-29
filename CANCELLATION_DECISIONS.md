@@ -25,6 +25,16 @@ continuation/history lines attached when copying the source.
 
 The planner is organized into three numbered steps with Back / Next navigation:
 **Yields → Review Dependencies → Decisions & Outcomes**.
+
+The yield screen uses compact two-column cards, with policy notes collapsed until
+needed. Order tables have **Search**, a **cell-type filter**, and a visible/total
+order count. Search includes comments and hidden fields; multiple words must all
+match. These controls only change the view, not calculations or saved outcomes.
+Select a row to read its full comment, explanation, and other fields in the detail
+pane; drag its divider to resize it. **More columns** restores secondary fields
+without losing edits. **Select All Listed** still selects the entire cancellation
+list, including rows hidden by filters. **Yield Balance** contains the inventory
+summary, rather than repeating it above every decision view.
 You can revisit any step. Changing inputs clears stale recommendations.
 The opening chooser lists up to twelve recent donor folders from the configured
 output directory (newest collection date first), with a Browse option for others.
@@ -76,8 +86,14 @@ output directory (newest collection date first), with a Browse option for others
 7. In step 2, verify donor/date, outcomes, flagged comments, and missing history.
    Use individual checkboxes or **Select All** to acknowledge every current item
    and the donor/date verification together. Select All is only a shortcut after
-   review: it does not establish that the data is correct. Hover over flagged
-   comments for their full text and current linked group. Editing orders resets
+   review: it does not establish that the data is correct. Each flagged item's
+   checkbox displays its requester comment; hover for the current linked group.
+   These checks acknowledge review, not whether the suggested flag is true.
+   Correct Linked Group, Donor Specific, and Filled This Week in the table first,
+   then acknowledge every flagged item. Check donor/date/outcomes only after
+   confirming the correct donor/day and that saved statuses and delivered amounts
+   match what actually happened (or remain pending if nothing has happened).
+   Editing orders resets
    the acknowledgements.
 8. Calculate, then use **3 Decisions & Outcomes → Who to Cancel**. Recommended
    cancellations have individual **Will Cancel** checkboxes, initially unchecked.
@@ -110,11 +126,11 @@ are not proof that a request can be distributed; check HOLD / REVIEW statuses.
 The result views are:
 
 - **Who to Cancel**: actionable scoped cancellation recommendations.
-- **Allocations & Linked Groups**: every order, allocation, reason, and comment.
+- **Allocations & Links**: every order, allocation, reason, and comment.
   Select a row to inspect all requests in its linked group in the lower pane.
 - **Needs Your Decision**: HOLD / REVIEW rows, unknown-yield linked cancellation
   consequences, and unresolved issues. Resolve these before distributing.
-- **Changes Since Last Calculation**: changed decisions/allocations compared with
+- **Changes**: changed decisions/allocations compared with
   the previous calculation in this open session. Across sessions, use the workbook's
   cumulative **Decision History** instead.
 - **Full Details**: complete report, including unmet weekly-access targets.
@@ -122,7 +138,7 @@ The result views are:
 **Recorded Outcomes & Deliveries** shows cumulative donor/day fulfilled,
 cancelled, and pending counts plus an unsaved-changes indicator. It lives alongside
 Who to Cancel, allocations, and review details, not in a separate workflow step.
-Workbook generation remains in the background; Open Highlighted Priority Sheet
+Workbook generation remains in the background; Open Priority Workbook
 enables after saving.
 
 To review previously confirmed cancellations, reopen the same donor/day folder
@@ -152,7 +168,7 @@ Each donor/day uses one `Cancellation_Priority_<donor>_<date>.xlsx` inside the
 selected donor folder. Each calculation appends a numbered iteration to its
 **Decision History** tab, retaining earlier outcomes, yields, comments, reasons,
 and unresolved issues. The summary and highlighted priority tabs show the latest
-iteration. **Open Highlighted Priority Sheet** opens this same workbook after
+iteration. **Open Priority Workbook** opens this same workbook after
 saving. Close the workbook in Excel before recalculating, then reopen it to see the
 new iteration. Windows may prevent saving while it is open; other systems may
 keep displaying the previously opened version until it is reopened.
@@ -166,7 +182,7 @@ cancellation exports are left as archives; they are not merged automatically.
   orders; original priority highlights remain, so always read the Decision column.
 - Rows without entered yields are explicitly marked **NO YIELD ENTERED**, or
   **LINKED — NO YIELD ENTERED** when a dependency has implications for that row.
-- **Export Detailed Notes** remains available for the full text report.
+- **Export Notes** remains available for the full text report.
 
 Changing yields or other inputs clears the displayed cancellation list and disables
 the workbook button until recalculation. Earlier iterations remain in Decision
@@ -221,7 +237,7 @@ exactly once. Do not enter only remaining inventory.
   removal step, not a promise that the comparison request is ultimately fulfilled.
   These same explanations appear in Who to Cancel, Full Details, highlighted sheets,
   text exports, and new Decision History iterations. Previous iterations are unchanged.
-  Select a Who to Cancel row and click **View Selected Explanation…** to read the
+  Select a Who to Cancel row and click **Explanation…** to read the
   full rationale in a scrollable window instead of relying on a truncated cell/tooltip.
 - Missed-pickup stars are a late tie-breaker: after weekly access, donor specificity,
   and fulfillment-history comparisons, fewer stars are favored before request

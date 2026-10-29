@@ -40,7 +40,7 @@ public final class CancellationDecisionDialog extends JDialog {
     private final JTable orderTable;
     private final JTable outcomeTable;
     private final Map<String, JTextField> yieldFields = new LinkedHashMap<>();
-    private final JPanel yieldPanel = new JPanel(new GridLayout(0, 4, 12, 10));
+    private final JPanel yieldPanel = new JPanel(new GridLayout(0, 2, 12, 12));
     private final Map<String, JCheckBox> yieldReady = new LinkedHashMap<>();
     private final Map<String, JCheckBox> notIsolating = new LinkedHashMap<>();
     private final JPanel reviewChecklist = new JPanel(new GridLayout(0, 1, 4, 6));
@@ -134,13 +134,12 @@ public final class CancellationDecisionDialog extends JDialog {
         JPanel content = new JPanel(new BorderLayout(8, 8));
         content.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         JTextArea instructions = new JTextArea("DONOR " + donor + "   •   " + date + "   •   " + requests.size() + " saved orders\n"
-                + "Enter yields → verify dependencies → select cancellations and record outcomes.\n"
-                + "Recommendations never cancel orders on the website. Saved priority data: " + reportDirectory.getFileName());
+                + "Enter yields → review dependencies → confirm actual outcomes. No website orders are changed.");
         instructions.setEditable(false);
         instructions.setLineWrap(true);
         instructions.setWrapStyleWord(true);
         instructions.setBackground(content.getBackground());
-        instructions.setRows(3);
+        instructions.setRows(2);
         instructions.setFont(instructions.getFont().deriveFont(14f));
         content.add(instructions, BorderLayout.NORTH);
         JTabbedPane tabs = steps;
@@ -149,10 +148,12 @@ public final class CancellationDecisionDialog extends JDialog {
             addYieldField(cell);
         }
         JPanel yieldCard = new JPanel(new BorderLayout(12, 12));
-        yieldCard.setBorder(BorderFactory.createTitledBorder("Which yields are ready?"));
-        yieldCard.add(new JLabel("<html>Enter TOTAL usable yield, including amounts already distributed, in request units.<br>Ready = enter a yield. Neither checked = unknown. Not isolating today = known zero availability, including linked requests.</html>"), BorderLayout.NORTH);
-        yieldCard.add(yieldPanel, BorderLayout.CENTER);
-        inputs.add(yieldCard, BorderLayout.NORTH);
+        yieldCard.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        yieldCard.add(new JLabel("<html><b>Which yields are ready?</b><br>Enter total usable yield, including cells already delivered. Leave unknown types unchecked.</html>"), BorderLayout.NORTH);
+        JPanel yieldCards = new JPanel(new BorderLayout());
+        yieldCards.add(yieldPanel, BorderLayout.NORTH);
+        yieldCard.add(yieldCards, BorderLayout.CENTER);
+        inputs.add(new JScrollPane(yieldCard), BorderLayout.CENTER);
         JPanel options = new JPanel(new GridLayout(0, 1));
         options.add(new JLabel("Minimums first for every cell type. Maximums only after all pending minimums and linked dependencies for that type are satisfied."));
         options.add(new JLabel(stats == null
@@ -160,14 +161,15 @@ public final class CancellationDecisionDialog extends JDialog {
                 : "Weekly history loaded from the saved priority workbook. Confirmed local outcomes supplement it."));
         pbmcStatus.setText("Select actual cancellations in Who to Cancel. Record deliveries in Recorded Outcomes & Deliveries. No website checks.");
         options.add(pbmcStatus);
-        inputs.add(options, BorderLayout.SOUTH);
+        inputs.add(collapsible("Allocation policy & workflow notes", options), BorderLayout.SOUTH);
         tabs.addTab("1  Yields", inputs);
         JPanel reviewStep = new JPanel(new BorderLayout(8, 12));
-        reviewStep.add(new JLabel("Review comments and linked groups below. Same group = all-or-none. CD4/CD8 pairs cannot be split."), BorderLayout.NORTH);
-        reviewStep.add(new JScrollPane(orderTable), BorderLayout.CENTER);
+        reviewStep.add(new JLabel("Same linked group = all-or-none. Select a row for its complete comment and flags; edit groups and flags in the table."), BorderLayout.NORTH);
+        JPanel dependencyOrders = orderWorkspace(orderTable, 2, 3, 4, 11, 12);
         JPanel acknowledgements = new JPanel(new BorderLayout(8, 8));
         JScrollPane checklistScroll = new JScrollPane(reviewChecklist);
-        checklistScroll.setPreferredSize(new Dimension(800, 150));
+        checklistScroll.setPreferredSize(new Dimension(800, 125));
+        checklistScroll.setBorder(BorderFactory.createTitledBorder("Comment review acknowledgements — check after reviewing, even if you corrected a flag"));
         acknowledgements.add(checklistScroll, BorderLayout.CENTER);
         reviewed.setText("I verified this donor/date and the recorded outcomes.");
         JPanel verificationActions = new JPanel(new BorderLayout(8, 8));
@@ -176,7 +178,11 @@ public final class CancellationDecisionDialog extends JDialog {
         selectAllVerification.addActionListener(event -> selectAllVerification());
         verificationActions.add(selectAllVerification, BorderLayout.EAST);
         acknowledgements.add(verificationActions, BorderLayout.SOUTH);
-        reviewStep.add(acknowledgements, BorderLayout.SOUTH);
+        JSplitPane reviewLayout = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                dependencyOrders, acknowledgements);
+        reviewLayout.setResizeWeight(0.75);
+        reviewLayout.setBorder(BorderFactory.createEmptyBorder());
+        reviewStep.add(reviewLayout, BorderLayout.CENTER);
         tabs.addTab("2  Review Dependencies", reviewStep);
         result.setEditable(false);
         result.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
@@ -187,9 +193,11 @@ public final class CancellationDecisionDialog extends JDialog {
         cancellationWarning.setEditable(false);
         cancellationWarning.setLineWrap(true);
         cancellationWarning.setWrapStyleWord(true);
-        cancellationWarning.setRows(3);
+        cancellationWarning.setRows(2);
         cancellationWarning.setBackground(new java.awt.Color(255, 246, 218));
-        resultHeader.add(cancellationWarning);
+        JScrollPane warningScroll = new JScrollPane(cancellationWarning);
+        warningScroll.setBorder(BorderFactory.createEmptyBorder());
+        resultHeader.add(warningScroll);
         cancellations.add(resultHeader, BorderLayout.NORTH);
         cancellationTable = new JTable(cancellationRows);
         JTable cancelTable = cancellationTable;
@@ -218,9 +226,10 @@ public final class CancellationDecisionDialog extends JDialog {
         cancelTable.setDefaultRenderer(Object.class, cancelRenderer);
         cancelTable.setDefaultRenderer(Integer.class, cancelRenderer);
         cancelTable.setDefaultRenderer(Double.class, cancelRenderer);
-        cancellations.add(new JScrollPane(cancelTable), BorderLayout.CENTER);
+        cancellations.add(orderWorkspace(cancelTable, 0, 4, 5, 6, 8), BorderLayout.CENTER);
         cancellations.add(workbookStatus, BorderLayout.SOUTH);
         JTabbedPane recommendations = new JTabbedPane();
+        recommendations.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         recommendations.addTab("Who to Cancel", cancellations);
         JScrollPane allocationPane = tablePane(allocationRows);
         JTextArea linkedDetails = new JTextArea("Select an allocation to inspect every request in its linked group.");
@@ -249,22 +258,25 @@ public final class CancellationDecisionDialog extends JDialog {
             linkedDetails.setText(detail.toString());
             linkedDetails.setCaretPosition(0);
         });
-        JSplitPane allocations = new JSplitPane(JSplitPane.VERTICAL_SPLIT, allocationPane, new JScrollPane(linkedDetails));
+        JSplitPane allocations = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                new CancellationTablePanel(allocationTable, 0, false, 5, 6, 7), new JScrollPane(linkedDetails));
         allocations.setResizeWeight(0.7);
-        recommendations.addTab("Allocations & Linked Groups", allocations);
+        linkedDetails.setRows(4);
+        allocations.setBorder(BorderFactory.createEmptyBorder());
+        recommendations.addTab("Allocations & Links", allocations);
         JPanel attention = new JPanel(new BorderLayout(8, 8));
         attention.add(new JLabel("Resolve HOLD / REVIEW rows before distributing. Unknown-yield linked cancellations are review only."), BorderLayout.NORTH);
-        attention.add(tablePane(attentionRows), BorderLayout.CENTER);
+        JTable attentionTable = (JTable) tablePane(attentionRows).getViewport().getView();
+        attention.add(orderWorkspace(attentionTable, 2, 4, 5), BorderLayout.CENTER);
         recommendations.addTab("Needs Your Decision", attention);
         changes.setEditable(false);
         changes.setLineWrap(true);
         changes.setWrapStyleWord(true);
-        recommendations.addTab("Changes Since Last Calculation", new JScrollPane(changes));
+        recommendations.addTab("Changes", new JScrollPane(changes));
         recommendations.addTab("Full Details", new JScrollPane(result));
         JPanel recommendationStep = new JPanel(new BorderLayout(8, 12));
         JScrollPane inventory = tablePane(inventoryRows);
-        inventory.setPreferredSize(new Dimension(800, 135));
-        recommendationStep.add(inventory, BorderLayout.NORTH);
+        recommendations.addTab("Yield Balance", inventory);
         recommendationStep.add(recommendations, BorderLayout.CENTER);
         tabs.addTab("3  Recommendations", recommendationStep);
         JPanel outcomes = new JPanel(new BorderLayout(8, 12));
@@ -275,11 +287,11 @@ public final class CancellationDecisionDialog extends JDialog {
         for (int column : new int[]{11, 8, 7, 6, 5}) outcomeTable.removeColumn(outcomeTable.getColumnModel().getColumn(column));
         outcomeTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         orderTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-        outcomes.add(new JScrollPane(outcomeTable), BorderLayout.CENTER);
+        outcomes.add(orderWorkspace(outcomeTable, 2, 4, 12), BorderLayout.CENTER);
         JPanel outcomeFooter = new JPanel(new BorderLayout(8, 8));
         outcomeFooter.add(outcomeSummary, BorderLayout.NORTH);
         outcomes.add(outcomeFooter, BorderLayout.SOUTH);
-        recommendations.addTab("Recorded Outcomes & Deliveries", outcomes);
+        recommendations.insertTab("Recorded Outcomes & Deliveries", null, outcomes, "Actual saved cancellations and deliveries", 1);
         tabs.setTitleAt(2, "3  Decisions & Outcomes");
         content.add(tabs, BorderLayout.CENTER);
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -291,9 +303,10 @@ public final class CancellationDecisionDialog extends JDialog {
                 tabs.setSelectedIndex(2);
             }
         });
-        JButton export = new JButton("Export Detailed Notes");
+        JButton export = new JButton("Export Notes");
         export.addActionListener(event -> exportReport());
         openPriorityButton.setEnabled(false);
+        openPriorityButton.setText("Open Priority Workbook");
         openPriorityButton.addActionListener(event -> {
             try {
                 if (currentPriorityWorkbook != null) java.awt.Desktop.getDesktop().open(currentPriorityWorkbook.toFile());
@@ -308,8 +321,10 @@ public final class CancellationDecisionDialog extends JDialog {
         JButton selectOther = new JButton("Select Other Orders…");
         selectOther.addActionListener(event -> selectOtherOrders());
         JButton saveCancellations = new JButton("Confirm & Save Selected Cancellations…");
+        saveCancellations.setToolTipText("Checking Will Cancel is only intent. Confirm here only after those cancellations actually happen.");
         saveCancellations.addActionListener(event -> confirmSelectedCancellations());
         JButton selectRecommended = new JButton("Select All Listed");
+        selectRecommended.setToolTipText("Select every listed cancellation, including rows hidden by search or cell-type filters.");
         selectRecommended.addActionListener(event -> {
             for (int row = 0; row < cancellationRows.getRowCount(); row++) cancellationRows.setValueAt(true, row, 7);
         });
@@ -318,12 +333,12 @@ public final class CancellationDecisionDialog extends JDialog {
         JPanel cancellationActions = new JPanel(new FlowLayout(FlowLayout.LEFT));
         cancellationActions.add(selectRecommended);
         cancellationActions.add(selectOther);
-        cancellationActions.add(saveCancellations);
-        JButton explanation = new JButton("View Selected Explanation…");
+        JButton explanation = new JButton("Explanation…");
+        explanation.setToolTipText("Read the complete explanation and requester comment for the selected order.");
         explanation.addActionListener(event -> showSelectedCancellationExplanation());
         cancellationActions.add(explanation);
+        cancellationActions.add(saveCancellations);
         cancellationFooter.add(cancellationActions, BorderLayout.CENTER);
-        cancellationFooter.add(new JLabel("Checking a box selects intent; confirm only after cancellation actually happens. Recalculating clears selections."), BorderLayout.SOUTH);
         cancellations.add(cancellationFooter, BorderLayout.SOUTH);
         JButton back = new JButton("← Back");
         back.addActionListener(event -> tabs.setSelectedIndex(Math.max(0, tabs.getSelectedIndex() - 1)));
@@ -397,19 +412,38 @@ public final class CancellationDecisionDialog extends JDialog {
         if (yieldFields.containsKey(cell)) {
             return;
         }
-        yieldPanel.add(new JLabel(cell + " total yield"));
+        JPanel card = new JPanel(new BorderLayout(6, 4));
+        card.putClientProperty("hic.card", Boolean.TRUE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new java.awt.Color(210, 222, 234)),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+        double minimum = requests.stream().filter(request -> request.getCellType().equals(cell))
+                .mapToDouble(HICData::getMinRequest).sum();
+        JLabel title = new JLabel("<html><b>" + escape(cell) + "</b><br><font color='#52677c'>"
+                + CancellationPlanner.format(minimum) + " minimum requested</font></html>");
+        card.add(title, BorderLayout.NORTH);
+        JPanel availability = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        availability.putClientProperty("hic.card", Boolean.TRUE);
         JCheckBox ready = new JCheckBox("Yield ready");
         yieldReady.put(cell, ready);
-        yieldPanel.add(ready);
+        availability.add(ready);
         JCheckBox unavailable = new JCheckBox("Not isolating today");
         unavailable.setToolTipText("Known zero availability: requests for this cell type and their all-or-none partners cannot be fulfilled. Protected or committed groups require review.");
         notIsolating.put(cell, unavailable);
-        yieldPanel.add(unavailable);
-        JTextField amount = new JTextField();
+        availability.add(unavailable);
+        card.add(availability, BorderLayout.CENTER);
+        JTextField amount = new JTextField(10);
+        amount.setHorizontalAlignment(JTextField.RIGHT);
+        amount.setFont(amount.getFont().deriveFont(java.awt.Font.BOLD, 16f));
         amount.setEnabled(false);
         amount.setToolTipText("Total usable yield in request units, including previously delivered amounts. Zero is a known zero yield.");
         yieldFields.put(cell, amount);
-        yieldPanel.add(amount);
+        JPanel entry = new JPanel(new BorderLayout(8, 0));
+        entry.putClientProperty("hic.card", Boolean.TRUE);
+        entry.add(new JLabel("Total usable yield"), BorderLayout.WEST);
+        entry.add(amount, BorderLayout.CENTER);
+        card.add(entry, BorderLayout.SOUTH);
+        yieldPanel.add(card);
         ready.addActionListener(event -> {
             amount.setEnabled(ready.isSelected());
             if (ready.isSelected()) amount.requestFocusInWindow();
@@ -433,6 +467,25 @@ public final class CancellationDecisionDialog extends JDialog {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
+    }
+
+    private static JPanel orderWorkspace(JTable table, int cellColumn, int... detailColumns) {
+        return new CancellationTablePanel(table, cellColumn, detailColumns);
+    }
+
+    private static JPanel collapsible(String title, java.awt.Component detail) {
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        JToggleButton toggle = new JToggleButton(title + " ▸");
+        toggle.setHorizontalAlignment(SwingConstants.LEFT);
+        detail.setVisible(false);
+        toggle.addActionListener(event -> {
+            detail.setVisible(toggle.isSelected());
+            toggle.setText(title + (toggle.isSelected() ? " ▾" : " ▸"));
+            panel.revalidate();
+        });
+        panel.add(toggle, BorderLayout.NORTH);
+        panel.add(detail, BorderLayout.CENTER);
+        return panel;
     }
 
     private static JScrollPane tablePane(DefaultTableModel model) {
@@ -465,7 +518,9 @@ public final class CancellationDecisionDialog extends JDialog {
 
     private static void styleWorkflow(java.awt.Container container) {
         if (container instanceof JPanel || container instanceof JTabbedPane || container instanceof JViewport) {
-            container.setBackground(new java.awt.Color(244, 248, 252));
+            container.setBackground(container instanceof JComponent component
+                    && Boolean.TRUE.equals(component.getClientProperty("hic.card"))
+                    ? java.awt.Color.WHITE : new java.awt.Color(244, 248, 252));
         }
         for (java.awt.Component component : container.getComponents()) {
             if (component instanceof JLabel || component instanceof JCheckBox || component instanceof JButton) {
@@ -473,7 +528,7 @@ public final class CancellationDecisionDialog extends JDialog {
                         Math.max(13, component.getFont().getSize())));
             }
             if (component instanceof JButton button) {
-                button.setMargin(new java.awt.Insets(9, 14, 9, 14));
+                button.setMargin(new java.awt.Insets(7, 10, 7, 10));
             }
             if (component instanceof JTabbedPane pane) {
                 pane.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 13));
@@ -495,8 +550,9 @@ public final class CancellationDecisionDialog extends JDialog {
             HICData request = requests.get(row);
             String comment = request.getRequesterComment();
             if (conditionalComment(comment) || donorSpecific(comment)) {
-                JCheckBox check = new JCheckBox("#" + request.getOrderNumber() + " " + request.getName() + " / "
-                        + request.getCellType() + " — verify linked scope and donor-specific flag");
+                JCheckBox check = new JCheckBox("<html><div style='width:650px'>"
+                        + escape("#" + request.getOrderNumber() + " " + request.getName() + " / "
+                        + request.getCellType()) + "<br>Requester comment: " + escape(comment) + "</div></html>");
                 check.setToolTipText("<html><div style='width:500px'>" + escape(comment) + "<br>Current group: "
                         + escape(String.valueOf(orders.getValueAt(row, 6))) + "</div></html>");
                 check.addActionListener(event -> invalidateRecommendation());

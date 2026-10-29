@@ -81,6 +81,7 @@
 <p>Folders created before saved cancellation inputs were supported must be regenerated once. Keep the correct donor/date even when opening a folder on a later day; the selected snapshot determines the collection date.</p>
 
 <h2 id="yield-inputs">12. Yields and Not isolating today</h2>
+<p>Each cell type has a compact yield card showing its total minimum requested. Expand <b>Allocation policy &amp; workflow notes</b> only when you need the additional guidance.</p>
 <table><tr><th>Setting in 1 Yields</th><th>Meaning</th></tr>
 <tr><td>Yield ready</td><td>Enter a measured total usable yield. Zero means a known zero yield.</td></tr>
 <tr><td>Neither option checked</td><td>The yield is unknown. Retained text in a disabled field is ignored.</td></tr>
@@ -119,7 +120,8 @@
 <tr><td>REVIEW</td><td>A protection, commitment, conflicting outcome, or shortage prevents a clean automatic decision.</td></tr>
 <tr><td>RECORDED FULFILLED / CANCELLED</td><td>A previously entered actual outcome, not changed by this recommendation.</td></tr>
 <tr><td>NO YIELD ENTERED / LINKED — NO YIELD ENTERED</td><td>The cell type is outside the actionable cancellation list; inspect linked consequences before handling it.</td></tr></table>
-<p><b>Allocations &amp; Linked Groups:</b> select a row to inspect its entire group and comments below. <b>Needs Your Decision:</b> unresolved issues and linked unknowns. <b>Changes Since Last Calculation:</b> compares decisions/allocations within this open session. <b>Full Details:</b> the complete report, including unmet weekly-access targets.</p>
+<p><b>Allocations &amp; Links:</b> select a row to inspect its entire group and comments below. <b>Needs Your Decision:</b> unresolved issues and linked unknowns. <b>Changes:</b> compares decisions/allocations within this open session. <b>Full Details:</b> the complete report, including unmet weekly-access targets. <b>Yield Balance:</b> total yields, delivered amounts, reservations, and remaining cells.</p>
+<p>Use <b>Search</b> and the cell-type filter to focus any order table. Search includes full comments and hidden fields; multiple words must all match. The count shows visible / total orders. Select a row for full details below, or enable <b>More columns</b> to restore secondary fields. Drag dividers to resize the detail and acknowledgement areas. Filters never change calculations or outcomes. <b>Select All Listed</b> selects all listed cancellations, including rows currently hidden by a filter.</p>
 <p>Changing inputs clears the old displayed recommendation. Calculate again before relying on an earlier result.</p>
 <p>For an algorithmic cancellation, <b>Why Cancel</b> starts with <b>Deciding factor</b>. It identifies the actual removal-step rule: unavailable isolation, insufficient yield for the group, protection/commitment constraints, weekly access, or the first differing priority factor. Explanations show demand/supply numbers and comparison values where applicable, and identify linked consequences. Comparison requests can also be cancelled later; the explanation is not a claim that they were ultimately served. Failed restoration checks identify shortages in the cell types needed by that group's pending minimum requests. Unrelated shortages cannot block an independent request's restoration. These explanations are copied into workbook exports and new Decision History iterations.</p>
 
@@ -128,7 +130,7 @@
 <p>Confirmation records CANCELLED with zero delivered and saves the donor/day outcomes plus current reviewed flags. It does not cancel anything on HIC Cell. Unchecked orders remain unchanged, not automatically fulfilled.</p>
 <p>Checkboxes represent temporary intent only. Changing inputs or recalculating clears selections. Closing warns about unconfirmed selected cancellations. Cancelling the confirmation leaves recorded outcomes unchanged.</p>
 <p>Saving actual cancellations clears the old recommendation. Review dependencies and recalculate before acting on the next plan.</p>
-<p>Select a Who to Cancel row and click <b>View Selected Explanation</b> to read the full deciding factor, comparison, shortage amounts, linked consequences, and requester comment in a scrollable window.</p>
+<p>Select a Who to Cancel row and click <b>Explanation</b> to read the full deciding factor, comparison, shortage amounts, linked consequences, and requester comment in a scrollable window.</p>
 
 <h2 id="record-outcomes">18. Deliveries and saved cancellations</h2>
 <p>Within Decisions &amp; Outcomes, open <b>Recorded Outcomes &amp; Deliveries</b>. This is the place to review already confirmed cancellations from earlier calculations or sessions for the same donor/day.</p>
@@ -153,7 +155,7 @@
 <p>Each calculation saves one <b>Cancellation_Priority_DONOR_DATE.xlsx</b> in the selected donor folder. Later calculations append numbered iterations to its Decision History instead of creating a new workbook each time.</p>
 <ul><li><b>Cancellation Summary:</b> current scoped cancellation recommendations, yields, and warnings.</li><li><b>Highlighted priority tabs:</b> original ranking plus decision, planned allocation, reason, and requester comment. Pink SHOULD CANCEL identifies current actionable recommendations. Read the decision text; original priority highlighting remains.</li><li><b>Decision History:</b> previous calculations, entered yields, decisions, allocations, comments, groups, protections, and unresolved issues.</li></ul>
 <p>The original Low_Yield_Order_Priority.xlsx is preserved. Older randomly named cancellation exports remain archives and are not merged automatically.</p>
-<p>Saving runs in the background. Open Highlighted Priority Sheet enables when the current save completes. Export Detailed Notes saves the full text report.</p>
+<p>Saving runs in the background. Open Priority Workbook enables when the current save completes. Export Notes saves the full text report.</p>
 <p><b>Close the cancellation workbook in Excel before recalculating, then reopen it.</b> Windows can block replacement while it is open; other systems may keep displaying the older opened version. Failed replacement preserves earlier history rather than silently discarding it.</p>
 <p>Current cancelled outcomes are reviewed in <a href="#record-outcomes">Recorded Outcomes &amp; Deliveries</a>, not inferred from historical SHOULD CANCEL entries.</p>
 
@@ -168,7 +170,7 @@
 <p>The unknown monocyte order does not count as a real alternative weekly allocation. It should not by itself justify cancelling their currently fillable high-priority PBMC request.</p>
 <h3>Several missed-pickup stars</h3>
 <p>More stars lower priority only after weekly access, donor specificity, and fulfillment-history factors are equal. They are not an automatic cancellation rule.</p>
-<p>Inspect Allocations &amp; Linked Groups, flags, recorded outcomes, and yield settings to explain an individual result. The visible sheet rank alone is not the full cancellation hierarchy.</p>
+<p>Inspect Allocations &amp; Links, flags, recorded outcomes, and yield settings to explain an individual result. The visible sheet rank alone is not the full cancellation hierarchy.</p>
 
 <h2 id="troubleshooting-input">23. Input and parsing problems</h2>
 <h3>No records parsed, missing rows, or wrong names/cell types</h3>
