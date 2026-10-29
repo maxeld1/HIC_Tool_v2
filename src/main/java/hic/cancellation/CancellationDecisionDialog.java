@@ -433,7 +433,22 @@ public final class CancellationDecisionDialog extends JDialog {
         availability.add(unavailable);
         card.add(availability, BorderLayout.CENTER);
         JTextField amount = new JTextField(10);
-        amount.setHorizontalAlignment(JTextField.RIGHT);
+        amount.setHorizontalAlignment(JTextField.LEFT);
+        ((javax.swing.text.AbstractDocument) amount.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass bypass, int offset, String text, javax.swing.text.AttributeSet attributes)
+                    throws javax.swing.text.BadLocationException {
+                replace(bypass, offset, 0, text, attributes);
+            }
+
+            @Override
+            public void replace(FilterBypass bypass, int offset, int length, String text, javax.swing.text.AttributeSet attributes)
+                    throws javax.swing.text.BadLocationException {
+                if (text == null || text.matches("[0-9]*")) {
+                    super.replace(bypass, offset, length, text, attributes);
+                }
+            }
+        });
         amount.setFont(amount.getFont().deriveFont(java.awt.Font.BOLD, 16f));
         amount.setEnabled(false);
         amount.setToolTipText("Total usable yield in request units, including previously delivered amounts. Zero is a known zero yield.");
