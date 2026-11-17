@@ -744,6 +744,16 @@ public class HICExcelLogger {
     private void replaceMergeFields(XWPFTableCell cell, HICData data, String donor) {
 
         LocalDate currentDate = LocalDate.now(); //get the local date
+        XWPFParagraph nameParagraph = null;
+        XWPFParagraph totalsParagraph = null;
+        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+            if (paragraph.getText().contains("<<Name>>")) {
+                nameParagraph = paragraph;
+            }
+            if (paragraph.getText().contains("<<Max>>")) {
+                totalsParagraph = paragraph;
+            }
+        }
 
         // Replace merge fields with data
         for (XWPFParagraph paragraph : cell.getParagraphs()) {
@@ -762,6 +772,68 @@ public class HICExcelLogger {
                 }
             }
         }
+        fitLabelName(cell, nameParagraph, totalsParagraph);
+    }
+
+    private void fitLabelName(XWPFTableCell cell, XWPFParagraph nameParagraph,
+                              XWPFParagraph totalsParagraph) {
+        if (nameParagraph == null || totalsParagraph == null || nameParagraph.getRuns().isEmpty()) {
+            return;
+        }
+        XWPFRun nameRun = nameParagraph.getRuns().get(0);
+        double fontSize = nameRun.getFontSizeAsDouble() == null ? 8 : nameRun.getFontSizeAsDouble();
+        String fontFamily = nameRun.getFontFamily() == null ? "Arial" : nameRun.getFontFamily();
+        double availableWidth = cell.getWidth() / 20.0 - 8;
+        String nameText = nameParagraph.getText();
+        if (availableWidth <= 0 || labelTextWidth(nameText, fontFamily, fontSize, false) <= availableWidth) {
+            return;
+        }
+        String totalsText = "   " + totalsParagraph.getText().trim().replaceAll("\\s+", "   ");
+        String[] words = nameText.trim().split("\\s+");
+        int splitIndex = -1;
+        while (splitIndex < 0) {
+            for (int candidate = words.length - 1; candidate > 0; candidate--) {
+                String firstLine = String.join(" ", java.util.Arrays.copyOfRange(words, 0, candidate));
+                String secondLine = String.join(" ", java.util.Arrays.copyOfRange(words, candidate, words.length));
+                if (labelTextWidth(firstLine, fontFamily, fontSize, false) <= availableWidth
+                        && labelTextWidth(secondLine, fontFamily, fontSize, false)
+                        + labelTextWidth(totalsText, fontFamily, fontSize, true) <= availableWidth) {
+                    splitIndex = candidate;
+                    break;
+                }
+            }
+            if (splitIndex < 0) {
+                fontSize -= 0.5;
+                if (fontSize <= 1) {
+                    return;
+                }
+            }
+        }
+        XWPFRun totalsSource = totalsParagraph.getRuns().isEmpty() ? null : totalsParagraph.getRuns().get(0);
+        while (nameParagraph.getRuns().size() > 1) {
+            nameParagraph.removeRun(1);
+        }
+        nameRun.setText(String.join(" ", java.util.Arrays.copyOfRange(words, 0, splitIndex)), 0);
+        nameRun.setFontSize(fontSize);
+        nameRun.addBreak();
+        nameRun.setText(String.join(" ", java.util.Arrays.copyOfRange(words, splitIndex, words.length)));
+        XWPFRun totalsRun = nameParagraph.createRun();
+        if (totalsSource != null && totalsSource.getCTR().isSetRPr()) {
+            totalsRun.getCTR().setRPr((org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr)
+                    totalsSource.getCTR().getRPr().copy());
+        }
+        totalsRun.setFontSize(fontSize);
+        totalsRun.setText(totalsText.replace(' ', '\u00A0'));
+        nameParagraph.setSpacingBefore(0);
+        nameParagraph.setSpacingAfter(0);
+        nameParagraph.setSpacingBetween(1.0);
+        cell.removeParagraph(cell.getParagraphs().indexOf(totalsParagraph));
+    }
+
+    private double labelTextWidth(String text, String family, double size, boolean bold) {
+        java.awt.Font font = new java.awt.Font(family, bold ? java.awt.Font.BOLD : java.awt.Font.PLAIN, 1)
+                .deriveFont((float) size);
+        return font.getStringBounds(text, new java.awt.font.FontRenderContext(null, true, true)).getWidth();
     }
 
     /**
